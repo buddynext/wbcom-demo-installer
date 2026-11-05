@@ -113,6 +113,11 @@ final class Theme extends Provider {
 		$logo  = $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
 		if ( $logo && current_theme_supports( 'custom-logo' ) ) {
 			Snapshot::write( 'theme_mod:custom_logo', $logo );
+			// The logo carries the name, so the site title beside it repeats it and crowds the menu. BuddyX shows
+			// both unless its "Display Site Title and Tagline" setting is off; BuddyX Pro and Reign already hide it.
+			if ( 'BuddyX' === self::theme_family() ) {
+				Snapshot::write( 'theme_mod:display_header_text', false );
+			}
 		}
 		$icon = $ctx->attachment( 'brand/site-icon.png', $admin, $this->id(), 'setup' );
 		if ( $icon ) {
