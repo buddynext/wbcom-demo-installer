@@ -207,7 +207,12 @@ final class Context {
 	 */
 	public function warn( string $provider, string $what, $error ): void {
 		$list   = (array) $this->state->get( 'warnings' );
-		$list[] = sprintf( '%s: %s (%s)', $provider, $what, is_wp_error( $error ) ? $error->get_error_message() : (string) $error );
+		$detail = is_string( $error ) ? $error : '';
+		if ( is_wp_error( $error ) ) {
+			$data   = $error->get_error_data();
+			$detail = $error->get_error_message() . ( is_array( $data ) && ! empty( $data['errors'] ) ? ' ' . wp_json_encode( $data['errors'] ) : '' );
+		}
+		$list[] = sprintf( '%s: %s (%s)', $provider, $what, $detail );
 		$this->state->set( 'warnings', array_slice( $list, -100 ) );
 	}
 
