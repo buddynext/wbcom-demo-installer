@@ -163,7 +163,10 @@ final class Jetonomy extends Provider {
 		$mods   = $ctx->people( 'moderator' );
 		$spaces = array();
 		foreach ( $c['categories'] as $cat ) {
-			$cat_id = \Jetonomy\Models\Category::create(
+			// A category or space kept from an earlier demo (Finish: keep my setup) is reused as the
+			// container. It is not recorded, so a later Finish removes only this demo's content in it.
+			$found  = \Jetonomy\Models\Category::find_by_slug( $cat['slug'] );
+			$cat_id = $found ? (int) $found->id : \Jetonomy\Models\Category::create(
 				array(
 					'name'        => $cat['name'],
 					'slug'        => $cat['slug'],
@@ -175,10 +178,13 @@ final class Jetonomy extends Provider {
 				$ctx->warn( $this->id(), 'category ' . $cat['slug'], 'not created' );
 				continue;
 			}
-			$ctx->record( $this->id(), 'category', (int) $cat_id, 'setup' );
+			if ( ! $found ) {
+				$ctx->record( $this->id(), 'category', (int) $cat_id, 'setup' );
+			}
 			foreach ( $cat['spaces'] as $s ) {
 				$owner    = $mods ? $mods[ count( $spaces ) % count( $mods ) ] : $people[0];
-				$space_id = \Jetonomy\Models\Space::create(
+				$kept     = \Jetonomy\Models\Space::find_by_slug( $s['slug'] );
+				$space_id = $kept ? (int) $kept->id : \Jetonomy\Models\Space::create(
 					array(
 						'category_id' => (int) $cat_id,
 						'author_id'   => $owner,
@@ -196,10 +202,12 @@ final class Jetonomy extends Provider {
 					$ctx->warn( $this->id(), 'space ' . $s['slug'], is_wp_error( $space_id ) ? $space_id : 'not created' );
 					continue;
 				}
-				$ctx->record( $this->id(), 'space', (int) $space_id, 'setup' );
+				if ( ! $kept ) {
+					$ctx->record( $this->id(), 'space', (int) $space_id, 'setup' );
+				}
 				$spaces[ $s['slug'] ] = array(
 					'id'   => (int) $space_id,
-					'type' => $s['type'],
+					'type' => $kept ? (string) $kept->type : $s['type'],
 				);
 				foreach ( $people as $k => $uid ) {
 					\Jetonomy\Models\SpaceMember::add( (int) $space_id, $uid, $uid === $owner ? 'admin' : ( in_array( $uid, $mods, true ) ? 'moderator' : 'member' ) );

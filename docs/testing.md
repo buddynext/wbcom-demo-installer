@@ -151,5 +151,11 @@ any missing tracked file); the menu step failed in the wizard on BuddyX Pro beca
 `get_current_screen()` while saving menu items (BuddyX Pro card filed, worked around here); the Pro add-on label
 was missing for BuddyNext, WP Career Board and Product Roadmap.
 
-Open: a second build after "Keep my setup" collides with the kept spaces and categories (no discussions or
-BuddyNext spaces in the second demo).
+A second build after "Keep my setup" now reuses the kept forum categories, forum spaces and BuddyNext spaces as
+containers without recording them, so a later Finish removes only that demo's content (`d6.sh`): first build 306
+items, second build 266 items with 0 warnings and 20 discussions, the space and category counts the same before
+the second build, after it and after its Finish, and no sample people or discussions left.
+
+| Row | Result |
+|---|---|
+| D6-rebuild-after-keep | PASS |

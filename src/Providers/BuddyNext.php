@@ -270,10 +270,8 @@ final class BuddyNext extends Provider {
 			}
 		}
 
-		$people = $ctx->people();
-		$n      = count( $people );
-		$by     = array();
-		$all    = array_merge( $c['spaces'], $c['subspaces'] );
+		$by  = array();
+		$all = array_merge( $c['spaces'], $c['subspaces'] );
 		foreach ( $all as $i => $s ) {
 			$owner = isset( $s['owner'] ) ? $ctx->person( $s['owner'] ) : $ctx->person( $i + 3 );
 			$data  = array(
@@ -290,6 +288,15 @@ final class BuddyNext extends Provider {
 					continue;
 				}
 				$data['parent_id'] = $by[ $s['parent'] ];
+			}
+			// A space kept from an earlier demo is reused as is (not recorded, its look untouched);
+			// this demo only adds members and posts to it.
+			$kept = $spaces->get_by_slug( $s['slug'] );
+			if ( $kept ) {
+				$id               = (int) $kept['id'];
+				$by[ $s['slug'] ] = $id;
+				$this->join_members( $ctx, $members, $id, $i, (int) $kept['owner_id'], $s, count( $all ) );
+				continue;
 			}
 			Clock::set( $ctx->date( $i, count( $all ) + 4, 90 ) );
 			$id = $spaces->create( $owner, $data );
@@ -313,19 +320,7 @@ final class BuddyNext extends Provider {
 				)
 			);
 
-			if ( 'secret' === $s['type'] ) {
-				continue;
-			}
-			$want   = (int) ( $s['members'] ?? (int) ( $n / 3 ) );
-			$joined = 0;
-			for ( $k = 0; $k < $n && $joined < $want; $k++ ) {
-				$uid = $people[ ( $i + $k ) % $n ];
-				if ( $uid === $owner ) {
-					continue;
-				}
-				$members->join( $id, $uid, $ctx->date( $i + $k, $n + count( $all ), 80 ) );
-				++$joined;
-			}
+			$this->join_members( $ctx, $members, $id, $i, $owner, $s, count( $all ) );
 		}
 		Clock::reset();
 		$ctx->set( $this->id(), 'spaces', $by );
@@ -755,6 +750,35 @@ final class BuddyNext extends Provider {
 	 */
 	public function late_types(): array {
 		return array( 'hashtag' );
+	}
+
+	/**
+	 * Sample people join a space (none for a secret one).
+	 *
+	 * @param Context              $ctx     Context.
+	 * @param object               $members BuddyNext SpaceMemberService.
+	 * @param int                  $id      Space id.
+	 * @param int                  $i       Space index.
+	 * @param int                  $owner   Owner, skipped.
+	 * @param array<string, mixed> $s       Space content.
+	 * @param int                  $total   Number of spaces.
+	 */
+	private function join_members( Context $ctx, object $members, int $id, int $i, int $owner, array $s, int $total ): void {
+		if ( 'secret' === $s['type'] ) {
+			return;
+		}
+		$people = $ctx->people();
+		$n      = count( $people );
+		$want   = (int) ( $s['members'] ?? (int) ( $n / 3 ) );
+		$joined = 0;
+		for ( $k = 0; $k < $n && $joined < $want; $k++ ) {
+			$uid = $people[ ( $i + $k ) % $n ];
+			if ( $uid === $owner ) {
+				continue;
+			}
+			$members->join( $id, $uid, $ctx->date( $i + $k, $n + $total, 80 ) );
+			++$joined;
+		}
 	}
 
 	/**
