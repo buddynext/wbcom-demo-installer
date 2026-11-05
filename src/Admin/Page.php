@@ -80,10 +80,9 @@ final class Page {
 		if ( ! current_user_can( Plugin::CAP ) ) {
 			wp_die( esc_html__( 'Only site administrators can set up or remove demo content.', 'wbcom-demo-installer' ), 403 );
 		}
-		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '';
-		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard' . $min . '.css', array(), WBCOM_DEMO_VERSION );
+		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), WBCOM_DEMO_VERSION );
 		wp_style_add_data( 'wbcom-demo', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard' . $min . '.js', array( 'wp-api-fetch', 'wp-i18n' ), WBCOM_DEMO_VERSION, true );
+		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array( 'wp-api-fetch', 'wp-i18n' ), WBCOM_DEMO_VERSION, true );
 		wp_set_script_translations( 'wbcom-demo', 'wbcom-demo-installer' );
 		wp_localize_script(
 			'wbcom-demo',
@@ -96,7 +95,6 @@ final class Page {
 				'plugins'   => admin_url( 'plugins.php' ),
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'view'      => isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '',
-				'icons'     => WBCOM_DEMO_URL . 'assets/icons.svg',
 			)
 		);
 		include WBCOM_DEMO_DIR . 'src/Admin/view.php';
@@ -118,6 +116,7 @@ final class Page {
 			return;
 		}
 		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), WBCOM_DEMO_VERSION );
+		wp_style_add_data( 'wbcom-demo-notice', 'rtl', 'replace' );
 		wp_enqueue_script( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/js/notice.js', array(), WBCOM_DEMO_VERSION, true );
 		wp_localize_script(
 			'wbcom-demo-notice',

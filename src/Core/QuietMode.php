@@ -83,8 +83,10 @@ final class QuietMode {
 		if ( null !== $short ) {
 			return $short;
 		}
+		// Report the mail as handled (true), not failed: products then neither log an error
+		// nor queue a retry that would fire after the build.
 		if ( self::$active ) {
-			return false;
+			return true;
 		}
 		$to = $atts['to'] ?? array();
 		$to = is_array( $to ) ? $to : explode( ',', (string) $to );
@@ -97,7 +99,7 @@ final class QuietMode {
 				return null;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	/**

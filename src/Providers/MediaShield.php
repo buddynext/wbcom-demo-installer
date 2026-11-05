@@ -69,7 +69,7 @@ final class MediaShield extends Provider {
 	public function plan(): array {
 		return array(
 			'video'    => array( count( self::VIDEOS ), 'sample', __( 'videos', 'wbcom-demo-installer' ) ),
-			'playlist' => array( 1, 'sample', __( 'playlists', 'wbcom-demo-installer' ) ),
+			'playlist' => array( 1, 'sample', __( 'playlist', 'wbcom-demo-installer' ) ),
 		);
 	}
 

@@ -171,8 +171,10 @@ final class Theme extends Provider {
 	 */
 	private function locations(): array {
 		$out = array();
-		foreach ( get_registered_nav_menus() as $slug => $label ) {
-			if ( preg_match( '/primary|main|mobile|header/i', $slug . ' ' . $label ) && ! preg_match( '/user|footer|panel|social/i', $slug . ' ' . $label ) ) {
+		// Match on the slug only: labels such as "Primary - Logged in users" contain words the
+		// exclusions would catch.
+		foreach ( array_keys( get_registered_nav_menus() ) as $slug ) {
+			if ( preg_match( '/primary|main|mobile|header|^menu-1/i', $slug ) && ! preg_match( '/footer|panel|social|user_menu|community/i', $slug ) ) {
 				$out[] = $slug;
 			}
 		}

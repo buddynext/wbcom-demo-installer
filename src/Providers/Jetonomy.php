@@ -57,7 +57,7 @@ final class Jetonomy extends Provider {
 	}
 
 	public function pro_label(): string {
-		return defined( 'JETONOMY_PRO_VERSION' ) ? __( 'Pro: badges and polls', 'wbcom-demo-installer' ) : '';
+		return defined( 'JETONOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
 
 	/**

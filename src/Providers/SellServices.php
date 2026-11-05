@@ -125,6 +125,7 @@ final class SellServices extends Provider {
 					$ctx->record( $this->id(), 'term', (int) $term['term_id'], 'setup', array( 'taxonomy' => 'wpss_service_category' ) );
 				}
 			}
+			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( self::SERVICES ), 70 ) );
 			$id = $services->create(
 				array(
 					'title'      => $title,
@@ -140,6 +141,7 @@ final class SellServices extends Provider {
 					'status'     => 'publish',
 				)
 			);
+			\WbcomDemo\Core\Clock::reset();
 			if ( ! $id ) {
 				$ctx->warn( $this->id(), 'service ' . $title, 'not created' );
 				continue;

@@ -1,0 +1,7 @@
+/* Dashboard notice for Wbcom Demo Installer. */
+.wbcom-demo-notice { border-inline-start-color: #0f6b5a; padding-block: 12px; }
+.wbcom-demo-notice__title { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+.wbcom-demo-notice__actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-block-end: 0; }
+@media (max-width: 640px) {
+	.wbcom-demo-notice__actions .button { min-height: 40px; }
+}

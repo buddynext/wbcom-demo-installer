@@ -186,6 +186,7 @@ final class Listora extends Provider {
 				update_post_meta( $id, '_listora_is_featured', true );
 			}
 			$date = $ctx->date( $i, count( self::LISTINGS ), 80 );
+			\WbcomDemo\Core\Clock::set( $date );
 			wp_update_post(
 				array(
 					'ID'            => $id,
@@ -195,6 +196,7 @@ final class Listora extends Provider {
 					'edit_date'     => true,
 				)
 			);
+			\WbcomDemo\Core\Clock::reset();
 		}
 		remove_filter( 'wb_listora_should_send_notification', '__return_false' );
 	}

@@ -135,6 +135,7 @@ final class Eventonomy extends Provider {
 			}
 			$was = get_current_user_id();
 			wp_set_current_user( $organizer );
+			\WbcomDemo\Core\Clock::set( $ctx->date( $i, 12, 50 ) );
 			$row = $svc->create(
 				$input,
 				array(
@@ -143,6 +144,7 @@ final class Eventonomy extends Provider {
 				)
 			);
 			wp_set_current_user( $was );
+			\WbcomDemo\Core\Clock::reset();
 			if ( is_wp_error( $row ) || empty( $row['id'] ) ) {
 				$ctx->warn( $this->id(), 'event ' . $title, is_wp_error( $row ) ? $row : 'not created' );
 				continue;
@@ -181,6 +183,7 @@ final class Eventonomy extends Provider {
 			$n = 3 + ( $k * 3 ) % 7;
 			for ( $a = 0; $a < $n && $a < count( $attendees ); $a++ ) {
 				$uid = $attendees[ ( $k + $a ) % count( $attendees ) ];
+				\WbcomDemo\Core\Clock::set( $ctx->date( $k * 9 + $a, 120, 45 ) );
 				$was = get_current_user_id();
 				wp_set_current_user( $uid );
 				$res = $svc->rsvp(

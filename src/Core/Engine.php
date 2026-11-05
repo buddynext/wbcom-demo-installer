@@ -47,7 +47,24 @@ final class Engine {
 		$users = count_users();
 		$posts = (int) wp_count_posts( 'post' )->publish + (int) wp_count_posts( 'page' )->publish;
 		$theme_provider = Registry::get( 'theme' );
+		$links = array();
+		$state = new State();
+		foreach ( Registry::all() as $id => $p ) {
+			if ( ! in_array( $id, (array) $state->get( 'include' ), true ) || ! $p->available() ) {
+				continue;
+			}
+			foreach ( $p->menu_items() as $item ) {
+				$url = ! empty( $item['page_id'] ) ? get_permalink( (int) $item['page_id'] ) : ( $item['url'] ?? '' );
+				if ( $url ) {
+					$links[] = array(
+						'title' => $item['title'],
+						'url'   => $url,
+					);
+				}
+			}
+		}
 		return array(
+			'links'      => $links,
 			'theme'      => array(
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
@@ -225,13 +242,21 @@ final class Engine {
 				'product'  => ( $p = Registry::get( $row->provider ) ) ? $p->label() : $row->provider,
 			);
 		}
+		$done  = (int) $state->get( 'done' );
+		$total = (int) $state->get( 'total' );
+		if ( State::FINISHING === $state->get( 'status' ) ) {
+			$f     = (array) $state->get( 'finish' );
+			$done  = (int) ( $f['removed'] ?? 0 );
+			$total = max( $done, (int) ( $f['total'] ?? 0 ) );
+			$label = __( 'sample content', 'wbcom-demo-installer' );
+		}
 		return array(
 			'status'   => $state->get( 'status' ),
 			'recipe'   => $state->get( 'recipe' ),
 			'include'  => $state->get( 'include' ),
 			'look'     => $state->get( 'look' ),
-			'done'     => (int) $state->get( 'done' ),
-			'total'    => (int) $state->get( 'total' ),
+			'done'     => $done,
+			'total'    => $total,
 			'current'  => $label,
 			'current_provider' => $next[0] ?? '',
 			'errors'   => $state->get( 'errors' ),

@@ -82,6 +82,7 @@ final class CareerBoard extends Provider {
 	public function plan(): array {
 		return array(
 			'term'        => array( 0, 'setup', __( 'job categories and types', 'wbcom-demo-installer' ) ),
+			'page'        => array( 0, 'setup', __( 'job board pages', 'wbcom-demo-installer' ) ),
 			'company'     => array( count( self::COMPANIES ), 'sample', __( 'companies', 'wbcom-demo-installer' ) ),
 			'job'         => array( count( self::JOBS ), 'sample', __( 'jobs', 'wbcom-demo-installer' ) ),
 			'application' => array( 0, 'sample', __( 'applications', 'wbcom-demo-installer' ) ),
@@ -114,6 +115,13 @@ final class CareerBoard extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function companies( Context $ctx ): void {
+		// The job board pages the Career Board setup wizard would create (kept as setup).
+		if ( class_exists( '\WCB\Admin\Pages' ) ) {
+			$missing = \WCB\Admin\Pages::missing();
+			foreach ( \WCB\Admin\Pages::create_missing( $missing ) as $page_id ) {
+				$ctx->record( $this->id(), 'page', (int) $page_id, 'setup' );
+			}
+		}
 		$ids = array();
 		foreach ( self::COMPANIES as $i => $c ) {
 			list( $who, $name, $tagline, $industry, $size, $hq, $site ) = $c;
@@ -185,6 +193,7 @@ final class CareerBoard extends Provider {
 				continue;
 			}
 			list( $company_id, $owner, $company ) = $companies[ $ci ];
+			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( self::JOBS ), 30 ) );
 			$id = wp_insert_post(
 				array(
 					'post_type'    => 'wcb_job',
@@ -221,6 +230,7 @@ final class CareerBoard extends Provider {
 				}
 			}
 			$ctx->record( $this->id(), 'job', (int) $id );
+			\WbcomDemo\Core\Clock::reset();
 		}
 	}
 

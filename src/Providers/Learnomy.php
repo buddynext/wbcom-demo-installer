@@ -163,6 +163,7 @@ final class Learnomy extends Provider {
 			$user->add_role( 'lrn_instructor' );
 		}
 		$svc       = new \Learnomy\Services\Course_Service();
+		\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( $this->content()['courses'] ), 70 ) );
 		$course_id = $svc->create(
 			array(
 				'title'          => $c['title'],
@@ -178,6 +179,7 @@ final class Learnomy extends Provider {
 			),
 			$instructor
 		);
+		\WbcomDemo\Core\Clock::reset();
 		if ( ! $course_id ) {
 			$ctx->warn( $this->id(), 'course ' . $c['title'], 'not created' );
 			return;
@@ -278,6 +280,7 @@ final class Learnomy extends Provider {
 				// First learner finishes, others are part way through.
 				$done = 0 === $s ? count( $lessons ) : (int) floor( count( $lessons ) * ( ( $s * 29 ) % 90 ) / 100 );
 				$when = $ctx->date( $k * 6 + $s, 40, 40 );
+				\WbcomDemo\Core\Clock::set( $when );
 				foreach ( array_slice( $lessons, 0, $done ) as $n => $lesson ) {
 					$when = $ctx->after( $when, $n + $s );
 					$progress->mark_lesson_complete( $uid, (int) $lesson->id, true, 240 + $n * 30, array(), $when );

@@ -58,7 +58,7 @@ final class Roadmap extends Provider {
 	}
 
 	public function icon(): string {
-		return 'map';
+		return 'clock';
 	}
 
 	public function order(): int {
@@ -76,6 +76,7 @@ final class Roadmap extends Provider {
 	public function plan(): array {
 		return array(
 			'term' => array( 0, 'setup', __( 'roadmap statuses and categories', 'wbcom-demo-installer' ) ),
+			'page' => array( 1, 'setup', __( 'roadmap page', 'wbcom-demo-installer' ) ),
 			'item' => array( count( self::ITEMS ), 'sample', __( 'roadmap items', 'wbcom-demo-installer' ) ),
 		);
 	}
@@ -121,6 +122,22 @@ final class Roadmap extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function items( Context $ctx ): void {
+		$page = (int) get_option( 'roadmap_page_id' );
+		if ( ! $page || 'publish' !== get_post_status( $page ) ) {
+			$page = wp_insert_post(
+				array(
+					'post_type'    => 'page',
+					'post_status'  => 'publish',
+					'post_title'   => __( 'Roadmap', 'wbcom-demo-installer' ),
+					'post_content' => '[roadmap product="main"]',
+				),
+				true
+			);
+			if ( ! is_wp_error( $page ) ) {
+				$ctx->record( $this->id(), 'page', (int) $page, 'setup' );
+				\WbcomDemo\Core\Snapshot::write( 'roadmap_page_id', (int) $page );
+			}
+		}
 		$author = $ctx->person( 0, 'moderator' );
 		foreach ( self::ITEMS as $i => $item ) {
 			list( $title, $status, $cat, $desc ) = $item;
