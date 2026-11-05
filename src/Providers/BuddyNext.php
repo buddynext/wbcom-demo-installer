@@ -84,6 +84,13 @@ final class BuddyNext extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function pro_label(): string {
+		return defined( 'BUDDYNEXTPRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		$c = $this->content();
 		return sprintf(

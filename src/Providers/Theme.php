@@ -157,6 +157,10 @@ final class Theme extends Provider {
 			return;
 		}
 		$ctx->record( $this->id(), 'menu', (int) $menu_id, 'setup' );
+		// Themes hook wp_update_nav_menu_item and call get_current_screen() unguarded (BuddyX Pro menu
+		// icons, card 10480406536), which is undefined in a REST request. Loading the screen API makes it return null.
+		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+		require_once ABSPATH . 'wp-admin/includes/screen.php';
 		$pos = 1;
 		foreach ( $this->included( $ctx ) as $p ) {
 			foreach ( $p->menu_items() as $item ) {

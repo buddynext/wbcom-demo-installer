@@ -139,3 +139,17 @@ PHPStan level 6 no errors; `wp i18n make-pot` no warnings.
 
 Product cards filed from these runs: Product Roadmap votes and Pro analytics left after an item is deleted;
 WP Career Board company HQ location link left after a company is deleted.
+
+### Wizard path and fresh install (5 November 2026, second pass)
+
+Every A and B case was run again over HTTP REST, the same requests the wizard sends (`MODE=rest ./matrix.sh`):
+21 of 21 PASS with the same item counts. A brand-new site installed only from release zips (BuddyX Pro and all
+products with Pro) was built from the wizard in the browser: 561 items, 0 warnings, no mail.
+
+Found and fixed in this pass: the release zip was missing `media/docs/sample-resume.pdf` (the build now fails on
+any missing tracked file); the menu step failed in the wizard on BuddyX Pro because the theme calls
+`get_current_screen()` while saving menu items (BuddyX Pro card filed, worked around here); the Pro add-on label
+was missing for BuddyNext, WP Career Board and Product Roadmap.
+
+Open: a second build after "Keep my setup" collides with the kept spaces and categories (no discussions or
+BuddyNext spaces in the second demo).

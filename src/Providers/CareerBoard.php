@@ -91,7 +91,7 @@ final class CareerBoard extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function pro_label(): string {
-		return defined( 'WCB_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
+		return defined( 'WCBP_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
 
 	/**

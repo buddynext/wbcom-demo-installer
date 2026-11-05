@@ -89,6 +89,13 @@ final class Roadmap extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function pro_label(): string {
+		return defined( 'ROADMAP_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: items */
