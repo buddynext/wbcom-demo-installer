@@ -1,0 +1,236 @@
+<?php
+/**
+ * The ledger: every object a build creates, so Finish never has to guess.
+ *
+ * @package WbcomDemo
+ */
+
+namespace WbcomDemo\Core;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Ledger table access. One row per created object.
+ *
+ * Rows are removed in reverse creation order (id DESC), which is children
+ * before parents: comments before posts, posts before spaces, people last.
+ */
+final class Ledger {
+
+	private const DB_VERSION = '1';
+	private const DB_OPTION  = 'wbcom_demo_db_version';
+
+	/**
+	 * Table name.
+	 */
+	public static function table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'wbcom_demo_ledger';
+	}
+
+	/**
+	 * Create or update the table.
+	 */
+	public static function install(): void {
+		global $wpdb;
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		$table   = self::table();
+		$charset = $wpdb->get_charset_collate();
+		dbDelta(
+			"CREATE TABLE {$table} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				build_id varchar(36) NOT NULL,
+				provider varchar(40) NOT NULL,
+				object_type varchar(40) NOT NULL,
+				object_id bigint(20) unsigned NOT NULL,
+				kind varchar(10) NOT NULL DEFAULT 'sample',
+				parent_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				meta longtext NULL,
+				created_at datetime NOT NULL,
+				PRIMARY KEY  (id),
+				UNIQUE KEY object (provider,object_type,object_id),
+				KEY build_kind (build_id,provider,kind),
+				KEY type_kind (provider,object_type,kind)
+			) ENGINE=InnoDB {$charset};"
+		);
+		update_option( self::DB_OPTION, self::DB_VERSION, false );
+	}
+
+	/**
+	 * Install when the schema is missing or older (also covers network activation gaps).
+	 */
+	public static function maybe_upgrade(): void {
+		if ( get_option( self::DB_OPTION ) !== self::DB_VERSION ) {
+			self::install();
+		}
+	}
+
+	/**
+	 * Record one created object. Re-recording the same object is a no-op.
+	 *
+	 * @param string              $build_id Build id.
+	 * @param string              $provider Provider id.
+	 * @param string              $type     Object type, provider-scoped.
+	 * @param int                 $id       Object id.
+	 * @param string              $kind     'sample' or 'setup'.
+	 * @param int                 $parent   Ledger row id of the parent, or 0.
+	 * @param array<string,mixed> $meta     Extra data the provider needs to remove it (e.g. author).
+	 * @return int Ledger row id (existing row id when already recorded).
+	 */
+	public static function add( string $build_id, string $provider, string $type, int $id, string $kind = 'sample', int $parent = 0, array $meta = array() ): int {
+		global $wpdb;
+		if ( $id <= 0 ) {
+			return 0;
+		}
+		$table = self::table();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO {$table} (build_id, provider, object_type, object_id, kind, parent_id, meta, created_at) VALUES (%s, %s, %s, %d, %s, %d, %s, %s)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$build_id,
+				$provider,
+				$type,
+				$id,
+				'setup' === $kind ? 'setup' : 'sample',
+				$parent,
+				$meta ? wp_json_encode( $meta ) : null,
+				current_time( 'mysql', true )
+			)
+		);
+		if ( $wpdb->insert_id ) {
+			return (int) $wpdb->insert_id;
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE provider = %s AND object_type = %s AND object_id = %d", $provider, $type, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Whether an object is already in the ledger.
+	 */
+	public static function has( string $provider, string $type, int $id ): bool {
+		global $wpdb;
+		$table = self::table();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT 1 FROM {$table} WHERE provider = %s AND object_type = %s AND object_id = %d", $provider, $type, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Counts grouped by provider, type and kind.
+	 *
+	 * @return array<int,object{provider:string,object_type:string,kind:string,n:int}>
+	 */
+	public static function counts(): array {
+		global $wpdb;
+		$table = self::table();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$rows = $wpdb->get_results( "SELECT provider, object_type, kind, COUNT(*) AS n FROM {$table} GROUP BY provider, object_type, kind ORDER BY MIN(id)" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		foreach ( $rows as $r ) {
+			$r->n = (int) $r->n;
+		}
+		return $rows;
+	}
+
+	/**
+	 * Next batch of rows to remove, newest first, limited to the selected provider:type keys.
+	 *
+	 * @param string[] $keys    Selected "provider:type" keys.
+	 * @param int[]    $skip    Ledger ids to skip (failed or waiting).
+	 * @param int      $limit   Batch size.
+	 * @return array<int,object>
+	 */
+	public static function next_batch( array $keys, array $skip, int $limit = 25 ): array {
+		global $wpdb;
+		if ( ! $keys ) {
+			return array();
+		}
+		$table  = self::table();
+		$where  = array();
+		$params = array();
+		foreach ( $keys as $key ) {
+			list( $provider, $type ) = array_pad( explode( ':', $key, 2 ), 2, '' );
+			$where[]                 = '(provider = %s AND object_type = %s)';
+			$params[]                = $provider;
+			$params[]                = $type;
+		}
+		$sql = "SELECT * FROM {$table} WHERE (" . implode( ' OR ', $where ) . ')';
+		if ( $skip ) {
+			$sql .= ' AND id NOT IN (' . implode( ',', array_map( 'absint', $skip ) ) . ')';
+		}
+		$sql     .= ' ORDER BY id DESC LIMIT %d';
+		$params[] = $limit;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ) );
+		foreach ( $rows as $r ) {
+			$r->meta = $r->meta ? (array) json_decode( $r->meta, true ) : array();
+		}
+		return $rows;
+	}
+
+	/**
+	 * Delete ledger rows by id.
+	 *
+	 * @param int[] $ids Ledger row ids.
+	 */
+	public static function forget( array $ids ): void {
+		global $wpdb;
+		$ids = array_filter( array_map( 'absint', $ids ) );
+		if ( ! $ids ) {
+			return;
+		}
+		$table = self::table();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DELETE FROM {$table} WHERE id IN (" . implode( ',', $ids ) . ')' );
+	}
+
+	/**
+	 * Hand rows over to the owner: drop them from the ledger without touching the objects.
+	 *
+	 * @param string[] $keys "provider:type" keys.
+	 */
+	public static function handover( array $keys ): void {
+		global $wpdb;
+		$table = self::table();
+		foreach ( $keys as $key ) {
+			list( $provider, $type ) = array_pad( explode( ':', $key, 2 ), 2, '' );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->delete( $table, array( 'provider' => $provider, 'object_type' => $type ) );
+		}
+	}
+
+	/**
+	 * Total rows, optionally of one kind.
+	 */
+	public static function total( string $kind = '' ): int {
+		global $wpdb;
+		$table = self::table();
+		if ( $kind ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE kind = %s", $kind ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Object ids of one provider:type, oldest first.
+	 *
+	 * @return int[]
+	 */
+	public static function ids( string $provider, string $type ): array {
+		global $wpdb;
+		$table = self::table();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		return array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$table} WHERE provider = %s AND object_type = %s ORDER BY id", $provider, $type ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Drop the table (uninstall only, and only when empty).
+	 */
+	public static function drop(): void {
+		global $wpdb;
+		$table = self::table();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+		delete_option( self::DB_OPTION );
+	}
+}
