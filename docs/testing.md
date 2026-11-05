@@ -159,3 +159,8 @@ the second build, after it and after its Finish, and no sample people or discuss
 | Row | Result |
 |---|---|
 | D6-rebuild-after-keep | PASS |
+
+Free and mixed stacks on BuddyX (`./matrix.sh A11 A12`): every product free with no Pro add-on, 488 items, PASS;
+every product free plus Pro for BuddyNext, Jetonomy, Learnomy, Listora and Roadmap only, 558 items, PASS. Every
+product gets the same sample content without Pro; the free stack has 72 feed posts instead of 142 (BuddyNext Pro
+brings other products' activity into the feed) and 6 job board pages instead of 9 (Career Board Pro pages).
