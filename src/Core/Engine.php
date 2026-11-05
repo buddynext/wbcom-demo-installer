@@ -44,11 +44,11 @@ final class Engine {
 				'plan'      => $p->plan(),
 			);
 		}
-		$users = count_users();
-		$posts = (int) wp_count_posts( 'post' )->publish + (int) wp_count_posts( 'page' )->publish;
+		$users          = count_users();
+		$posts          = (int) wp_count_posts( 'post' )->publish + (int) wp_count_posts( 'page' )->publish;
 		$theme_provider = Registry::get( 'theme' );
-		$links = array();
-		$state = new State();
+		$links          = array();
+		$state          = new State();
 		foreach ( Registry::all() as $id => $p ) {
 			if ( ! in_array( $id, (array) $state->get( 'include' ), true ) || ! $p->available() ) {
 				continue;
@@ -64,18 +64,18 @@ final class Engine {
 			}
 		}
 		return array(
-			'links'      => $links,
-			'theme'      => array(
+			'links'     => $links,
+			'theme'     => array(
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
 				'adapter' => $theme_provider ? $theme_provider->label() : '',
 			),
-			'products'   => $products,
-			'recipes'    => Recipes::available(),
-			'users'      => (int) $users['total_users'] - count( (array) ( new State() )->get( 'people' ) ),
-			'posts'      => $posts,
-			'leftovers'  => self::other_demos(),
-			'people'     => count( People::roster() ),
+			'products'  => $products,
+			'recipes'   => Recipes::available(),
+			'users'     => (int) $users['total_users'] - count( (array) ( new State() )->get( 'people' ) ),
+			'posts'     => $posts,
+			'leftovers' => self::other_demos(),
+			'people'    => count( People::roster() ),
 		);
 	}
 
@@ -87,12 +87,12 @@ final class Engine {
 	private static function other_demos(): array {
 		$found = array();
 		$map   = array(
-			'bn_demo_manifest'                 => 'BuddyNext',
-			'jetonomy_demo_data'               => 'Jetonomy',
-			'learnomy_demo_data'               => 'Learnomy',
-			'wcb_sample_data_ids'              => 'WP Career Board',
-			'wb_listora_pro_demo_manifest'     => 'WB Listora Pro',
-			'learnomy_pro_demo_manifest'       => 'Learnomy Pro',
+			'bn_demo_manifest'             => 'BuddyNext',
+			'jetonomy_demo_data'           => 'Jetonomy',
+			'learnomy_demo_data'           => 'Learnomy',
+			'wcb_sample_data_ids'          => 'WP Career Board',
+			'wb_listora_pro_demo_manifest' => 'WB Listora Pro',
+			'learnomy_pro_demo_manifest'   => 'Learnomy Pro',
 		);
 		foreach ( $map as $option => $label ) {
 			if ( get_option( $option ) ) {
@@ -106,24 +106,24 @@ final class Engine {
 	 * Start a build.
 	 *
 	 * @param string   $recipe  Recipe id.
-	 * @param string[] $include Provider ids.
+	 * @param string[] $products Provider ids.
 	 * @param string   $look    'demo' to set home page, menu and logo; 'keep' to leave them.
 	 * @return array<string,mixed>|\WP_Error Status.
 	 */
-	public static function start_build( string $recipe, array $include, string $look ) {
+	public static function start_build( string $recipe, array $products, string $look ) {
 		$state = new State();
 		if ( State::IDLE !== $state->get( 'status' ) ) {
 			return new \WP_Error( 'wbcom_demo_exists', __( 'A demo is already on this site. Finish it before building another.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
 		}
 		$choosable = Registry::choosable();
-		$include   = array_values( array_filter( $include, static fn( $id ) => isset( $choosable[ $id ] ) && $choosable[ $id ]->supported() ) );
-		if ( ! $include ) {
+		$products  = array_values( array_filter( $products, static fn( $id ) => isset( $choosable[ $id ] ) && $choosable[ $id ]->supported() ) );
+		if ( ! $products ) {
 			return new \WP_Error( 'wbcom_demo_nothing', __( 'Choose at least one product.', 'wbcom-demo-installer' ), array( 'status' => 400 ) );
 		}
 		$state->set( 'status', State::BUILDING )
 			->set( 'build_id', wp_generate_uuid4() )
 			->set( 'recipe', sanitize_key( $recipe ) )
-			->set( 'include', $include )
+			->set( 'include', $products )
 			->set( 'look', 'keep' === $look ? 'keep' : 'demo' )
 			->set( 'errors', array() )
 			->set( 'warnings', array() )
@@ -134,7 +134,7 @@ final class Engine {
 		$ctx   = new Context( $state );
 		$queue = array();
 		foreach ( Registry::all() as $id => $p ) {
-			if ( 'people' !== $id && 'theme' !== $id && ! in_array( $id, $include, true ) ) {
+			if ( 'people' !== $id && 'theme' !== $id && ! in_array( $id, $products, true ) ) {
 				continue;
 			}
 			if ( 'theme' === $id && 'keep' === $state->get( 'look' ) ) {
@@ -151,9 +151,9 @@ final class Engine {
 	/**
 	 * Run the next build or finish step.
 	 *
-	 * @return array<string,mixed>|\WP_Error Status after the step.
+	 * @return array<string,mixed> Status after the step.
 	 */
-	public static function step() {
+	public static function step(): array {
 		if ( ! add_option( self::LOCK, time(), '', false ) ) {
 			if ( time() - (int) get_option( self::LOCK ) < 120 ) {
 				return self::status() + array( 'busy' => true );
@@ -239,7 +239,7 @@ final class Engine {
 				'kind'     => $row->kind,
 				'count'    => $row->n,
 				'label'    => self::type_label( $row->provider, $row->object_type ),
-				'product'  => ( $p = Registry::get( $row->provider ) ) ? $p->label() : $row->provider,
+				'product'  => Registry::get( $row->provider ) ? Registry::get( $row->provider )->label() : $row->provider,
 			);
 		}
 		$done  = (int) $state->get( 'done' );
@@ -251,19 +251,19 @@ final class Engine {
 			$label = __( 'sample content', 'wbcom-demo-installer' );
 		}
 		return array(
-			'status'   => $state->get( 'status' ),
-			'recipe'   => $state->get( 'recipe' ),
-			'include'  => $state->get( 'include' ),
-			'look'     => $state->get( 'look' ),
-			'done'     => $done,
-			'total'    => $total,
-			'current'  => $label,
+			'status'           => $state->get( 'status' ),
+			'recipe'           => $state->get( 'recipe' ),
+			'include'          => $state->get( 'include' ),
+			'look'             => $state->get( 'look' ),
+			'done'             => $done,
+			'total'            => $total,
+			'current'          => $label,
 			'current_provider' => $next[0] ?? '',
-			'errors'   => $state->get( 'errors' ),
-			'warnings' => (array) $state->get( 'warnings' ),
-			'built_at' => $state->get( 'built_at' ),
-			'ledger'   => $counts,
-			'report'   => $state->get( 'report' ),
+			'errors'           => $state->get( 'errors' ),
+			'warnings'         => (array) $state->get( 'warnings' ),
+			'built_at'         => $state->get( 'built_at' ),
+			'ledger'           => $counts,
+			'report'           => $state->get( 'report' ),
 		);
 	}
 

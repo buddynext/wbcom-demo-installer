@@ -30,8 +30,8 @@ final class Command {
 	 * default: table
 	 * ---
 	 *
-	 * @param array $args  Args.
-	 * @param array $assoc Assoc args.
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
 	 */
 	public function status( $args, $assoc ): void {
 		$site   = Engine::site();
@@ -81,8 +81,8 @@ final class Command {
 	 *     wp wbcom-demo build --recipe=community
 	 *     wp wbcom-demo build --include=buddynext,jetonomy --keep-look
 	 *
-	 * @param array $args  Args.
-	 * @param array $assoc Assoc args.
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
 	 */
 	public function build( $args, $assoc ): void {
 		$this->as_admin();
@@ -137,8 +137,8 @@ final class Command {
 	 * [--dry-run]
 	 * : Show what would be removed and kept.
 	 *
-	 * @param array $args  Args.
-	 * @param array $assoc Assoc args.
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
 	 */
 	public function finish( $args, $assoc ): void {
 		$this->as_admin();
@@ -168,12 +168,34 @@ final class Command {
 	}
 
 	/**
+	 * Continue a build or finish that stopped part way (closed browser, timeout).
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function resume( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- WP-CLI command signature.
+		$this->as_admin();
+		$status = Engine::status();
+		if ( ! in_array( $status['status'], array( 'building', 'finishing' ), true ) ) {
+			WP_CLI::success( 'Nothing to resume.' );
+			return;
+		}
+		$finishing = 'finishing' === $status['status'];
+		$this->run_steps( $finishing ? 'Finishing' : 'Building' );
+		if ( $finishing ) {
+			$this->verify( array(), array() );
+			return;
+		}
+		WP_CLI::success( 'Build resumed and completed.' );
+	}
+
+	/**
 	 * Show the report of the last finish.
 	 *
-	 * @param array $args  Args.
-	 * @param array $assoc Assoc args.
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
 	 */
-	public function verify( $args, $assoc ): void {
+	public function verify( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- WP-CLI command signature.
 		$report = (array) Engine::status()['report'];
 		if ( ! $report ) {
 			WP_CLI::line( 'No finish has run yet.' );

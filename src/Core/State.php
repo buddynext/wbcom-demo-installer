@@ -95,8 +95,8 @@ final class State {
 	 * Reset to idle, keeping the last report.
 	 */
 	public function reset(): void {
-		$report     = $this->data['report'];
-		$this->data = self::defaults();
+		$report               = $this->data['report'];
+		$this->data           = self::defaults();
 		$this->data['report'] = $report;
 		$this->save();
 	}

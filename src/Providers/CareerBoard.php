@@ -29,47 +29,74 @@ final class CareerBoard extends Provider {
 	/** [ company index, title, category, type, location, experience, min, max, remote, body ]. */
 	private const JOBS = array(
 		array( 0, 'Backend Engineer (Go)', 'Engineering', 'Full-time', 'Berlin, DE', 'Mid Level', 65000, 85000, true, "We are rebuilding our subscription engine in Go and need a second backend engineer.\n\nYou will own billing and delivery scheduling, work closely with our two-person ops team, and help us choose what not to build.\n\nYou have shipped a Go service to production, you like boring reliable systems, and you write things down." ),
-		array( 0, 'Customer Happiness Lead', 'Customer Success', 'Part-time', 'Remote', 'Mid Level', 30000, 38000, true, "Help 9,000 coffee lovers get the right beans. You will answer email and chat, spot patterns in what people ask, and tell product what to fix first." ),
+		array( 0, 'Customer Happiness Lead', 'Customer Success', 'Part-time', 'Remote', 'Mid Level', 30000, 38000, true, 'Help 9,000 coffee lovers get the right beans. You will answer email and chat, spot patterns in what people ask, and tell product what to fix first.' ),
 		array( 1, 'Senior Product Designer', 'Design', 'Full-time', 'Remote', 'Senior', 70000, 90000, true, "Design end to end for two client products at a time.\n\nYou run research, sketch quickly, prototype, and stay with the work until it ships. You are comfortable presenting to founders and saying no with reasons." ),
-		array( 1, 'Frontend Developer', 'Engineering', 'Full-time', 'Remote', 'Mid Level', 55000, 72000, true, "Build accessible, fast interfaces with our designers. Modern CSS, a little JavaScript, a lot of care. We test with real keyboards and screen readers." ),
-		array( 1, 'UX Writer (Contract)', 'Design', 'Contract', 'Remote', 'Mid Level', 400, 550, true, "Three months, two products, every word on screen. Error messages, onboarding, empty states. Day rate, flexible hours." ),
-		array( 2, 'Full-stack Developer', 'Engineering', 'Full-time', 'Kochi, IN', 'Mid Level', 1800000, 2600000, false, "Join employee number three. Laravel and Vue today, whatever we need tomorrow. You will talk to bakers every week." ),
-		array( 2, 'Mobile Developer (Android)', 'Engineering', 'Contract', 'Remote', 'Senior', 30000, 45000, true, "Our ordering app has to work in kitchens with flour on the screen and no wifi. Offline-first experience is a must." ),
-		array( 2, 'Junior Support Engineer', 'Customer Success', 'Full-time', 'Kochi, IN', 'Entry Level', 600000, 800000, false, "Learn our product inside out, fix small bugs, and help bakeries get set up. Great first role, we will teach you a lot." ),
+		array( 1, 'Frontend Developer', 'Engineering', 'Full-time', 'Remote', 'Mid Level', 55000, 72000, true, 'Build accessible, fast interfaces with our designers. Modern CSS, a little JavaScript, a lot of care. We test with real keyboards and screen readers.' ),
+		array( 1, 'UX Writer (Contract)', 'Design', 'Contract', 'Remote', 'Mid Level', 400, 550, true, 'Three months, two products, every word on screen. Error messages, onboarding, empty states. Day rate, flexible hours.' ),
+		array( 2, 'Full-stack Developer', 'Engineering', 'Full-time', 'Kochi, IN', 'Mid Level', 1800000, 2600000, false, 'Join employee number three. Laravel and Vue today, whatever we need tomorrow. You will talk to bakers every week.' ),
+		array( 2, 'Mobile Developer (Android)', 'Engineering', 'Contract', 'Remote', 'Senior', 30000, 45000, true, 'Our ordering app has to work in kitchens with flour on the screen and no wifi. Offline-first experience is a must.' ),
+		array( 2, 'Junior Support Engineer', 'Customer Success', 'Full-time', 'Kochi, IN', 'Entry Level', 600000, 800000, false, 'Learn our product inside out, fix small bugs, and help bakeries get set up. Great first role, we will teach you a lot.' ),
 	);
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'careerboard';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'WP Career Board';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'WCB_VERSION' ) && post_type_exists( 'wcb_job' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'WCB_VERSION' ) ? (string) WCB_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '1.8.2';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'brief';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 50;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'WCB_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return sprintf(
 			/* translators: 1: companies, 2: jobs */
@@ -79,6 +106,9 @@ final class CareerBoard extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'term'        => array( 0, 'setup', __( 'job categories and types', 'wbcom-demo-installer' ) ),
@@ -90,6 +120,11 @@ final class CareerBoard extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'companies', 'jobs', 'applications' );
 	}
@@ -223,7 +258,12 @@ final class CareerBoard extends Provider {
 			foreach ( $meta as $key => $value ) {
 				update_post_meta( $id, $key, $value );
 			}
-			foreach ( array( 'wcb_category' => $cat, 'wcb_job_type' => $type, 'wcb_location' => $loc, 'wcb_experience' => $exp ) as $tax => $name ) {
+			foreach ( array(
+				'wcb_category'   => $cat,
+				'wcb_job_type'   => $type,
+				'wcb_location'   => $loc,
+				'wcb_experience' => $exp,
+			) as $tax => $name ) {
 				$tid = taxonomy_exists( $tax ) ? $this->term( $name, $tax, $ctx ) : 0;
 				if ( $tid ) {
 					wp_set_post_terms( (int) $id, array( $tid ), $tax );
@@ -246,7 +286,7 @@ final class CareerBoard extends Provider {
 			'I would love to help with this. I have done similar work for two years and I learn fast.',
 			'This is exactly the kind of team I want to join. Happy to do a short paid trial.',
 		);
-		$resumes = array();
+		$resumes    = array();
 		foreach ( $candidates as $uid ) {
 			$user = get_userdata( $uid );
 			if ( $user && class_exists( '\WCB\Core\Roles' ) ) {
@@ -312,10 +352,16 @@ final class CareerBoard extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function late_types(): array {
 		return array( 'term' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		if ( ! class_exists( '\WCB\Admin\Pages' ) ) {
 			return array();

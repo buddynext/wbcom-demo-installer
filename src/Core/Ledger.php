@@ -73,11 +73,11 @@ final class Ledger {
 	 * @param string              $type     Object type, provider-scoped.
 	 * @param int                 $id       Object id.
 	 * @param string              $kind     'sample' or 'setup'.
-	 * @param int                 $parent   Ledger row id of the parent, or 0.
+	 * @param int                 $parent_id   Ledger row id of the parent, or 0.
 	 * @param array<string,mixed> $meta     Extra data the provider needs to remove it (e.g. author).
 	 * @return int Ledger row id (existing row id when already recorded).
 	 */
-	public static function add( string $build_id, string $provider, string $type, int $id, string $kind = 'sample', int $parent = 0, array $meta = array() ): int {
+	public static function add( string $build_id, string $provider, string $type, int $id, string $kind = 'sample', int $parent_id = 0, array $meta = array() ): int {
 		global $wpdb;
 		if ( $id <= 0 ) {
 			return 0;
@@ -92,7 +92,7 @@ final class Ledger {
 				$type,
 				$id,
 				'setup' === $kind ? 'setup' : 'sample',
-				$parent,
+				$parent_id,
 				$meta ? wp_json_encode( $meta ) : null,
 				current_time( 'mysql', true )
 			)
@@ -106,6 +106,10 @@ final class Ledger {
 
 	/**
 	 * Whether an object is already in the ledger.
+	 *
+	 * @param string $provider Provider id.
+	 * @param string $type     Object type.
+	 * @param int    $id       Object id.
 	 */
 	public static function has( string $provider, string $type, int $id ): bool {
 		global $wpdb;
@@ -178,8 +182,8 @@ final class Ledger {
 			return;
 		}
 		$table = self::table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( "DELETE FROM {$table} WHERE id IN (" . implode( ',', $ids ) . ')' );
+		// Ids are absint()-ed above; the IN list holds only integers.
+		$wpdb->query( "DELETE FROM {$table} WHERE id IN (" . implode( ',', $ids ) . ')' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -193,12 +197,20 @@ final class Ledger {
 		foreach ( $keys as $key ) {
 			list( $provider, $type ) = array_pad( explode( ':', $key, 2 ), 2, '' );
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$wpdb->delete( $table, array( 'provider' => $provider, 'object_type' => $type ) );
+			$wpdb->delete(
+				$table,
+				array(
+					'provider'    => $provider,
+					'object_type' => $type,
+				)
+			);
 		}
 	}
 
 	/**
 	 * Total rows, optionally of one kind.
+	 *
+	 * @param string $kind 'sample', 'setup' or '' for all.
 	 */
 	public static function total( string $kind = '' ): int {
 		global $wpdb;
@@ -214,6 +226,8 @@ final class Ledger {
 	/**
 	 * Object ids of one provider:type, oldest first.
 	 *
+	 * @param string $provider Provider id.
+	 * @param string $type     Object type.
 	 * @return int[]
 	 */
 	public static function ids( string $provider, string $type ): array {

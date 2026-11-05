@@ -15,8 +15,20 @@ return array(
 			'slug'   => 'start-here',
 			'desc'   => 'Say hello, read the guidelines and find your way around.',
 			'spaces' => array(
-				array( 'slug' => 'announcements', 'title' => 'Announcements', 'type' => 'feed', 'icon' => 'megaphone', 'desc' => 'News from the community team.' ),
-				array( 'slug' => 'introduce-yourself', 'title' => 'Introduce Yourself', 'type' => 'forum', 'icon' => 'hand', 'desc' => 'Tell us who you are and what brought you here.' ),
+				array(
+					'slug'  => 'announcements',
+					'title' => 'Announcements',
+					'type'  => 'feed',
+					'icon'  => 'megaphone',
+					'desc'  => 'News from the community team.',
+				),
+				array(
+					'slug'  => 'introduce-yourself',
+					'title' => 'Introduce Yourself',
+					'type'  => 'forum',
+					'icon'  => 'hand',
+					'desc'  => 'Tell us who you are and what brought you here.',
+				),
 			),
 		),
 		array(
@@ -24,9 +36,27 @@ return array(
 			'slug'   => 'learn-and-build',
 			'desc'   => 'Ask questions, share work and help each other improve.',
 			'spaces' => array(
-				array( 'slug' => 'help-and-questions', 'title' => 'Help and Questions', 'type' => 'qa', 'icon' => 'circle-help', 'desc' => 'Stuck on something? Ask here and mark the answer that helped.' ),
-				array( 'slug' => 'show-and-tell', 'title' => 'Show and Tell', 'type' => 'forum', 'icon' => 'sparkles', 'desc' => 'Share what you made this week, big or small.' ),
-				array( 'slug' => 'career-corner', 'title' => 'Career Corner', 'type' => 'forum', 'icon' => 'briefcase', 'desc' => 'Job hunting, interviews, pay and changing careers.' ),
+				array(
+					'slug'  => 'help-and-questions',
+					'title' => 'Help and Questions',
+					'type'  => 'qa',
+					'icon'  => 'circle-help',
+					'desc'  => 'Stuck on something? Ask here and mark the answer that helped.',
+				),
+				array(
+					'slug'  => 'show-and-tell',
+					'title' => 'Show and Tell',
+					'type'  => 'forum',
+					'icon'  => 'sparkles',
+					'desc'  => 'Share what you made this week, big or small.',
+				),
+				array(
+					'slug'  => 'career-corner',
+					'title' => 'Career Corner',
+					'type'  => 'forum',
+					'icon'  => 'briefcase',
+					'desc'  => 'Job hunting, interviews, pay and changing careers.',
+				),
 			),
 		),
 		array(
@@ -34,7 +64,13 @@ return array(
 			'slug'   => 'shape-the-community',
 			'desc'   => 'Ideas and feedback that decide what we do next.',
 			'spaces' => array(
-				array( 'slug' => 'ideas', 'title' => 'Ideas', 'type' => 'ideas', 'icon' => 'lightbulb', 'desc' => 'Suggest an idea and vote for the ones you want.' ),
+				array(
+					'slug'  => 'ideas',
+					'title' => 'Ideas',
+					'type'  => 'ideas',
+					'icon'  => 'lightbulb',
+					'desc'  => 'Suggest an idea and vote for the ones you want.',
+				),
 			),
 		),
 	),

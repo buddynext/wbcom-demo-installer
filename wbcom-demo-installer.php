@@ -11,6 +11,7 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       wbcom-demo-installer
+ * Domain Path:       /languages
  *
  * @package WbcomDemo
  */
@@ -23,11 +24,11 @@ define( 'WBCOM_DEMO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WBCOM_DEMO_URL', plugin_dir_url( __FILE__ ) );
 
 spl_autoload_register(
-	static function ( string $class ): void {
-		if ( ! str_starts_with( $class, 'WbcomDemo\\' ) ) {
+	static function ( string $class_name ): void {
+		if ( ! str_starts_with( $class_name, 'WbcomDemo\\' ) ) {
 			return;
 		}
-		$file = WBCOM_DEMO_DIR . 'src/' . str_replace( '\\', '/', substr( $class, 10 ) ) . '.php';
+		$file = WBCOM_DEMO_DIR . 'src/' . str_replace( '\\', '/', substr( $class_name, 10 ) ) . '.php';
 		if ( is_readable( $file ) ) {
 			require $file;
 		}

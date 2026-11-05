@@ -25,34 +25,58 @@ final class Learnomy extends Provider {
 	 */
 	private ?array $content = null;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'learnomy';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'Learnomy';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'LEARNOMY_VERSION' ) && class_exists( '\Learnomy\Services\Course_Service' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'LEARNOMY_VERSION' ) ? (string) LEARNOMY_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '2.2.0';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'cap';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 40;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'LEARNOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -66,6 +90,9 @@ final class Learnomy extends Provider {
 		return $this->content ??= require WBCOM_DEMO_DIR . 'content/learnomy.php';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		$c       = $this->content();
 		$lessons = 0;
@@ -82,6 +109,9 @@ final class Learnomy extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		$c = $this->content();
 		return array(
@@ -92,6 +122,11 @@ final class Learnomy extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		$steps = array( 'categories' );
 		foreach ( array_keys( $this->content()['courses'] ) as $i ) {
@@ -162,20 +197,20 @@ final class Learnomy extends Provider {
 		if ( $user && ! in_array( 'lrn_instructor', (array) $user->roles, true ) && get_role( 'lrn_instructor' ) ) {
 			$user->add_role( 'lrn_instructor' );
 		}
-		$svc       = new \Learnomy\Services\Course_Service();
+		$svc = new \Learnomy\Services\Course_Service();
 		\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( $this->content()['courses'] ), 70 ) );
 		$course_id = $svc->create(
 			array(
-				'title'          => $c['title'],
-				'slug'           => sanitize_title( $c['title'] ),
-				'description'    => $c['desc'],
-				'content'        => wpautop( $c['desc'] ),
-				'access_type'    => $c['price'] > 0 ? 'paid' : 'free',
-				'price'          => $c['price'],
-				'category_id'    => $categories[ $c['category'] ] ?? 0,
-				'status'         => 'published',
-				'difficulty'     => $c['difficulty'],
-				'thumbnail_url'  => $this->thumbnail( $i, $instructor, $ctx ),
+				'title'         => $c['title'],
+				'slug'          => sanitize_title( $c['title'] ),
+				'description'   => $c['desc'],
+				'content'       => wpautop( $c['desc'] ),
+				'access_type'   => $c['price'] > 0 ? 'paid' : 'free',
+				'price'         => $c['price'],
+				'category_id'   => $categories[ $c['category'] ] ?? 0,
+				'status'        => 'published',
+				'difficulty'    => $c['difficulty'],
+				'thumbnail_url' => $this->thumbnail( $i, $instructor, $ctx ),
 			),
 			$instructor
 		);
@@ -189,7 +224,7 @@ final class Learnomy extends Provider {
 		$order = 0;
 		foreach ( $c['sections'] as $s => $section ) {
 			list( $title, $lessons ) = $section;
-			$section_id = \Learnomy\Models\Section::create(
+			$section_id              = \Learnomy\Models\Section::create(
 				array(
 					'course_id'  => (int) $course_id,
 					'title'      => $title,
@@ -285,8 +320,9 @@ final class Learnomy extends Provider {
 					$when = $ctx->after( $when, $n + $s );
 					$progress->mark_lesson_complete( $uid, (int) $lesson->id, true, 240 + $n * 30, array(), $when );
 				}
-				if ( 0 === $s || 1 === $s && $done === count( $lessons ) ) {
-					$body = $bodies[ $r++ % count( $bodies ) ];
+				if ( 0 === $s || ( 1 === $s && count( $lessons ) === $done ) ) {
+					$body = $bodies[ $r % count( $bodies ) ];
+					++$r;
 					try {
 						$reviews->submit( $uid, $course_id, $body[0], $body[1], $body[2] );
 					} catch ( \Throwable $e ) {
@@ -332,6 +368,9 @@ final class Learnomy extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		return function_exists( '\Learnomy\route_url' )
 			? array(

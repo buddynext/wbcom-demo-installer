@@ -81,9 +81,9 @@ final class Finisher {
 			'keep'   => array(),
 		);
 		foreach ( Ledger::counts() as $row ) {
-			$key  = $row->provider . ':' . $row->object_type;
-			$side = in_array( $key, $sel['remove'], true ) ? 'remove' : 'keep';
-			$p    = Registry::get( $row->provider );
+			$key             = $row->provider . ':' . $row->object_type;
+			$side            = in_array( $key, $sel['remove'], true ) ? 'remove' : 'keep';
+			$p               = Registry::get( $row->provider );
 			$rows[ $side ][] = array(
 				'key'       => $key,
 				'product'   => $p ? $p->label() : $row->provider,
@@ -121,15 +121,15 @@ final class Finisher {
 			->set(
 				'finish',
 				array(
-					'mode'    => $mode,
-					'remove'  => $sel['remove'],
-					'keep'    => $sel['keep'],
-					'people'  => $sel['people'],
-					'skip'    => array(),
-					'waiting' => array(),
-					'removed' => 0,
+					'mode'         => $mode,
+					'remove'       => $sel['remove'],
+					'keep'         => $sel['keep'],
+					'people'       => $sel['people'],
+					'skip'         => array(),
+					'waiting'      => array(),
+					'removed'      => 0,
 					'kept_options' => $kept_options,
-					'total'   => self::count_keys( $sel['remove'] ),
+					'total'        => self::count_keys( $sel['remove'] ),
 				)
 			)
 			->save();

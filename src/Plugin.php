@@ -21,6 +21,7 @@ final class Plugin {
 	 * Hook everything up.
 	 */
 	public static function boot(): void {
+		load_plugin_textdomain( 'wbcom-demo-installer', false, dirname( plugin_basename( WBCOM_DEMO_FILE ) ) . '/languages' );
 		Core\Ledger::maybe_upgrade();
 		Core\QuietMode::init();
 

@@ -107,11 +107,11 @@ final class Context {
 	 * @param int                 $id       Object id.
 	 * @param string              $kind     'sample' or 'setup'.
 	 * @param array<string,mixed> $meta     Removal data.
-	 * @param int                 $parent   Parent ledger id.
+	 * @param int                 $parent_id   Parent ledger id.
 	 * @return int Ledger id.
 	 */
-	public function record( string $provider, string $type, int $id, string $kind = 'sample', array $meta = array(), int $parent = 0 ): int {
-		return Ledger::add( $this->build_id(), $provider, $type, $id, $kind, $parent, $meta );
+	public function record( string $provider, string $type, int $id, string $kind = 'sample', array $meta = array(), int $parent_id = 0 ): int {
+		return Ledger::add( $this->build_id(), $provider, $type, $id, $kind, $parent_id, $meta );
 	}
 
 	/**
@@ -181,20 +181,32 @@ final class Context {
 	 *
 	 * @param string   $provider   Provider id.
 	 * @param string[] $taxonomies Taxonomies to watch.
-	 * @param callable $fn         The product call.
+	 * @param callable $callback         The product call.
 	 * @return mixed What the call returned.
 	 */
-	public function watch_terms( string $provider, array $taxonomies, callable $fn ) {
+	public function watch_terms( string $provider, array $taxonomies, callable $callback ) {
 		$before = array();
 		foreach ( $taxonomies as $tax ) {
-			$before[ $tax ] = taxonomy_exists( $tax ) ? get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false, 'fields' => 'ids' ) ) : array();
+			$before[ $tax ] = taxonomy_exists( $tax ) ? get_terms(
+				array(
+					'taxonomy'   => $tax,
+					'hide_empty' => false,
+					'fields'     => 'ids',
+				)
+			) : array();
 		}
-		$result = $fn();
+		$result = $callback();
 		foreach ( $taxonomies as $tax ) {
 			if ( ! taxonomy_exists( $tax ) ) {
 				continue;
 			}
-			$after = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false, 'fields' => 'ids' ) );
+			$after = get_terms(
+				array(
+					'taxonomy'   => $tax,
+					'hide_empty' => false,
+					'fields'     => 'ids',
+				)
+			);
 			foreach ( array_diff( (array) $after, (array) $before[ $tax ] ) as $term_id ) {
 				$this->record( $provider, 'term', (int) $term_id, 'setup', array( 'taxonomy' => $tax ) );
 			}

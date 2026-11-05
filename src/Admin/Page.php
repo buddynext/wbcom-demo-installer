@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Page {
 
-	public const SLUG   = 'wbcom-demo';
+	public const SLUG    = 'wbcom-demo';
 	private const NOTICE = 'wbcom_demo_notice_dismissed';
 
 	/**

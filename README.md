@@ -12,7 +12,7 @@ remove the samples and keep their setup.
 - Existing users and content are never changed.
 
 Supports the Wbcom product family (BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board,
-WB Listora, WP Sell Services and their Pro add-ons) with the BuddyX, BuddyX Pro and Reign themes. Third-party
+WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and their Pro add-ons) with the BuddyX, BuddyX Pro and Reign themes. Third-party
 plugins used by the Reign add-ons follow in a later release.
 
 Requires WordPress 6.5+ and PHP 8.1+.
@@ -20,11 +20,15 @@ Requires WordPress 6.5+ and PHP 8.1+.
 ## WP-CLI
 
 ```
-wp wbcom-demo build --recipe=community [--include=buddynext,jetonomy] [--dry-run]
-wp wbcom-demo finish [--mode=keep-setup|all] [--dry-run]
+wp wbcom-demo status
+wp wbcom-demo build --recipe=community [--include=buddynext,jetonomy] [--keep-look] [--dry-run]
+wp wbcom-demo finish [--mode=keep|all] [--keep=learnomy:course] [--dry-run]
+wp wbcom-demo resume
 wp wbcom-demo verify
 ```
 
 ## License
 
 GPL-2.0-or-later.
+
+Docs: `docs/website/`. Developer guide: providers, hooks and WP-CLI.

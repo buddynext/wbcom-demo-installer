@@ -1,0 +1,12 @@
+.git
+.gitignore
+.distignore
+bin
+dist
+docs
+tests
+phpcs.xml.dist
+phpstan.neon.dist
+README.md
+.DS_Store
+CLAUDE.md

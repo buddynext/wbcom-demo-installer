@@ -25,34 +25,58 @@ final class Eventonomy extends Provider {
 	 */
 	private ?array $content = null;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'eventonomy';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'Eventonomy';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'EVENTONOMY_VERSION' ) && function_exists( 'evnm' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'EVENTONOMY_VERSION' ) ? (string) EVENTONOMY_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '1.9.1';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'cal';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 45;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'EVENTONOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -66,6 +90,9 @@ final class Eventonomy extends Provider {
 		return $this->content ??= require WBCOM_DEMO_DIR . 'content/eventonomy.php';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		$past = count( array_filter( $this->content(), static fn( $e ) => $e[7] < 0 ) );
 		return sprintf(
@@ -76,6 +103,9 @@ final class Eventonomy extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'category'  => array( 0, 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),
@@ -85,6 +115,11 @@ final class Eventonomy extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'events:0', 'events:5', 'rsvps' );
 	}
@@ -111,8 +146,8 @@ final class Eventonomy extends Provider {
 				evnm_grant_organizer_role( $organizer );
 			}
 			list( $start, $end ) = explode( '-', $time );
-			$day   = gmdate( 'Y-m-d', strtotime( ( $days >= 0 ? '+' : '' ) . $days . ' days' ) );
-			$input = array(
+			$day                 = gmdate( 'Y-m-d', strtotime( ( $days >= 0 ? '+' : '' ) . $days . ' days' ) );
+			$input               = array(
 				'title'       => $title,
 				'content'     => wpautop( $desc ),
 				'start_local' => $day . 'T' . $start,
@@ -164,7 +199,7 @@ final class Eventonomy extends Provider {
 					$ctx->record( $this->id(), 'category', (int) $term['term_id'], 'setup' );
 				}
 			}
-			if ( $term && ! is_wp_error( $term ) ) {
+			if ( is_array( $term ) ) {
 				wp_set_object_terms( $id, array( (int) $term['term_id'] ), 'evnm_event_category' );
 			}
 			$ctx->record( $this->id(), 'event', $id, 'sample', array( 'organizer' => $organizer ) );
@@ -180,8 +215,9 @@ final class Eventonomy extends Provider {
 		$svc       = evnm( \Eventonomy\Services\RsvpService::class );
 		$attendees = array_values( array_unique( array_merge( $ctx->people( 'attendee' ), $ctx->people( 'organizer' ) ) ) );
 		foreach ( Ledger::ids( $this->id(), 'event' ) as $k => $event_id ) {
-			$n = 3 + ( $k * 3 ) % 7;
-			for ( $a = 0; $a < $n && $a < count( $attendees ); $a++ ) {
+			$n   = 3 + ( $k * 3 ) % 7;
+			$max = min( $n, count( $attendees ) );
+			for ( $a = 0; $a < $max; $a++ ) {
 				$uid = $attendees[ ( $k + $a ) % count( $attendees ) ];
 				\WbcomDemo\Core\Clock::set( $ctx->date( $k * 9 + $a, 120, 45 ) );
 				$was = get_current_user_id();
@@ -236,10 +272,16 @@ final class Eventonomy extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function late_types(): array {
 		return array( 'venue', 'organizer', 'category' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		return function_exists( 'evnm_events_page_url' ) && evnm_events_page_url()
 			? array(

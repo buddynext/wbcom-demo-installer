@@ -37,34 +37,58 @@ final class Roadmap extends Provider {
 		'under-review' => 'Under Review',
 	);
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'roadmap';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'Product Roadmap';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'ROADMAP_VERSION' ) && post_type_exists( 'roadmap_item' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'ROADMAP_VERSION' ) ? (string) ROADMAP_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '1.8.1';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'clock';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 80;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: items */
@@ -73,6 +97,9 @@ final class Roadmap extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'term' => array( 0, 'setup', __( 'roadmap statuses and categories', 'wbcom-demo-installer' ) ),
@@ -81,6 +108,11 @@ final class Roadmap extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'items', 'votes' );
 	}
@@ -141,7 +173,7 @@ final class Roadmap extends Provider {
 		$author = $ctx->person( 0, 'moderator' );
 		foreach ( self::ITEMS as $i => $item ) {
 			list( $title, $status, $cat, $desc ) = $item;
-			$id = wp_insert_post(
+			$id                                  = wp_insert_post(
 				array(
 					'post_type'    => 'roadmap_item',
 					'post_status'  => 'publish',
@@ -159,7 +191,14 @@ final class Roadmap extends Provider {
 			wp_set_object_terms( $id, $this->term( $status, self::STATUSES[ $status ], 'roadmap_status', $ctx ), 'roadmap_status' );
 			wp_set_object_terms( $id, $this->term( sanitize_title( $cat ), $cat, 'roadmap_category', $ctx ), 'roadmap_category' );
 			update_post_meta( $id, '_roadmap_priority', array( 'high', 'medium', 'low' )[ $i % 3 ] );
-			update_post_meta( $id, '_roadmap_progress', array( 'completed' => 100, 'in-progress' => 50 )[ $status ] ?? 0 );
+			update_post_meta(
+				$id,
+				'_roadmap_progress',
+				array(
+					'completed'   => 100,
+					'in-progress' => 50,
+				)[ $status ] ?? 0
+			);
 			$ctx->record( $this->id(), 'item', (int) $id );
 		}
 	}
@@ -214,10 +253,16 @@ final class Roadmap extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function late_types(): array {
 		return array( 'term' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		$page = (int) get_option( 'roadmap_page_id' );
 		return $page && 'publish' === get_post_status( $page )

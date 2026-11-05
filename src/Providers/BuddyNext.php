@@ -32,34 +32,58 @@ final class BuddyNext extends Provider {
 	 */
 	private ?array $content = null;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'buddynext';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'BuddyNext';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'BUDDYNEXT_VERSION' ) && class_exists( '\BuddyNext\Feed\PostService' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'BUDDYNEXT_VERSION' ) ? (string) BUDDYNEXT_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '1.2.8';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'users';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 10;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		$c = $this->content();
 		return sprintf(
@@ -79,6 +103,9 @@ final class BuddyNext extends Provider {
 		return $this->content ??= require WBCOM_DEMO_DIR . 'content/buddynext.php';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		$c = $this->content();
 		return array(
@@ -92,6 +119,11 @@ final class BuddyNext extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		$steps = array( 'profiles:0', 'profiles:10', 'spaces' );
 		$n     = count( $this->content()['posts'] );
@@ -169,9 +201,9 @@ final class BuddyNext extends Provider {
 			$profiles->save_profile(
 				$user_id,
 				array(
-					'headline'   => $p['headline'],
-					'bio'        => sprintf( '%s based in %s. Into %s.', $p['job'], $p['location'], $p['note'] ),
-					'location'   => $p['location'],
+					'headline'        => $p['headline'],
+					'bio'             => sprintf( '%s based in %s. Into %s.', $p['job'], $p['location'], $p['note'] ),
+					'location'        => $p['location'],
 					'work_title'      => $p['job'],
 					'work_company'    => self::COMPANIES[ $p['index'] % count( self::COMPANIES ) ],
 					'work_location'   => $p['location'],
@@ -219,7 +251,12 @@ final class BuddyNext extends Provider {
 			if ( isset( $cat_ids[ $slug ] ) ) {
 				continue;
 			}
-			$id = $cats->create( array( 'name' => $name, 'slug' => $slug ) );
+			$id = $cats->create(
+				array(
+					'name' => $name,
+					'slug' => $slug,
+				)
+			);
 			if ( ! is_wp_error( $id ) ) {
 				$cat_ids[ $slug ] = (int) $id;
 				$ctx->record( $this->id(), 'space_category', (int) $id, 'setup' );
@@ -252,7 +289,7 @@ final class BuddyNext extends Provider {
 			if ( is_wp_error( $id ) ) {
 				continue;
 			}
-			$id          = (int) $id;
+			$id               = (int) $id;
 			$by[ $s['slug'] ] = $id;
 			$ctx->record( $this->id(), 'space', $id, 'setup', array( 'owner' => $owner ) );
 
@@ -313,9 +350,9 @@ final class BuddyNext extends Provider {
 		$svc    = new \BuddyNext\Feed\PostService();
 		foreach ( array_slice( $c['posts'], $offset, self::POSTS_PER_STEP, true ) as $i => $row ) {
 			list( $who, $space, $text ) = $row;
-			$author = $ctx->person( $who );
-			$date   = $ctx->date( $i, $total, 45 );
-			$data   = array(
+			$author                     = $ctx->person( $who );
+			$date                       = $ctx->date( $i, $total, 45 );
+			$data                       = array(
 				'type'       => 'text',
 				'content'    => $text,
 				'created_at' => $date,
@@ -414,9 +451,9 @@ final class BuddyNext extends Provider {
 
 		foreach ( $c['links'] as $i => $row ) {
 			list( $who, $space, $text, $url ) = $row;
-			$author = $ctx->person( $who );
-			$date   = $ctx->date( 5 + $i * 7, 20, 40 );
-			$data   = array(
+			$author                           = $ctx->person( $who );
+			$date                             = $ctx->date( 5 + $i * 7, 20, 40 );
+			$data                             = array(
 				'type'       => 'link',
 				'content'    => $text,
 				'link_url'   => $url,
@@ -469,8 +506,8 @@ final class BuddyNext extends Provider {
 
 		foreach ( $c['photos'] as $i => $row ) {
 			list( $who, $space, $text, $img ) = $row;
-			$author   = $ctx->person( $who );
-			$media_id = $this->upload( $uploader, $img, $author, $ctx );
+			$author                           = $ctx->person( $who );
+			$media_id                         = $this->upload( $uploader, $img, $author, $ctx );
 			if ( ! $media_id ) {
 				continue;
 			}
@@ -512,6 +549,9 @@ final class BuddyNext extends Provider {
 			if ( ! $items ) {
 				continue;
 			}
+			// Act as the owner so other plugins (points, activity) credit the sample person, not the admin.
+			$was = get_current_user_id();
+			wp_set_current_user( $owner );
 			$album_id = $albums->create(
 				$owner,
 				array(
@@ -521,6 +561,7 @@ final class BuddyNext extends Provider {
 				)
 			);
 			if ( is_wp_error( $album_id ) || (int) $album_id <= 0 ) {
+				wp_set_current_user( $was );
 				continue;
 			}
 			$album_id = (int) $album_id;
@@ -530,6 +571,7 @@ final class BuddyNext extends Provider {
 			}
 			update_space_meta( $space_id, 'mvs_media_tab', '1' );
 			\BuddyNext\Media\Galleries::assign_album_to_space( $album_id, $space_id );
+			wp_set_current_user( $was );
 			$ctx->record( $this->id(), 'album', $album_id );
 		}
 	}
@@ -607,10 +649,10 @@ final class BuddyNext extends Provider {
 		if ( is_object( $messaging ) && method_exists( $messaging, 'find_or_create_conversation' ) ) {
 			foreach ( $this->content()['threads'] as $t ) {
 				list( $a, $b, $messages ) = $t;
-				$a    = $ctx->person( $a );
-				$b    = $ctx->person( $b );
-				$conv = $messaging->find_or_create_conversation( $a, $b );
-				$cid  = is_array( $conv ) ? (int) ( $conv['conversation_id'] ?? 0 ) : 0;
+				$a                        = $ctx->person( $a );
+				$b                        = $ctx->person( $b );
+				$conv                     = $messaging->find_or_create_conversation( $a, $b );
+				$cid                      = is_array( $conv ) ? (int) ( $conv['conversation_id'] ?? 0 ) : 0;
 				if ( ! $cid ) {
 					continue;
 				}
@@ -663,7 +705,7 @@ final class BuddyNext extends Provider {
 					return true;
 				}
 				$author = (int) ( $row->meta['author'] ?? 0 );
-				$result = $svc->delete( $id, $author ?: get_current_user_id() );
+				$result = $svc->delete( $id, $author > 0 ? $author : get_current_user_id() );
 				return ! is_wp_error( $result ) || ! $svc->get( $id );
 			case 'media':
 				$repo = \BuddyNext\Media\MediaClient::available() ? \BuddyNext\Media\MediaClient::repo() : null;
@@ -701,6 +743,9 @@ final class BuddyNext extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function late_types(): array {
 		return array( 'hashtag' );
 	}
@@ -773,6 +818,9 @@ final class BuddyNext extends Provider {
 		return $items;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function front_page(): int {
 		$page = (int) get_option( 'buddynext_page_activity' );
 		return $page && 'publish' === get_post_status( $page ) ? $page : 0;

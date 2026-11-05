@@ -20,22 +20,37 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Theme extends Provider {
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'theme';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return self::theme_family();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return __( 'Logo, home page and menu', 'wbcom-demo-installer' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 1000;
 	}
@@ -54,6 +69,9 @@ final class Theme extends Provider {
 		};
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'attachment' => array( 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
@@ -61,6 +79,11 @@ final class Theme extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'logo', 'home', 'menu' );
 	}

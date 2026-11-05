@@ -28,34 +28,58 @@ final class MediaVerse extends Provider {
 	 */
 	private ?array $content = null;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'mediaverse';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'WPMediaVerse';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'MVS_VERSION' ) && class_exists( '\WPMediaVerse\Core\Plugin' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'MVS_VERSION' ) ? (string) MVS_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '2.6.3';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'image';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 20;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'MVS_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -69,6 +93,9 @@ final class MediaVerse extends Provider {
 		return $this->content ??= require WBCOM_DEMO_DIR . 'content/mediaverse.php';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: photos */
@@ -77,6 +104,9 @@ final class MediaVerse extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'media' => array( count( $this->content()['photos'] ), 'sample', __( 'photos', 'wbcom-demo-installer' ) ),
@@ -84,6 +114,11 @@ final class MediaVerse extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		$steps = array();
 		for ( $i = 0, $n = count( $this->content()['photos'] ); $i < $n; $i += self::PER_STEP ) {
@@ -113,6 +148,7 @@ final class MediaVerse extends Provider {
 	 *
 	 * @param string  $step Step.
 	 * @param Context $ctx  Context.
+	 * @throws \RuntimeException When the WPMediaVerse upload service is missing.
 	 */
 	public function run( string $step, Context $ctx ): void {
 		if ( 'albums' === $step ) {
@@ -281,6 +317,9 @@ final class MediaVerse extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		if ( ! class_exists( '\WPMediaVerse\Core\SettingsHelper' ) ) {
 			return array();

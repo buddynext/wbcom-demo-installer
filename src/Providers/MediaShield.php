@@ -26,38 +26,65 @@ final class MediaShield extends Provider {
 		array( 'WhWc3b3KhnY', 'Spring', 'A short animated open movie about a shepherd girl and her dog.', 464 ),
 	);
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'mediashield';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'MediaShield';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'MEDIASHIELD_VERSION' ) && post_type_exists( 'mediashield_video' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'MEDIASHIELD_VERSION' ) ? (string) MEDIASHIELD_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '1.4.1';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'shield';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 70;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'MEDIASHIELD_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: videos */
@@ -66,6 +93,9 @@ final class MediaShield extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'video'    => array( count( self::VIDEOS ), 'sample', __( 'videos', 'wbcom-demo-installer' ) ),
@@ -73,6 +103,11 @@ final class MediaShield extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'videos' );
 	}
@@ -87,7 +122,7 @@ final class MediaShield extends Provider {
 		$author = $ctx->person( 0, 'instructor' );
 		foreach ( self::VIDEOS as $i => $v ) {
 			list( $yt, $title, $desc, $secs ) = $v;
-			$id = wp_insert_post(
+			$id                               = wp_insert_post(
 				array(
 					'post_type'    => 'mediashield_video',
 					'post_status'  => 'publish',

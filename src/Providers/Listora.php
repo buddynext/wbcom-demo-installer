@@ -38,38 +38,65 @@ final class Listora extends Provider {
 		array( 5, 'A real gem', 'The kind of place you want to keep secret and tell everyone about.' ),
 	);
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'listora';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'WB Listora';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'WB_LISTORA_VERSION' ) && post_type_exists( 'listora_listing' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'WB_LISTORA_VERSION' ) ? (string) WB_LISTORA_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '2.1.0';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'map';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 55;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'WB_LISTORA_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: listings */
@@ -78,6 +105,9 @@ final class Listora extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'term'       => array( 0, 'setup', __( 'listing categories and features', 'wbcom-demo-installer' ) ),
@@ -86,6 +116,11 @@ final class Listora extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'listings', 'reviews' );
 	}
@@ -167,7 +202,14 @@ final class Listora extends Provider {
 			$ctx->watch_terms( $this->id(), array( 'listora_listing_location' ), static fn() => \WBListora\ImportExport\Term_Helper::set_location_terms( (int) $id, $address ) );
 			$hours = array();
 			for ( $d = 0; $d < 7; $d++ ) {
-				$hours[] = 0 === $d ? array( 'day' => 0, 'closed' => true ) : array( 'day' => $d, 'open' => '08:00', 'close' => 5 <= $d ? '22:00' : '18:00' );
+				$hours[] = 0 === $d ? array(
+					'day'    => 0,
+					'closed' => true,
+				) : array(
+					'day'   => $d,
+					'open'  => '08:00',
+					'close' => 5 <= $d ? '22:00' : '18:00',
+				);
 			}
 			foreach ( array(
 				'address'        => $address,
@@ -260,10 +302,16 @@ final class Listora extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function late_types(): array {
 		return array( 'term' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		$url = function_exists( 'wb_listora_get_page_url' ) ? (string) wb_listora_get_page_url( 'directory' ) : '';
 		return $url

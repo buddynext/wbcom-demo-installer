@@ -55,7 +55,14 @@ abstract class Provider {
 	 */
 	public function supported(): bool {
 		$min = $this->min_version();
-		return '' === $min || '' === $this->version() || version_compare( $this->version(), $min, '>=' );
+		$ok  = '' === $min || '' === $this->version() || version_compare( $this->version(), $min, '>=' );
+		/**
+		 * Whether a provider may run on the active product version.
+		 *
+		 * @param bool     $ok       Supported.
+		 * @param Provider $provider Provider.
+		 */
+		return (bool) apply_filters( 'wbcom_demo_provider_supported', $ok, $this );
 	}
 
 	/**

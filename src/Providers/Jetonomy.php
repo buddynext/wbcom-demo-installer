@@ -28,34 +28,58 @@ final class Jetonomy extends Provider {
 	 */
 	private ?array $content = null;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'jetonomy';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'Jetonomy';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'JETONOMY_VERSION' ) && class_exists( '\Jetonomy\Models\Post' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'JETONOMY_VERSION' ) ? (string) JETONOMY_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '2.0.6';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'forum';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 30;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'JETONOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -69,6 +93,9 @@ final class Jetonomy extends Provider {
 		return $this->content ??= require WBCOM_DEMO_DIR . 'content/jetonomy.php';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		$c      = $this->content();
 		$spaces = array_sum( array_map( static fn( $cat ) => count( $cat['spaces'] ), $c['categories'] ) );
@@ -81,6 +108,9 @@ final class Jetonomy extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		$c      = $this->content();
 		$spaces = array_sum( array_map( static fn( $cat ) => count( $cat['spaces'] ), $c['categories'] ) );
@@ -92,6 +122,11 @@ final class Jetonomy extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		$steps = array( 'structure' );
 		for ( $i = 0, $n = count( $this->content()['topics'] ); $i < $n; $i += self::TOPICS_PER_STEP ) {
@@ -265,8 +300,9 @@ final class Jetonomy extends Provider {
 			}
 			$active = (array) $ctx->get( $this->id(), 'active', array() );
 			if ( $accepted ) {
-				$body = $c['answers'][ $answers++ % count( $c['answers'] ) ];
-				$aid  = \Jetonomy\Models\Reply::create(
+				$body = $c['answers'][ $answers % count( $c['answers'] ) ];
+				++$answers;
+				$aid = \Jetonomy\Models\Reply::create(
 					array(
 						'post_id'       => $post_id,
 						'author_id'     => $people[ ( $who + 7 ) % $n ],
@@ -343,6 +379,9 @@ final class Jetonomy extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function late_types(): array {
 		return array( 'tag' );
 	}

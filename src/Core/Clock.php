@@ -33,11 +33,11 @@ final class Clock {
 	 * Set the clock.
 	 *
 	 * @param string $date   MySQL datetime, UTC.
-	 * @param int    $parent Parent ledger id.
+	 * @param int    $parent_id Parent ledger id.
 	 */
-	public static function set( string $date, int $parent = 0 ): void {
+	public static function set( string $date, int $parent_id = 0 ): void {
 		self::$now    = $date;
-		self::$parent = $parent;
+		self::$parent = $parent_id;
 	}
 
 	/**

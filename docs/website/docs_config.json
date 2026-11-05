@@ -1,0 +1,9 @@
+{
+	"product": "wbcom-demo-installer",
+	"title": "Wbcom Demo Installer",
+	"type": "plugin",
+	"sections": [
+		{ "slug": "getting-started", "title": "Getting started" },
+		{ "slug": "developer-guide", "title": "Developer guide" }
+	]
+}

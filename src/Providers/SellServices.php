@@ -29,38 +29,65 @@ final class SellServices extends Provider {
 		array( 17, 'I will run sound and AV for your meetup or conference', 'Events', 250, 'Mics, speakers, mixing and recording for meetups and conferences of up to 300 people. Setup, sound check and teardown are included, and you get the recordings the same week.' ),
 	);
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'sellservices';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return 'WP Sell Services';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return defined( 'WPSS_VERSION' ) && class_exists( '\WPSellServices\Services\ServiceManager' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function version(): string {
 		return defined( 'WPSS_VERSION' ) ? (string) WPSS_VERSION : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function min_version(): string {
 		return '1.9.2';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'store';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 60;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'WPSS_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: services */
@@ -69,15 +96,23 @@ final class SellServices extends Provider {
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
-			'term'    => array( 0, 'setup', __( 'service categories', 'wbcom-demo-installer' ) ),
-			'service' => array( count( self::SERVICES ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
+			'term'       => array( 0, 'setup', __( 'service categories', 'wbcom-demo-installer' ) ),
+			'service'    => array( count( self::SERVICES ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
 			'order'      => array( 0, 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( self::SERVICES ), 'sample', __( 'service images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'vendors', 'orders' );
 	}
@@ -103,7 +138,7 @@ final class SellServices extends Provider {
 		$done     = array();
 		foreach ( self::SERVICES as $i => $s ) {
 			list( $who, $title, $cat, $base, $desc ) = $s;
-			$vendor = $ctx->person( $who );
+			$vendor                                  = $ctx->person( $who );
 			if ( ! isset( $done[ $vendor ] ) ) {
 				$vendors->register( $vendor, array( 'status' => 'active' ) );
 				$p = $ctx->profile( $vendor );
@@ -111,9 +146,9 @@ final class SellServices extends Provider {
 					$vendors->update_profile(
 						$vendor,
 						array(
-							'tagline'  => $p['headline'] ?? '',
-							'bio'      => sprintf( '%s based in %s.', $p['job'] ?? '', $p['location'] ?? '' ),
-							'country'  => substr( (string) ( $p['location'] ?? '' ), -2 ),
+							'tagline' => $p['headline'] ?? '',
+							'bio'     => sprintf( '%s based in %s.', $p['job'] ?? '', $p['location'] ?? '' ),
+							'country' => substr( (string) ( $p['location'] ?? '' ), -2 ),
 						)
 					);
 				}
@@ -137,9 +172,27 @@ final class SellServices extends Provider {
 					'author'     => $vendor,
 					'categories' => is_array( $term ) ? array( (int) $term['term_id'] ) : array(),
 					'packages'   => array(
-						array( 'name' => 'Basic', 'description' => 'Everything you need to get started.', 'price' => $base, 'delivery_days' => 3, 'revisions' => 1 ),
-						array( 'name' => 'Standard', 'description' => 'The popular choice.', 'price' => $base * 2, 'delivery_days' => 5, 'revisions' => 3 ),
-						array( 'name' => 'Premium', 'description' => 'The full package with priority support.', 'price' => $base * 3, 'delivery_days' => 7, 'revisions' => 5 ),
+						array(
+							'name'          => 'Basic',
+							'description'   => 'Everything you need to get started.',
+							'price'         => $base,
+							'delivery_days' => 3,
+							'revisions'     => 1,
+						),
+						array(
+							'name'          => 'Standard',
+							'description'   => 'The popular choice.',
+							'price'         => $base * 2,
+							'delivery_days' => 5,
+							'revisions'     => 3,
+						),
+						array(
+							'name'          => 'Premium',
+							'description'   => 'The full package with priority support.',
+							'price'         => $base * 3,
+							'delivery_days' => 7,
+							'revisions'     => 5,
+						),
 					),
 					'gallery'    => $thumb ? array( $thumb ) : array(),
 					'status'     => 'publish',
@@ -262,10 +315,16 @@ final class SellServices extends Provider {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function late_types(): array {
 		return array( 'term' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		$url = function_exists( 'wpss_get_page_url' ) ? (string) wpss_get_page_url( 'services_page' ) : '';
 		return $url

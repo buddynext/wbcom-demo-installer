@@ -30,34 +30,60 @@ final class People extends Provider {
 		return require WBCOM_DEMO_DIR . 'content/people.php';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function id(): string {
 		return 'people';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function label(): string {
 		return __( 'Sample people', 'wbcom-demo-installer' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function available(): bool {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function icon(): string {
 		return 'users';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function summary(): string {
 		return __( 'One cast of 20 people shared by every product.', 'wbcom-demo-installer' );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function order(): int {
 		return 0;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array( 'user' => array( count( self::roster() ), 'sample', __( 'sample people', 'wbcom-demo-installer' ) ) );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
 	public function steps( Context $ctx ): array {
 		return array( 'people:0', 'people:10' );
 	}

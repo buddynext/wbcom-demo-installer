@@ -1,0 +1,20 @@
+# Run with a PHPStan install that has szepeviktor/phpstan-wordpress and php-stubs/wp-cli-stubs.
+includes:
+	- /private/tmp/claude-501/-Users-vapvarun/f7c4a91d-f305-4c3f-ae00-d322cd774c6c/scratchpad/phpstan/vendor/szepeviktor/phpstan-wordpress/extension.neon
+parameters:
+	level: 6
+	phpVersion: 80100
+	paths:
+		- wbcom-demo-installer.php
+		- uninstall.php
+		- src
+		- content
+	scanFiles:
+		- /private/tmp/claude-501/-Users-vapvarun/f7c4a91d-f305-4c3f-ae00-d322cd774c6c/scratchpad/phpstan/vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+	bootstrapFiles:
+		- tests/phpstan-bootstrap.php
+	reportUnmatchedIgnoredErrors: false
+	ignoreErrors:
+		# Products the providers talk to are optional and not installed when analysing this plugin.
+		- '#(Class|Call to static method .* on an unknown class|Instantiated class|on an unknown class|unknown class) \\?(BuddyNext|Jetonomy|Learnomy|Eventonomy|WCB|WBListora|WPSellServices|WBGam|MediaShield|WPMediaVerse|Roadmap_API)#'
+		- '#Function (update_space_meta|buddynext_|evnm|wb_listora_|wpss_|Jetonomy\\|Learnomy\\)\w* not found#'
