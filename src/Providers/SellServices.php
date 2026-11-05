@@ -21,12 +21,12 @@ final class SellServices extends Provider {
 
 	/** [ vendor index, title, category, base price, description ]. */
 	private const SERVICES = array(
-		array( 0, 'I will design a clear, friendly onboarding flow for your app', 'Design', 300, 'Research-led onboarding design: I review your current flow, interview two of your users and deliver Figma screens your developers can build straight away.' ),
-		array( 3, 'I will draw a custom illustration set for your brand', 'Illustration', 220, 'A set of six illustrations in one consistent style, delivered as SVG and PNG, ready for your site, app and social posts.' ),
-		array( 8, 'I will rewrite your product copy in plain words', 'Writing', 150, 'Up to ten screens or one landing page, rewritten so people understand it on first read. Includes a short voice guide.' ),
-		array( 13, 'I will design a logo and simple brand kit', 'Branding', 350, 'Three logo directions, one refined final logo, colours and type pairings, and a one-page brand guide.' ),
-		array( 7, 'I will set up a fast, reliable Go API for your product', 'Development', 600, 'A small, well-tested REST API in Go with docs, deployment notes and a week of support after handover.' ),
-		array( 17, 'I will run sound and AV for your meetup or conference', 'Events', 250, 'Mics, speakers, mixing and recording for events up to 300 people. Setup and teardown included.' ),
+		array( 0, 'I will design a clear, friendly onboarding flow for your app', 'Design', 300, 'Research-led onboarding design. I review your current flow, interview two of your users and deliver Figma screens your developers can build straight away, with notes on every decision.' ),
+		array( 3, 'I will draw a custom illustration set for your brand', 'Illustration', 220, 'A set of six illustrations in one consistent style, delivered as SVG and PNG, ready for your site, app and social posts. We start with a short call about your brand and audience.' ),
+		array( 8, 'I will rewrite your product copy in plain words', 'Writing', 150, 'Up to ten screens or one landing page, rewritten so people understand it on first read. Includes a short voice guide your team can use for every new screen after we finish.' ),
+		array( 13, 'I will design a logo and simple brand kit', 'Branding', 350, 'Three logo directions, one refined final logo, colours and type pairings, and a one-page brand guide that shows how to use them on your site, packaging and social posts.' ),
+		array( 7, 'I will set up a fast, reliable Go API for your product', 'Development', 600, 'A small, well-tested REST API in Go with clear docs, deployment notes and a week of support after handover, so your team can run and extend it with confidence.' ),
+		array( 17, 'I will run sound and AV for your meetup or conference', 'Events', 250, 'Mics, speakers, mixing and recording for meetups and conferences of up to 300 people. Setup, sound check and teardown are included, and you get the recordings the same week.' ),
 	);
 
 	public function id(): string {
@@ -73,7 +73,8 @@ final class SellServices extends Provider {
 		return array(
 			'term'    => array( 0, 'setup', __( 'service categories', 'wbcom-demo-installer' ) ),
 			'service' => array( count( self::SERVICES ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
-			'order'   => array( 0, 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
+			'order'      => array( 0, 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
+			'attachment' => array( count( self::SERVICES ), 'sample', __( 'service images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -125,6 +126,8 @@ final class SellServices extends Provider {
 					$ctx->record( $this->id(), 'term', (int) $term['term_id'], 'setup', array( 'taxonomy' => 'wpss_service_category' ) );
 				}
 			}
+			// Sell Services publishes only marketplace-ready services, and that includes an image.
+			$thumb = $ctx->attachment( 'photos/' . array( 'tech-workspace.jpg', 'art-gallery.jpg', 'developer-desk.jpg', 'creative-studio-portrait.jpg', 'neon-light.jpg', 'festival-friends.jpg' )[ $i % 6 ], $vendor, $this->id() );
 			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( self::SERVICES ), 70 ) );
 			$id = $services->create(
 				array(
@@ -138,6 +141,7 @@ final class SellServices extends Provider {
 						array( 'name' => 'Standard', 'description' => 'The popular choice.', 'price' => $base * 2, 'delivery_days' => 5, 'revisions' => 3 ),
 						array( 'name' => 'Premium', 'description' => 'The full package with priority support.', 'price' => $base * 3, 'delivery_days' => 7, 'revisions' => 5 ),
 					),
+					'gallery'    => $thumb ? array( $thumb ) : array(),
 					'status'     => 'publish',
 				)
 			);
@@ -145,6 +149,10 @@ final class SellServices extends Provider {
 			if ( ! $id ) {
 				$ctx->warn( $this->id(), 'service ' . $title, 'not created' );
 				continue;
+			}
+			if ( 'publish' !== get_post_status( $id ) ) {
+				$why = function_exists( 'wpss_get_service_publish_errors' ) ? wpss_get_service_publish_errors( (int) $id ) : array();
+				$ctx->warn( $this->id(), 'service ' . $title, 'saved as ' . get_post_status( $id ) . ( $why ? ': ' . implode( ' ', $why ) : '' ) );
 			}
 			$date = $ctx->date( $i, count( self::SERVICES ), 70 );
 			wp_update_post(
@@ -155,10 +163,6 @@ final class SellServices extends Provider {
 					'edit_date'     => true,
 				)
 			);
-			$thumb = $ctx->attachment( 'photos/' . array( 'tech-workspace.jpg', 'art-gallery.jpg', 'developer-desk.jpg', 'creative-studio-portrait.jpg', 'neon-light.jpg', 'festival-friends.jpg' )[ $i % 6 ], $vendor, $this->id() );
-			if ( $thumb ) {
-				set_post_thumbnail( (int) $id, $thumb );
-			}
 			$ctx->record( $this->id(), 'service', (int) $id, 'sample', array( 'vendor' => $vendor ) );
 		}
 	}

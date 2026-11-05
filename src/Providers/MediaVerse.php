@@ -171,6 +171,7 @@ final class MediaVerse extends Provider {
 				$repo->set( $id, 'tags', wp_json_encode( $p['tags'] ) );
 			}
 			$by_cat[ $p['category'] ][] = array( $id, $owner );
+			$this->engage( $id, $i, $owner, $people );
 			if ( $favs && method_exists( $favs, 'toggle' ) ) {
 				for ( $f = 0; $f < 1 + $i % 5; $f++ ) {
 					$fan = $people[ ( $i + $f * 4 + 1 ) % count( $people ) ];
@@ -181,6 +182,38 @@ final class MediaVerse extends Provider {
 			}
 		}
 		$ctx->set( $this->id(), 'by_category', $by_cat );
+	}
+
+	/**
+	 * Reactions and a few comments from other sample people.
+	 *
+	 * @param int   $media_id Media.
+	 * @param int   $i        Sequence.
+	 * @param int   $owner    Owner (does not react to their own photo).
+	 * @param int[] $people   Sample people.
+	 */
+	private function engage( int $media_id, int $i, int $owner, array $people ): void {
+		$reactions = $this->service( 'reactions' );
+		$comments  = $this->service( 'comments' );
+		$types     = array( 'like', 'love', 'wow', 'like', 'love', 'haha' );
+		$was       = get_current_user_id();
+		$n         = count( $people );
+		for ( $r = 0; $r < 2 + ( $i * 3 ) % 7; $r++ ) {
+			$uid = $people[ ( $i + $r * 2 + 1 ) % $n ];
+			if ( $uid !== $owner && $reactions && method_exists( $reactions, 'toggle' ) ) {
+				wp_set_current_user( $uid );
+				$reactions->toggle( $media_id, $uid, $types[ ( $i + $r ) % count( $types ) ] );
+			}
+		}
+		$lines = array( 'The light in this is perfect.', 'Where was this taken?', 'Saving this for my moodboard.', 'Beautiful composition.', 'This made my day.' );
+		for ( $c = 0; $c < $i % 3; $c++ ) {
+			$uid = $people[ ( $i + $c * 5 + 3 ) % $n ];
+			if ( $uid !== $owner && $comments && method_exists( $comments, 'add' ) ) {
+				wp_set_current_user( $uid );
+				$comments->add( $media_id, $uid, $lines[ ( $i + $c ) % count( $lines ) ] );
+			}
+		}
+		wp_set_current_user( $was );
 	}
 
 	/**

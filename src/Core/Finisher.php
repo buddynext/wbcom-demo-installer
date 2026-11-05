@@ -178,6 +178,15 @@ final class Finisher {
 		if ( ! $rows ) {
 			$rows = Ledger::next_batch( array_values( array_intersect( $f['remove'], array( 'people:user' ) ) ), $skip, self::BATCH );
 		}
+		if ( $rows && 'people' === $rows[0]->provider && $f['waiting'] ) {
+			// A product is inactive and still holds sample content made by these people:
+			// keep the people until that content can be removed too.
+			foreach ( Ledger::next_batch( array( 'people:user' ), array(), 1000 ) as $person ) {
+				$f['waiting'][] = (int) $person->id;
+			}
+			$state->set( 'finish', $f )->save();
+			return;
+		}
 		if ( $rows && empty( $f['handed'] ) && 'people' === $rows[0]->provider ) {
 			// Everything but the people is gone: give kept items a real owner first.
 			$owner = (int) get_current_user_id();
