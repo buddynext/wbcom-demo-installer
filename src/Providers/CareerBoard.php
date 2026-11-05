@@ -143,7 +143,7 @@ final class CareerBoard extends Provider {
 			update_post_meta( $id, '_wcb_company_size', $size );
 			update_post_meta( $id, '_wcb_hq_location', $hq );
 			if ( class_exists( '\WCB\Core\Locations' ) ) {
-				\WCB\Core\Locations::sync_company_hq( (int) $id, $hq );
+				$ctx->watch_terms( $this->id(), array( 'wcb_location' ), static fn() => \WCB\Core\Locations::sync_company_hq( (int) $id, $hq ) );
 			}
 			update_user_meta( $owner, '_wcb_company_id', (int) $id );
 			$ctx->record( $this->id(), 'company', (int) $id );
@@ -294,6 +294,9 @@ final class CareerBoard extends Provider {
 			return true;
 		}
 		if ( get_post( $id ) ) {
+			// Career Board links a company to its HQ location term outside the post type's
+			// registered taxonomies, so wp_delete_post() leaves that link behind.
+			wp_delete_object_term_relationships( $id, array( 'wcb_location' ) );
 			wp_delete_post( $id, true );
 		}
 		return true;

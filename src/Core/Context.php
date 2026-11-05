@@ -176,6 +176,33 @@ final class Context {
 	}
 
 	/**
+	 * Run a product call and record any terms it created in the given taxonomies as setup.
+	 * For products that create terms as a side effect (locations from an address, and so on).
+	 *
+	 * @param string   $provider   Provider id.
+	 * @param string[] $taxonomies Taxonomies to watch.
+	 * @param callable $fn         The product call.
+	 * @return mixed What the call returned.
+	 */
+	public function watch_terms( string $provider, array $taxonomies, callable $fn ) {
+		$before = array();
+		foreach ( $taxonomies as $tax ) {
+			$before[ $tax ] = taxonomy_exists( $tax ) ? get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false, 'fields' => 'ids' ) ) : array();
+		}
+		$result = $fn();
+		foreach ( $taxonomies as $tax ) {
+			if ( ! taxonomy_exists( $tax ) ) {
+				continue;
+			}
+			$after = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false, 'fields' => 'ids' ) );
+			foreach ( array_diff( (array) $after, (array) $before[ $tax ] ) as $term_id ) {
+				$this->record( $provider, 'term', (int) $term_id, 'setup', array( 'taxonomy' => $tax ) );
+			}
+		}
+		return $result;
+	}
+
+	/**
 	 * Provider reference store.
 	 *
 	 * @param string $provider Provider id.

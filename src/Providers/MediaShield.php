@@ -1,0 +1,155 @@
+<?php
+/**
+ * MediaShield: protected videos (Blender open movies on YouTube) and a playlist.
+ *
+ * @package WbcomDemo
+ */
+
+namespace WbcomDemo\Providers;
+
+use WbcomDemo\Core\Context;
+use WbcomDemo\Core\Ledger;
+use WbcomDemo\Core\Provider;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * MediaShield provider. Videos are a post type; playlist items go through MediaShield's REST route.
+ */
+final class MediaShield extends Provider {
+
+	/** [ YouTube id, title, description, duration seconds ]. Blender Foundation open movies (CC-BY). */
+	private const VIDEOS = array(
+		array( 'aqz-KE-bpKQ', 'Big Buck Bunny', 'A short open movie by the Blender Foundation, used here to show a protected video with watch tracking.', 635 ),
+		array( 'eRsGyueVLvQ', 'Sintel', 'An open movie about a girl searching for her dragon. Try the protection levels on a longer video.', 888 ),
+		array( 'R6MlUcmOul8', 'Tears of Steel', 'A live action and visual effects open movie, good for testing chapters and milestones.', 734 ),
+		array( 'WhWc3b3KhnY', 'Spring', 'A short animated open movie about a shepherd girl and her dog.', 464 ),
+	);
+
+	public function id(): string {
+		return 'mediashield';
+	}
+
+	public function label(): string {
+		return 'MediaShield';
+	}
+
+	public function available(): bool {
+		return defined( 'MEDIASHIELD_VERSION' ) && post_type_exists( 'mediashield_video' );
+	}
+
+	public function version(): string {
+		return defined( 'MEDIASHIELD_VERSION' ) ? (string) MEDIASHIELD_VERSION : '';
+	}
+
+	public function min_version(): string {
+		return '1.4.1';
+	}
+
+	public function icon(): string {
+		return 'shield';
+	}
+
+	public function order(): int {
+		return 70;
+	}
+
+	public function pro_label(): string {
+		return defined( 'MEDIASHIELD_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
+	}
+
+	public function summary(): string {
+		return sprintf(
+			/* translators: %d: videos */
+			__( '%d protected videos (Blender open movies) and a playlist', 'wbcom-demo-installer' ),
+			count( self::VIDEOS )
+		);
+	}
+
+	public function plan(): array {
+		return array(
+			'video'    => array( count( self::VIDEOS ), 'sample', __( 'videos', 'wbcom-demo-installer' ) ),
+			'playlist' => array( 1, 'sample', __( 'playlists', 'wbcom-demo-installer' ) ),
+		);
+	}
+
+	public function steps( Context $ctx ): array {
+		return array( 'videos' );
+	}
+
+	/**
+	 * Videos and a playlist.
+	 *
+	 * @param string  $step Step.
+	 * @param Context $ctx  Context.
+	 */
+	public function run( string $step, Context $ctx ): void {
+		$author = $ctx->person( 0, 'instructor' );
+		foreach ( self::VIDEOS as $i => $v ) {
+			list( $yt, $title, $desc, $secs ) = $v;
+			$id = wp_insert_post(
+				array(
+					'post_type'    => 'mediashield_video',
+					'post_status'  => 'publish',
+					'post_title'   => $title,
+					'post_content' => wpautop( $desc ),
+					'post_author'  => $author,
+					'post_date'    => get_date_from_gmt( $ctx->date( $i, 4, 40 ) ),
+				),
+				true
+			);
+			if ( is_wp_error( $id ) ) {
+				$ctx->warn( $this->id(), 'video ' . $title, $id );
+				continue;
+			}
+			foreach ( array(
+				'_ms_platform'          => 'youtube',
+				'_ms_platform_video_id' => $yt,
+				'_ms_source_url'        => 'https://www.youtube.com/watch?v=' . $yt,
+				'_ms_duration'          => $secs,
+				'_ms_protection_level'  => 0 === $i ? 'standard' : 'basic',
+			) as $key => $value ) {
+				update_post_meta( $id, $key, $value );
+			}
+			if ( class_exists( '\MediaShield\CPT\VideoPostType' ) ) {
+				\MediaShield\CPT\VideoPostType::normalize_platform( (int) $id );
+			}
+			$ctx->record( $this->id(), 'video', (int) $id );
+		}
+
+		$playlist = wp_insert_post(
+			array(
+				'post_type'   => 'mediashield_playlist',
+				'post_status' => 'publish',
+				'post_title'  => __( 'Open Movie Night', 'wbcom-demo-installer' ),
+				'post_author' => $author,
+			),
+			true
+		);
+		if ( is_wp_error( $playlist ) ) {
+			return;
+		}
+		$ctx->record( $this->id(), 'playlist', (int) $playlist );
+		update_post_meta( $playlist, '_ms_autoplay', '1' );
+		foreach ( Ledger::ids( $this->id(), 'video' ) as $video_id ) {
+			$req = new \WP_REST_Request( 'POST', '/mediashield/v1/playlists/' . $playlist . '/items' );
+			$req->set_param( 'video_id', $video_id );
+			$res = rest_do_request( $req );
+			if ( $res->is_error() ) {
+				$ctx->warn( $this->id(), 'playlist item', $res->as_error() );
+			}
+		}
+	}
+
+	/**
+	 * Remove one object (MediaShield cascades tags, sessions and playlist items).
+	 *
+	 * @param object $row Ledger row.
+	 */
+	public function remove( object $row ): bool {
+		if ( get_post( (int) $row->object_id ) ) {
+			wp_delete_post( (int) $row->object_id, true );
+		}
+		return true;
+	}
+}
