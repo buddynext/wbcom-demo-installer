@@ -227,4 +227,5 @@ return array(
 		array( 2, 4, array( 'Sara, are you joining the trail run on Saturday?', 'Planning to! Which route are we taking?', 'The river loop, easy pace, coffee after.' ) ),
 		array( 12, 7, array( 'Tom, we are opening a backend role soon. Would you share it with your network?', 'Happy to. Send me the link when it is up.' ) ),
 	),
+	'companies'  => array( 'Nomad Studio', 'Hyperlane', 'Northwind Labs', 'Paperplane', 'Bluefin Data', 'Pixel Harbor', 'Tidewater Institute', 'Roastworks', 'Clearword', 'Lumen Cloud' ),
 );

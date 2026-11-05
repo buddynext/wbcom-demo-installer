@@ -22,13 +22,6 @@ final class Jetonomy extends Provider {
 	private const TOPICS_PER_STEP = 5;
 
 	/**
-	 * Content.
-	 *
-	 * @var array<string,mixed>|null
-	 */
-	private ?array $content = null;
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public function id(): string {
@@ -82,15 +75,6 @@ final class Jetonomy extends Provider {
 	 */
 	public function pro_label(): string {
 		return defined( 'JETONOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
-	}
-
-	/**
-	 * Content file.
-	 *
-	 * @return array<string,mixed>
-	 */
-	private function content(): array {
-		return $this->content ??= require WBCOM_DEMO_DIR . 'content/jetonomy.php';
 	}
 
 	/**

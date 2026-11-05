@@ -19,13 +19,6 @@ defined( 'ABSPATH' ) || exit;
 final class Learnomy extends Provider {
 
 	/**
-	 * Content.
-	 *
-	 * @var array<string,mixed>|null
-	 */
-	private ?array $content = null;
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public function id(): string {
@@ -79,15 +72,6 @@ final class Learnomy extends Provider {
 	 */
 	public function pro_label(): string {
 		return defined( 'LEARNOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
-	}
-
-	/**
-	 * Content.
-	 *
-	 * @return array<string,mixed>
-	 */
-	private function content(): array {
-		return $this->content ??= require WBCOM_DEMO_DIR . 'content/learnomy.php';
 	}
 
 	/**

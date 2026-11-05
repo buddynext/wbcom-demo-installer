@@ -19,25 +19,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class CareerBoard extends Provider {
 
-	/** [ employer index, name, tagline, industry, size, hq, website ]. */
-	private const COMPANIES = array(
-		array( 7, 'Roastworks', 'Coffee subscriptions for people who care about the bean', 'Food and drink', '11-50', 'Berlin, DE', 'https://roastworks.example' ),
-		array( 12, 'Paperplane Studio', 'A remote-first product studio for small brands', 'Design and software', '11-50', 'Lagos, NG', 'https://paperplane.example' ),
-		array( 15, 'Crumb', 'Ordering and stock software for independent bakeries', 'Software', '1-10', 'Kochi, IN', 'https://crumb.example' ),
-	);
-
-	/** [ company index, title, category, type, location, experience, min, max, remote, body ]. */
-	private const JOBS = array(
-		array( 0, 'Backend Engineer (Go)', 'Engineering', 'Full-time', 'Berlin, DE', 'Mid Level', 65000, 85000, true, "We are rebuilding our subscription engine in Go and need a second backend engineer.\n\nYou will own billing and delivery scheduling, work closely with our two-person ops team, and help us choose what not to build.\n\nYou have shipped a Go service to production, you like boring reliable systems, and you write things down." ),
-		array( 0, 'Customer Happiness Lead', 'Customer Success', 'Part-time', 'Remote', 'Mid Level', 30000, 38000, true, 'Help 9,000 coffee lovers get the right beans. You will answer email and chat, spot patterns in what people ask, and tell product what to fix first.' ),
-		array( 1, 'Senior Product Designer', 'Design', 'Full-time', 'Remote', 'Senior', 70000, 90000, true, "Design end to end for two client products at a time.\n\nYou run research, sketch quickly, prototype, and stay with the work until it ships. You are comfortable presenting to founders and saying no with reasons." ),
-		array( 1, 'Frontend Developer', 'Engineering', 'Full-time', 'Remote', 'Mid Level', 55000, 72000, true, 'Build accessible, fast interfaces with our designers. Modern CSS, a little JavaScript, a lot of care. We test with real keyboards and screen readers.' ),
-		array( 1, 'UX Writer (Contract)', 'Design', 'Contract', 'Remote', 'Mid Level', 400, 550, true, 'Three months, two products, every word on screen. Error messages, onboarding, empty states. Day rate, flexible hours.' ),
-		array( 2, 'Full-stack Developer', 'Engineering', 'Full-time', 'Kochi, IN', 'Mid Level', 1800000, 2600000, false, 'Join employee number three. Laravel and Vue today, whatever we need tomorrow. You will talk to bakers every week.' ),
-		array( 2, 'Mobile Developer (Android)', 'Engineering', 'Contract', 'Remote', 'Senior', 30000, 45000, true, 'Our ordering app has to work in kitchens with flour on the screen and no wifi. Offline-first experience is a must.' ),
-		array( 2, 'Junior Support Engineer', 'Customer Success', 'Full-time', 'Kochi, IN', 'Entry Level', 600000, 800000, false, 'Learn our product inside out, fix small bugs, and help bakeries get set up. Great first role, we will teach you a lot.' ),
-	);
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -101,8 +82,8 @@ final class CareerBoard extends Provider {
 		return sprintf(
 			/* translators: 1: companies, 2: jobs */
 			__( '%1$d companies, %2$d jobs and applications from the sample candidates', 'wbcom-demo-installer' ),
-			count( self::COMPANIES ),
-			count( self::JOBS )
+			count( $this->content()['companies'] ),
+			count( $this->content()['jobs'] )
 		);
 	}
 
@@ -120,8 +101,8 @@ final class CareerBoard extends Provider {
 		return array(
 			'term'        => array( 0, 'setup', __( 'job categories and types', 'wbcom-demo-installer' ) ),
 			'page'        => array( 0, 'setup', __( 'job board pages', 'wbcom-demo-installer' ) ),
-			'company'     => array( count( self::COMPANIES ), 'sample', __( 'companies', 'wbcom-demo-installer' ) ),
-			'job'         => array( count( self::JOBS ), 'sample', __( 'jobs', 'wbcom-demo-installer' ) ),
+			'company'     => array( count( $this->content()['companies'] ), 'sample', __( 'companies', 'wbcom-demo-installer' ) ),
+			'job'         => array( count( $this->content()['jobs'] ), 'sample', __( 'jobs', 'wbcom-demo-installer' ) ),
 			'application' => array( 0, 'sample', __( 'applications', 'wbcom-demo-installer' ) ),
 			'attachment'  => array( 0, 'sample', __( 'resume files', 'wbcom-demo-installer' ) ),
 		);
@@ -165,7 +146,7 @@ final class CareerBoard extends Provider {
 			}
 		}
 		$ids = array();
-		foreach ( self::COMPANIES as $i => $c ) {
+		foreach ( $this->content()['companies'] as $i => $c ) {
 			list( $who, $name, $tagline, $industry, $size, $hq, $site ) = $c;
 			$owner = $ctx->person( $who );
 			$user  = get_userdata( $owner );
@@ -229,13 +210,13 @@ final class CareerBoard extends Provider {
 	private function jobs( Context $ctx ): void {
 		$companies = (array) $ctx->get( $this->id(), 'companies', array() );
 		$currency  = class_exists( '\WCB\Modules\Jobs\JobsMeta' ) ? \WCB\Modules\Jobs\JobsMeta::default_currency() : 'USD';
-		foreach ( self::JOBS as $i => $j ) {
+		foreach ( $this->content()['jobs'] as $i => $j ) {
 			list( $ci, $title, $cat, $type, $loc, $exp, $min, $max, $remote, $body ) = $j;
 			if ( empty( $companies[ $ci ] ) ) {
 				continue;
 			}
 			list( $company_id, $owner, $company ) = $companies[ $ci ];
-			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( self::JOBS ), 30 ) );
+			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( $this->content()['jobs'] ), 30 ) );
 			$id = wp_insert_post(
 				array(
 					'post_type'    => 'wcb_job',
@@ -243,7 +224,7 @@ final class CareerBoard extends Provider {
 					'post_title'   => $title,
 					'post_content' => wpautop( $body ),
 					'post_author'  => $owner,
-					'post_date'    => get_date_from_gmt( $ctx->date( $i, count( self::JOBS ), 30 ) ),
+					'post_date'    => get_date_from_gmt( $ctx->date( $i, count( $this->content()['jobs'] ), 30 ) ),
 				),
 				true
 			);

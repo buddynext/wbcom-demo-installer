@@ -3,7 +3,35 @@
 	"title": "Wbcom Demo Installer",
 	"type": "plugin",
 	"sections": [
-		{ "slug": "getting-started", "title": "Getting started" },
-		{ "slug": "developer-guide", "title": "Developer guide" }
+		{
+			"slug": "getting-started",
+			"title": "Getting started",
+			"folder": "getting-started",
+			"name": "Getting started",
+			"pages": [
+				{
+					"slug": "set-up-your-site"
+				},
+				{
+					"slug": "finish-demo"
+				}
+			],
+			"description": "Build a demo from the wizard, then keep your setup or remove it."
+		},
+		{
+			"slug": "developer-guide",
+			"title": "Developer guide",
+			"folder": "developer-guide",
+			"name": "Developer guide",
+			"pages": [
+				{
+					"slug": "providers"
+				},
+				{
+					"slug": "wp-cli"
+				}
+			],
+			"description": "Add a product or third-party plugin, and run the installer from WP-CLI."
+		}
 	]
 }

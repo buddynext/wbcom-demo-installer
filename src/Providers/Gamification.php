@@ -95,15 +95,6 @@ final class Gamification extends Provider {
 		'attendee'   => array( 'social_connector' ),
 	);
 
-	/** Kudos messages. */
-	private const KUDOS = array(
-		'Thanks for the feedback on my design, it really helped.',
-		'Your answer saved me hours. Thank you!',
-		'Great event, thanks for hosting.',
-		'Love how you welcome every new member.',
-		'Thanks for the course, I finally get it.',
-	);
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -193,7 +184,7 @@ final class Gamification extends Provider {
 			$count  = count( $people );
 			foreach ( $people as $i => $giver ) {
 				$to  = $people[ ( $i + 3 ) % $count ];
-				$res = \WBGam\Engine\KudosEngine::send( $giver, $to, self::KUDOS[ $i % count( self::KUDOS ) ] );
+				$res = \WBGam\Engine\KudosEngine::send( $giver, $to, $this->content()['kudos'][ $i % count( $this->content()['kudos'] ) ] );
 				if ( is_wp_error( $res ) ) {
 					$ctx->warn( $this->id(), 'kudos', $res );
 				}

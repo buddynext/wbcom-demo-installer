@@ -18,14 +18,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class MediaShield extends Provider {
 
-	/** [ YouTube id, title, description, duration seconds ]. Blender Foundation open movies (CC-BY). */
-	private const VIDEOS = array(
-		array( 'aqz-KE-bpKQ', 'Big Buck Bunny', 'A short open movie by the Blender Foundation, used here to show a protected video with watch tracking.', 635 ),
-		array( 'eRsGyueVLvQ', 'Sintel', 'An open movie about a girl searching for her dragon. Try the protection levels on a longer video.', 888 ),
-		array( 'R6MlUcmOul8', 'Tears of Steel', 'A live action and visual effects open movie, good for testing chapters and milestones.', 734 ),
-		array( 'WhWc3b3KhnY', 'Spring', 'A short animated open movie about a shepherd girl and her dog.', 464 ),
-	);
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -89,7 +81,7 @@ final class MediaShield extends Provider {
 		return sprintf(
 			/* translators: %d: videos */
 			__( '%d protected videos (Blender open movies) and a playlist', 'wbcom-demo-installer' ),
-			count( self::VIDEOS )
+			count( $this->content()['videos'] )
 		);
 	}
 
@@ -105,7 +97,7 @@ final class MediaShield extends Provider {
 	 */
 	public function plan(): array {
 		return array(
-			'video'    => array( count( self::VIDEOS ), 'sample', __( 'videos', 'wbcom-demo-installer' ) ),
+			'video'    => array( count( $this->content()['videos'] ), 'sample', __( 'videos', 'wbcom-demo-installer' ) ),
 			'playlist' => array( 1, 'sample', __( 'playlist', 'wbcom-demo-installer' ) ),
 		);
 	}
@@ -127,7 +119,7 @@ final class MediaShield extends Provider {
 	 */
 	public function run( string $step, Context $ctx ): void {
 		$author = $ctx->person( 0, 'instructor' );
-		foreach ( self::VIDEOS as $i => $v ) {
+		foreach ( $this->content()['videos'] as $i => $v ) {
 			list( $yt, $title, $desc, $secs ) = $v;
 			$id                               = wp_insert_post(
 				array(

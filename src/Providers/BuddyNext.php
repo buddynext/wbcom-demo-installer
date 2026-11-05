@@ -22,16 +22,6 @@ final class BuddyNext extends Provider {
 
 	private const POSTS_PER_STEP = 10;
 
-	/** Employers for profile work history. */
-	private const COMPANIES = array( 'Nomad Studio', 'Hyperlane', 'Northwind Labs', 'Paperplane', 'Bluefin Data', 'Pixel Harbor', 'Tidewater Institute', 'Roastworks', 'Clearword', 'Lumen Cloud' );
-
-	/**
-	 * Content.
-	 *
-	 * @var array<string,mixed>|null
-	 */
-	private ?array $content = null;
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -99,15 +89,6 @@ final class BuddyNext extends Provider {
 			count( $c['spaces'] ) + count( $c['subspaces'] ),
 			count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + 1
 		);
-	}
-
-	/**
-	 * Content file.
-	 *
-	 * @return array<string,mixed>
-	 */
-	private function content(): array {
-		return $this->content ??= require WBCOM_DEMO_DIR . 'content/buddynext.php';
 	}
 
 	/**
@@ -223,7 +204,7 @@ final class BuddyNext extends Provider {
 					'bio'             => sprintf( '%s based in %s. Into %s.', $p['job'], $p['location'], $p['note'] ),
 					'location'        => $p['location'],
 					'work_title'      => $p['job'],
-					'work_company'    => self::COMPANIES[ $p['index'] % count( self::COMPANIES ) ],
+					'work_company'    => $this->content()['companies'][ $p['index'] % count( $this->content()['companies'] ) ],
 					'work_location'   => $p['location'],
 					'work_current'    => '1',
 					'work_start_date' => gmdate( 'Y-m-d', strtotime( '-' . ( 1 + $p['index'] % 6 ) . ' years' ) ),

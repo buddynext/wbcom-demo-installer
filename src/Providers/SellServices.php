@@ -19,16 +19,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class SellServices extends Provider {
 
-	/** [ vendor index, title, category, base price, description ]. */
-	private const SERVICES = array(
-		array( 0, 'I will design a clear, friendly onboarding flow for your app', 'Design', 300, 'Research-led onboarding design. I review your current flow, interview two of your users and deliver Figma screens your developers can build straight away, with notes on every decision.' ),
-		array( 3, 'I will draw a custom illustration set for your brand', 'Illustration', 220, 'A set of six illustrations in one consistent style, delivered as SVG and PNG, ready for your site, app and social posts. We start with a short call about your brand and audience.' ),
-		array( 8, 'I will rewrite your product copy in plain words', 'Writing', 150, 'Up to ten screens or one landing page, rewritten so people understand it on first read. Includes a short voice guide your team can use for every new screen after we finish.' ),
-		array( 13, 'I will design a logo and simple brand kit', 'Branding', 350, 'Three logo directions, one refined final logo, colours and type pairings, and a one-page brand guide that shows how to use them on your site, packaging and social posts.' ),
-		array( 7, 'I will set up a fast, reliable Go API for your product', 'Development', 600, 'A small, well-tested REST API in Go with clear docs, deployment notes and a week of support after handover, so your team can run and extend it with confidence.' ),
-		array( 17, 'I will run sound and AV for your meetup or conference', 'Events', 250, 'Mics, speakers, mixing and recording for meetups and conferences of up to 300 people. Setup, sound check and teardown are included, and you get the recordings the same week.' ),
-	);
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -92,7 +82,7 @@ final class SellServices extends Provider {
 		return sprintf(
 			/* translators: %d: services */
 			__( '%d services from sample freelancers with packages, completed orders from buyers and reviews', 'wbcom-demo-installer' ),
-			count( self::SERVICES )
+			count( $this->content()['services'] )
 		);
 	}
 
@@ -112,9 +102,9 @@ final class SellServices extends Provider {
 	public function plan(): array {
 		return array(
 			'term'       => array( 0, 'setup', __( 'service categories', 'wbcom-demo-installer' ) ),
-			'service'    => array( count( self::SERVICES ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
+			'service'    => array( count( $this->content()['services'] ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
 			'order'      => array( 0, 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
-			'attachment' => array( count( self::SERVICES ), 'sample', __( 'service images', 'wbcom-demo-installer' ) ),
+			'attachment' => array( count( $this->content()['services'] ), 'sample', __( 'service images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -146,7 +136,7 @@ final class SellServices extends Provider {
 		$vendors  = new \WPSellServices\Services\VendorService();
 		$services = new \WPSellServices\Services\ServiceManager();
 		$done     = array();
-		foreach ( self::SERVICES as $i => $s ) {
+		foreach ( $this->content()['services'] as $i => $s ) {
 			list( $who, $title, $cat, $base, $desc ) = $s;
 			$vendor                                  = $ctx->person( $who );
 			if ( ! isset( $done[ $vendor ] ) ) {
@@ -173,7 +163,7 @@ final class SellServices extends Provider {
 			}
 			// Sell Services publishes only marketplace-ready services, and that includes an image.
 			$thumb = $ctx->attachment( 'photos/' . array( 'tech-workspace.jpg', 'art-gallery.jpg', 'developer-desk.jpg', 'creative-studio-portrait.jpg', 'neon-light.jpg', 'festival-friends.jpg' )[ $i % 6 ], $vendor, $this->id() );
-			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( self::SERVICES ), 70 ) );
+			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( $this->content()['services'] ), 70 ) );
 			$id = $services->create(
 				array(
 					'title'      => $title,
@@ -217,7 +207,7 @@ final class SellServices extends Provider {
 				$why = function_exists( 'wpss_get_service_publish_errors' ) ? wpss_get_service_publish_errors( (int) $id ) : array();
 				$ctx->warn( $this->id(), 'service ' . $title, 'saved as ' . get_post_status( $id ) . ( $why ? ': ' . implode( ' ', $why ) : '' ) );
 			}
-			$date = $ctx->date( $i, count( self::SERVICES ), 70 );
+			$date = $ctx->date( $i, count( $this->content()['services'] ), 70 );
 			wp_update_post(
 				array(
 					'ID'            => $id,

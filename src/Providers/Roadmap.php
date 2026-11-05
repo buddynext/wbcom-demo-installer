@@ -18,18 +18,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Roadmap extends Provider {
 
-	/** [ title, status, category, description ]. */
-	private const ITEMS = array(
-		array( 'Monthly critique sessions', 'completed', 'Features', 'A recurring space and event for sharing work in progress and getting kind, specific feedback.' ),
-		array( 'Mentoring programme for new members', 'in-progress', 'Features', 'Pair every new member with someone who has been here a while, for their first month.' ),
-		array( 'Dark mode across the community', 'completed', 'Improvements', 'Every page follows the reader\'s light or dark setting.' ),
-		array( 'Local meetups in more cities', 'planned', 'Features', 'Start small monthly meetups in Lisbon, Berlin and Lagos, with a simple host kit.' ),
-		array( 'Better search for old discussions', 'planned', 'Improvements', 'Find answers from past threads by topic, person and date.' ),
-		array( 'Accessibility review swap', 'under-review', 'Features', 'Members post a page and two others review it for accessibility, then swap.' ),
-		array( 'Faster image uploads on mobile', 'in-progress', 'Improvements', 'Smaller uploads and progress you can see on slow connections.' ),
-		array( 'Weekly digest email', 'planned', 'Features', 'One calm email a week with the best discussions you missed.' ),
-	);
-
 	private const STATUSES = array(
 		'planned'      => 'Planned',
 		'in-progress'  => 'In Progress',
@@ -100,7 +88,7 @@ final class Roadmap extends Provider {
 		return sprintf(
 			/* translators: %d: items */
 			__( 'A community roadmap with %d items across planned, in progress and completed, voted on by members', 'wbcom-demo-installer' ),
-			count( self::ITEMS )
+			count( $this->content()['items'] )
 		);
 	}
 
@@ -122,7 +110,7 @@ final class Roadmap extends Provider {
 		return array(
 			'term' => array( 0, 'setup', __( 'roadmap statuses and categories', 'wbcom-demo-installer' ) ),
 			'page' => array( 1, 'setup', __( 'roadmap page', 'wbcom-demo-installer' ) ),
-			'item' => array( count( self::ITEMS ), 'sample', __( 'roadmap items', 'wbcom-demo-installer' ) ),
+			'item' => array( count( $this->content()['items'] ), 'sample', __( 'roadmap items', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -189,7 +177,7 @@ final class Roadmap extends Provider {
 			}
 		}
 		$author = $ctx->person( 0, 'moderator' );
-		foreach ( self::ITEMS as $i => $item ) {
+		foreach ( $this->content()['items'] as $i => $item ) {
 			list( $title, $status, $cat, $desc ) = $item;
 			$id                                  = wp_insert_post(
 				array(
@@ -198,7 +186,7 @@ final class Roadmap extends Provider {
 					'post_title'   => $title,
 					'post_content' => wpautop( $desc ),
 					'post_author'  => $author,
-					'post_date'    => get_date_from_gmt( $ctx->date( $i, count( self::ITEMS ), 75 ) ),
+					'post_date'    => get_date_from_gmt( $ctx->date( $i, count( $this->content()['items'] ), 75 ) ),
 				),
 				true
 			);

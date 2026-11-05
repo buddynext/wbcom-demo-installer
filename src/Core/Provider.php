@@ -18,6 +18,34 @@ defined( 'ABSPATH' ) || exit;
  */
 abstract class Provider {
 
+	/**
+	 * Loaded content, see content().
+	 *
+	 * @var array<int|string,mixed>|null
+	 */
+	private ?array $content = null;
+
+	/**
+	 * This provider's sample content: content/<id>.php, through the wbcom_demo_content filter so an add-on or a
+	 * generated content pack can replace or extend it without touching the provider.
+	 *
+	 * @return array<int|string,mixed>
+	 */
+	protected function content(): array {
+		if ( null === $this->content ) {
+			$file = WBCOM_DEMO_DIR . 'content/' . $this->id() . '.php';
+			$data = is_readable( $file ) ? require $file : array();
+			/**
+			 * Sample content for one provider.
+			 *
+			 * @param array  $data Content, in the shape of content/<id>.php.
+			 * @param string $id   Provider id.
+			 */
+			$this->content = (array) apply_filters( 'wbcom_demo_content', (array) $data, $this->id() );
+		}
+		return $this->content;
+	}
+
 	/** Bump when the contract changes; the registry skips providers on another version. */
 	public const CONTRACT = 1;
 

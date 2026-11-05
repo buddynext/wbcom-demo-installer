@@ -42,7 +42,10 @@ Extend `Core\Provider`: `id`, `label`, `available`, `version`/`min_version`, `su
 (type => [count, kind, label]), `steps`, `run`, `remove`, optional `menu_items`, `front_page`,
 `late_types`, `handover`, `verify`, `settings` (the product's best-presentation options and its setup-complete flag,
 applied through `Snapshot` before its content so Remove everything restores them). Register in `Registry::builtin()` or from the product via the
-`wbcom_demo_register` action. Each step must finish well inside one request.
+`wbcom_demo_register` action. Each step must finish well inside one request. Content lives in
+`content/<id>.php` and is read with `$this->content()` (filter `wbcom_demo_content`), never kept in the class.
+Third-party plugins are added the same way. Full guide: `docs/website/developer-guide/providers.md`; plan for
+Wave 2 and Wave 3: `docs/roadmap.md`.
 
 ## Checks before a release
 

@@ -19,25 +19,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Listora extends Provider {
 
-	/** [ owner index, title, category, address, city, country, lat, lng, price, photo, description, features ]. */
-	private const LISTINGS = array(
-		array( 7, 'Roastworks Coffee Bar', 'Cafe', 'Oranienstraße 21', 'Berlin', 'DE', 52.5009, 13.4220, '$$', 'coffee-cheers.jpg', 'A small roastery bar with single-origin pour-overs, a quiet back room for laptops and cinnamon buns on weekends.', array( 'WiFi', 'Takeout', 'Outdoor Seating' ) ),
-		array( 3, 'Kissa Hanabi', 'Cafe', 'Shimogyo-ku 12', 'Kyoto', 'JP', 35.0036, 135.7681, '$', 'matcha-latte.jpg', 'A ten-seat tea room with hand-whisked matcha, wagashi from the shop next door and a record player that never stops.', array( 'Credit Cards', 'Takeout' ) ),
-		array( 13, 'Mercado Criativo', 'Coworking', 'Rua de Cedofeita 80', 'Porto', 'PT', 41.1517, -8.6176, '$$', 'creative-studio-portrait.jpg', 'Desks, a print studio and a shared kitchen for freelancers. Day passes available, members get the good chairs.', array( 'WiFi', 'Wheelchair Accessible' ) ),
-		array( 17, 'The Sound Room', 'Venue', 'Rainbow Street 5', 'Amman', 'JO', 31.9522, 35.9254, '$$', 'festival-friends.jpg', 'A 120-person room for talks and small gigs, with a proper sound system and the best falafel stand outside.', array( 'Live Music', 'Wheelchair Accessible' ) ),
-		array( 9, 'Hanok Lens Studio', 'Studio', 'Bukchon-ro 37', 'Seoul', 'KR', 37.5826, 126.9837, '$$$', 'vintage-camera.jpg', 'A rentable photo studio in a renovated hanok, with daylight from three sides and a darkroom for film.', array( 'Reservations', 'Credit Cards' ) ),
-		array( 7, 'Kiez Bakery', 'Bakery', 'Weserstraße 50', 'Berlin', 'DE', 52.4855, 13.4373, '$', 'chocolate-truffles.jpg', 'Sourdough every morning, chocolate truffles every afternoon and a queue that moves faster than it looks.', array( 'Takeout', 'Credit Cards' ) ),
-	);
-
-	/** Review pool: [ rating, title, text ]. */
-	private const REVIEWS = array(
-		array( 5, 'My favourite spot in town', 'Friendly people, great coffee and quiet enough to get work done.' ),
-		array( 4, 'Lovely, gets busy', 'Really good. Go early on weekends, it fills up fast.' ),
-		array( 5, 'Worth the trip', 'We came across the city for this and would do it again.' ),
-		array( 4, 'Great for small groups', 'Booked it for our team meetup, everything was easy.' ),
-		array( 5, 'A real gem', 'The kind of place you want to keep secret and tell everyone about.' ),
-	);
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -101,7 +82,7 @@ final class Listora extends Provider {
 		return sprintf(
 			/* translators: %d: listings */
 			__( '%d places run by the sample people, with photos, hours, map locations and reviews', 'wbcom-demo-installer' ),
-			count( self::LISTINGS )
+			count( $this->content()['listings'] )
 		);
 	}
 
@@ -123,8 +104,8 @@ final class Listora extends Provider {
 	public function plan(): array {
 		return array(
 			'term'       => array( 0, 'setup', __( 'listing categories and features', 'wbcom-demo-installer' ) ),
-			'listing'    => array( count( self::LISTINGS ), 'sample', __( 'listings', 'wbcom-demo-installer' ) ),
-			'attachment' => array( count( self::LISTINGS ), 'sample', __( 'listing photos', 'wbcom-demo-installer' ) ),
+			'listing'    => array( count( $this->content()['listings'] ), 'sample', __( 'listings', 'wbcom-demo-installer' ) ),
+			'attachment' => array( count( $this->content()['listings'] ), 'sample', __( 'listing photos', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -177,7 +158,7 @@ final class Listora extends Provider {
 			\WBListora\Core\Listing_Type_Registry::instance()->install_default( $type );
 		}
 		add_filter( 'wb_listora_should_send_notification', '__return_false' );
-		foreach ( self::LISTINGS as $i => $l ) {
+		foreach ( $this->content()['listings'] as $i => $l ) {
 			list( $who, $title, $cat, $street, $city, $country, $lat, $lng, $price, $photo, $desc, $features ) = $l;
 			$owner = $ctx->person( $who );
 			$id    = wp_insert_post(
@@ -239,7 +220,7 @@ final class Listora extends Provider {
 			if ( 0 === $i % 3 ) {
 				update_post_meta( $id, '_listora_is_featured', true );
 			}
-			$date = $ctx->date( $i, count( self::LISTINGS ), 80 );
+			$date = $ctx->date( $i, count( $this->content()['listings'] ), 80 );
 			\WbcomDemo\Core\Clock::set( $date );
 			wp_update_post(
 				array(
@@ -271,7 +252,7 @@ final class Listora extends Provider {
 				if ( ! $uid || $uid === $owner ) {
 					continue;
 				}
-				$review = self::REVIEWS[ ( $k + $r ) % count( self::REVIEWS ) ];
+				$review = $this->content()['reviews'][ ( $k + $r ) % count( $this->content()['reviews'] ) ];
 				wp_set_current_user( $uid );
 				$req = new \WP_REST_Request( 'POST', '/listora/v1/listings/' . $listing_id . '/reviews' );
 				$req->set_param( 'overall_rating', $review[0] );

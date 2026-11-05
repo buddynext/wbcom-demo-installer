@@ -19,13 +19,6 @@ defined( 'ABSPATH' ) || exit;
 final class Eventonomy extends Provider {
 
 	/**
-	 * Content.
-	 *
-	 * @var array<int,array<int,mixed>>|null
-	 */
-	private ?array $content = null;
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public function id(): string {
@@ -79,15 +72,6 @@ final class Eventonomy extends Provider {
 	 */
 	public function pro_label(): string {
 		return defined( 'EVENTONOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
-	}
-
-	/**
-	 * Content.
-	 *
-	 * @return array<int,array<int,mixed>>
-	 */
-	private function content(): array {
-		return $this->content ??= require WBCOM_DEMO_DIR . 'content/eventonomy.php';
 	}
 
 	/**
@@ -150,6 +134,7 @@ final class Eventonomy extends Provider {
 		$repo   = evnm( \Eventonomy\Contracts\EventRepositoryInterface::class );
 		$tz     = wp_timezone_string();
 		foreach ( array_slice( $this->content(), $offset, 5, true ) as $i => $e ) {
+			$i = (int) $i; // content/eventonomy.php is a list.
 			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual ) = $e;
 			$organizer = $ctx->person( $who );
 			if ( function_exists( 'evnm_grant_organizer_role' ) ) {

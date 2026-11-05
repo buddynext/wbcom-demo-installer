@@ -225,21 +225,31 @@ final class Theme extends Provider {
 	 * @param int $id Page id.
 	 */
 	public static function no_sidebar( int $id ): void {
+		$meta     = array();
 		$template = 'page-templates/full-width-container.php';
 		if ( isset( wp_get_theme()->get_page_templates()[ $template ] ) ) {
 			if ( in_array( (string) get_post_meta( $id, '_wp_page_template', true ), array( '', 'default' ), true ) ) {
-				Snapshot::write( 'post_meta:' . $id . ':_wp_page_template', $template );
+				$meta['_wp_page_template'] = $template;
 			}
-			return;
-		}
-		if ( 'Reign' === self::theme_family() ) {
-			$key  = 'reign_wbcom_metabox_data';
-			$data = get_post_meta( $id, $key, true );
+		} elseif ( 'Reign' === self::theme_family() ) {
+			$data = get_post_meta( $id, 'reign_wbcom_metabox_data', true );
 			$data = is_array( $data ) ? $data : array();
 			if ( empty( $data['layout']['site_layout'] ) ) {
-				$data['layout']['site_layout'] = 'full_width';
-				Snapshot::write( 'post_meta:' . $id . ':' . $key, $data );
+				$data['layout']['site_layout']    = 'full_width';
+				$meta['reign_wbcom_metabox_data'] = $data;
 			}
+		}
+		/**
+		 * Page meta that gives one product page the active theme's layout without sidebars. Another theme
+		 * adds its own page setting here; every value is written through the snapshot and restored on
+		 * Remove everything.
+		 *
+		 * @param array<string,mixed> $meta     Meta key => value; empty when the theme is not known.
+		 * @param int                 $id       Page id.
+		 * @param string              $template Active theme template slug.
+		 */
+		foreach ( (array) apply_filters( 'wbcom_demo_page_layout', $meta, $id, get_template() ) as $key => $value ) {
+			Snapshot::write( 'post_meta:' . $id . ':' . $key, $value );
 		}
 	}
 
