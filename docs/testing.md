@@ -164,3 +164,15 @@ Free and mixed stacks on BuddyX (`./matrix.sh A11 A12`): every product free with
 every product free plus Pro for BuddyNext, Jetonomy, Learnomy, Listora and Roadmap only, 558 items, PASS. Every
 product gets the same sample content without Pro; the free stack has 72 feed posts instead of 142 (BuddyNext Pro
 brings other products' activity into the feed) and 6 job board pages instead of 9 (Career Board Pro pages).
+
+### Setup and presentation pass (5 November 2026, third pass)
+
+After a build every product's setup-complete flag is set the way its own wizard's skip or finish path sets it,
+the one-time activation redirects are cleared, BuddyX's own demo offer is dismissed, Learnomy fills the theme
+container, and product pages use the theme's no-sidebar layout (BuddyX and BuddyX Pro page template, Reign page
+layout). First admin visit lands on the dashboard with no redirect and no setup notice on any product screen;
+Remove everything restores every flag and page template. Forum: 12 spaces (4 per category), 49 discussions.
+BuddyNext photo posts and albums use real photos instead of banner images.
+
+Full matrix rerun on these changes: A1-A12 and every B1 case PASS (A9 624 items, A11 all free 552, A12 mixed
+622), D6 rebuild after keep PASS, C1-C3 PASS.
