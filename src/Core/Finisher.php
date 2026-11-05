@@ -227,6 +227,35 @@ final class Finisher {
 	}
 
 	/**
+	 * WordPress turns `fresh_site` off when the demo publishes a page. After "Remove everything",
+	 * turn it back on, unless the owner has published something of their own since the build.
+	 *
+	 * @param State $state State.
+	 */
+	private static function restore_fresh_site( State $state ): void {
+		if ( '1' !== (string) $state->get( 'fresh_site' ) || '1' === (string) get_option( 'fresh_site' ) ) {
+			return;
+		}
+		$own = get_posts(
+			array(
+				'post_type'      => array( 'post', 'page' ),
+				'post_status'    => 'publish',
+				'date_query'     => array(
+					array(
+						'column' => 'post_date_gmt',
+						'after'  => (string) $state->get( 'started_at' ),
+					),
+				),
+				'fields'         => 'ids',
+				'posts_per_page' => 1,
+			)
+		);
+		if ( ! $own ) {
+			update_option( 'fresh_site', '1' );
+		}
+	}
+
+	/**
 	 * Wrap up: hand over kept setup, restore the look if asked, verify, report.
 	 *
 	 * @param State               $state State.
@@ -234,6 +263,9 @@ final class Finisher {
 	 */
 	private static function complete( State $state, array $f ): void {
 		$kept_options = (array) ( $f['kept_options'] ?? array() );
+		if ( 'all' === $f['mode'] ) {
+			self::restore_fresh_site( $state );
+		}
 		if ( 'all' !== $f['mode'] && ! $f['waiting'] && ! $f['skip'] ) {
 			// Kept setup now belongs to the owner.
 			$setup_keys = array();

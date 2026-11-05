@@ -127,6 +127,8 @@ final class Engine {
 			->set( 'look', 'keep' === $look ? 'keep' : 'demo' )
 			->set( 'errors', array() )
 			->set( 'warnings', array() )
+			->set( 'fresh_site', (string) get_option( 'fresh_site', '0' ) )
+			->set( 'started_at', current_time( 'mysql', true ) )
 			->set( 'failed', array() )
 			->set( 'people', array() )
 			->set( 'refs', array() );

@@ -250,6 +250,12 @@ final class Roadmap extends Provider {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$wpdb->delete( $wpdb->prefix . 'roadmap_votes', array( 'item_id' => $id ), array( '%d' ) );
+		// Roadmap Pro logs each vote in its analytics table; drop the events for this item so the
+		// owner's analytics do not count demo votes for items that no longer exist (same card).
+		if ( defined( 'ROADMAP_PRO_VERSION' ) || class_exists( '\\Roadmap_Pro_Analytics' ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->delete( $wpdb->prefix . 'roadmap_analytics', array( 'item_id' => $id ), array( '%d' ) );
+		}
 		return true;
 	}
 
