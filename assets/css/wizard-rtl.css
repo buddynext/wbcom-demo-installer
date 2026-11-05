@@ -68,6 +68,7 @@ html, body { margin: 0; }
 .wdi-loading { color: var(--wdi-text-2); }
 .wdi-i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .wdi-i--lg { width: 20px; height: 20px; }
+.wdi-i--dir { transform: scaleX(-1); }
 
 .wdi-brand { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 720px; }
 .wdi-brand__logo { width: 36px; height: 36px; border-radius: var(--wdi-r-md); background: var(--wdi-accent); color: var(--wdi-accent-ink); display: grid; place-items: center; }
@@ -117,6 +118,8 @@ html, body { margin: 0; }
 .wdi-callout--info .wdi-i { color: var(--wdi-info); }
 .wdi-callout--danger { background: var(--wdi-danger-soft); }
 .wdi-callout--success { background: var(--wdi-success-soft); }
+.wdi-consent { display: flex; gap: 10px; align-items: flex-start; margin: 0 var(--wdi-space-2xl) var(--wdi-space-lg); padding: var(--wdi-space-md) 14px; border: 1px solid var(--wdi-warning); border-radius: var(--wdi-r-md); background: var(--wdi-warning-soft); font-size: 13.5px; cursor: pointer; }
+.wdi-consent input { margin-block-start: 2px; flex: none; }
 .wdi-muted { color: var(--wdi-text-2); }
 .wdi-small { font-size: 13px; }
 .wdi-num { font-variant-numeric: tabular-nums; }

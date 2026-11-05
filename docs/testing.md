@@ -176,3 +176,18 @@ BuddyNext photo posts and albums use real photos instead of banner images.
 
 Full matrix rerun on these changes: A1-A12 and every B1 case PASS (A9 624 items, A11 all free 552, A12 mixed
 622), D6 rebuild after keep PASS, C1-C3 PASS.
+
+### Release 1.0.0 pass (6 November 2026)
+
+Final code, every row run again: A1-A12 and every B1 case PASS (A9 all Pro 624 items, A11 all free 552, A12 mixed
+622), D6 rebuild after keep PASS, C1-C3, D4 build and finish resume, E1-E6 (E6: a site with members or posts is
+refused without consent from WP-CLI and REST), B6, and PHP 8.1, 8.4 and 8.5 PASS.
+
+Review counts checked type by type against a full build: every count equal (BuddyNext feed posts show its own 52;
+other products add theirs, as the label says). Browser: consent warning and disabled Build until ticked; page
+reload mid-build returns to progress and completes (370 items, 0 warnings); sample member walk (profile,
+connections, media, discussions, events, messages, 25 notifications); RTL wizard mirrors with arrows flipped;
+opening the wizard after activating five products lands on the wizard with every activation redirect cleared.
+Uninstall with demo content keeps the records (Finish works after reinstalling); after Finish it leaves no table or
+option. Plugin Check on the built zip: 0 errors, 3 explained warnings (own translations loaded, time limit for long
+steps, a prepared query built from placeholders).

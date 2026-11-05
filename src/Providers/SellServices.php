@@ -89,10 +89,16 @@ final class SellServices extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'wpss_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		return array(
-			'wpss_setup_wizard_completed'        => time(),
-			'transient:wpss_activation_redirect' => null,
+			'wpss_setup_wizard_completed' => time(),
 		);
 	}
 
@@ -101,11 +107,26 @@ final class SellServices extends Provider {
 	 */
 	public function plan(): array {
 		return array(
-			'term'       => array( 0, 'setup', __( 'service categories', 'wbcom-demo-installer' ) ),
+			'term'       => array( self::missing_terms( array( 'wpss_service_category' => array_column( $this->content()['services'], 2 ) ) ), 'setup', __( 'service categories', 'wbcom-demo-installer' ) ),
 			'service'    => array( count( $this->content()['services'] ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
-			'order'      => array( 0, 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
+			'order'      => array( $this->order_count(), 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $this->content()['services'] ), 'sample', __( 'service images', 'wbcom-demo-installer' ) ),
 		);
+	}
+
+	/**
+	 * Orders orders() places: one or two per service from the buyers, never by the service's own seller.
+	 */
+	private function order_count(): int {
+		$buyers = People::indexes( 'buyer' );
+		$n      = 0;
+		foreach ( array_values( $this->content()['services'] ) as $k => $s ) {
+			for ( $o = 0; $o < 1 + $k % 2; $o++ ) {
+				$buyer = $buyers[ ( $k + $o ) % max( 1, count( $buyers ) ) ] ?? null;
+				$n    += ( null === $buyer || $buyer === $s[0] ) ? 0 : 1;
+			}
+		}
+		return $n;
 	}
 
 	/**
@@ -154,13 +175,7 @@ final class SellServices extends Provider {
 				}
 				$done[ $vendor ] = true;
 			}
-			$term = term_exists( $cat, 'wpss_service_category' );
-			if ( ! $term ) {
-				$term = wp_insert_term( $cat, 'wpss_service_category' );
-				if ( ! is_wp_error( $term ) ) {
-					$ctx->record( $this->id(), 'term', (int) $term['term_id'], 'setup', array( 'taxonomy' => 'wpss_service_category' ) );
-				}
-			}
+			$term = $this->ensure_term( $cat, 'wpss_service_category', $ctx );
 			// Sell Services publishes only marketplace-ready services, and that includes an image.
 			$thumb = $ctx->attachment( 'photos/' . array( 'tech-workspace.jpg', 'art-gallery.jpg', 'developer-desk.jpg', 'creative-studio-portrait.jpg', 'neon-light.jpg', 'festival-friends.jpg' )[ $i % 6 ], $vendor, $this->id() );
 			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( $this->content()['services'] ), 70 ) );
@@ -170,7 +185,7 @@ final class SellServices extends Provider {
 					'content'    => wpautop( $desc ),
 					'excerpt'    => $desc,
 					'author'     => $vendor,
-					'categories' => is_array( $term ) ? array( (int) $term['term_id'] ) : array(),
+					'categories' => $term ? array( $term ) : array(),
 					'packages'   => array(
 						array(
 							'name'          => 'Basic',
@@ -293,11 +308,7 @@ final class SellServices extends Provider {
 		$id = (int) $row->object_id;
 		switch ( $row->object_type ) {
 			case 'term':
-				$term = get_term( $id, 'wpss_service_category' );
-				if ( $term && ! is_wp_error( $term ) && 0 === (int) $term->count ) {
-					wp_delete_term( $id, 'wpss_service_category' );
-				}
-				return true;
+				return self::remove_unused_term( $id, 'wpss_service_category' );
 			case 'attachment':
 				if ( get_post( $id ) ) {
 					wp_delete_attachment( $id, true );

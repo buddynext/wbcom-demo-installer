@@ -94,6 +94,13 @@ final class BuddyNext extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'buddynext_do_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		// The wizard's own finish() sets this flag; the demo already made the pages and space categories it would.
 		return array(
@@ -108,13 +115,14 @@ final class BuddyNext extends Provider {
 	public function plan(): array {
 		$c = $this->content();
 		return array(
-			'space_category' => array( count( $c['categories'] ), 'setup', __( 'space categories', 'wbcom-demo-installer' ) ),
+			'space_category' => array( count( array_diff_key( $c['categories'], $this->existing_categories() ) ), 'setup', __( 'space categories', 'wbcom-demo-installer' ) ),
 			'space'          => array( count( $c['spaces'] ) + count( $c['subspaces'] ), 'setup', __( 'spaces', 'wbcom-demo-installer' ) ),
-			'post'           => array( count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + 1, 'sample', __( 'feed posts', 'wbcom-demo-installer' ) ),
+			// Own posts, links, photo posts, the poll and three shares; other products add their own feed posts.
+			'post'           => array( count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + 4, 'sample', __( 'feed posts, plus posts other products share to the feed', 'wbcom-demo-installer' ) ),
 			'media'          => array( count( $c['photos'] ) + 6, 'sample', __( 'photos', 'wbcom-demo-installer' ) ),
 			'album'          => array( count( $c['albums'] ), 'sample', __( 'space albums', 'wbcom-demo-installer' ) ),
 			'profile_images' => array( 20, 'sample', __( 'profile pictures', 'wbcom-demo-installer' ) ),
-			'hashtag'        => array( 0, 'sample', __( 'hashtags', 'wbcom-demo-installer' ) ),
+			'hashtag'        => array( count( array_filter( $this->hashtag_slugs() ) ), 'sample', __( 'hashtags', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -242,10 +250,7 @@ final class BuddyNext extends Provider {
 		$members = new \BuddyNext\Spaces\SpaceMemberService();
 		$storage = new \BuddyNext\Media\ImageStorageService();
 
-		$cat_ids = array();
-		foreach ( $cats->get_all() as $cat ) {
-			$cat_ids[ (string) $cat['slug'] ] = (int) $cat['id'];
-		}
+		$cat_ids = $this->existing_categories();
 		foreach ( $c['categories'] as $slug => $name ) {
 			if ( isset( $cat_ids[ $slug ] ) ) {
 				continue;
@@ -666,13 +671,8 @@ final class BuddyNext extends Provider {
 		if ( ! function_exists( 'buddynext_feature_enabled' ) || ! buddynext_feature_enabled( 'hashtags' ) ) {
 			return;
 		}
-		$svc  = new \BuddyNext\Hashtags\HashtagService();
-		$tags = array();
-		foreach ( $this->content()['posts'] as $row ) {
-			foreach ( $svc->extract_from_text( $row[2] ) as $slug ) {
-				$tags[ $slug ] = null === $svc->get_by_slug( $slug );
-			}
-		}
+		$svc     = new \BuddyNext\Hashtags\HashtagService();
+		$tags    = $this->hashtag_slugs();
 		$indexer = new \BuddyNext\Hashtags\HashtagListener( $svc );
 		foreach ( Ledger::ids( $this->id(), 'post' ) as $pid ) {
 			$indexer->async_index_hashtags( 'post', (int) $pid, '' );
@@ -683,6 +683,40 @@ final class BuddyNext extends Provider {
 				$ctx->record( $this->id(), 'hashtag', (int) $tag['id'], 'sample', array( 'slug' => $slug ) );
 			}
 		}
+	}
+
+	/**
+	 * Hashtags in the sample posts, slug => true when the site does not have it yet.
+	 *
+	 * @return array<string,bool>
+	 */
+	private function hashtag_slugs(): array {
+		if ( ! class_exists( '\BuddyNext\Hashtags\HashtagService' ) || ! function_exists( 'buddynext_feature_enabled' ) || ! buddynext_feature_enabled( 'hashtags' ) ) {
+			return array();
+		}
+		$svc  = new \BuddyNext\Hashtags\HashtagService();
+		$tags = array();
+		foreach ( $this->content()['posts'] as $row ) {
+			foreach ( $svc->extract_from_text( $row[2] ) as $slug ) {
+				$tags[ $slug ] = null === $svc->get_by_slug( $slug );
+			}
+		}
+		return $tags;
+	}
+
+	/**
+	 * Space category slugs already on the site (reused, not created).
+	 *
+	 * @return array<string,int>
+	 */
+	private function existing_categories(): array {
+		$out = array();
+		if ( class_exists( '\BuddyNext\Spaces\SpaceCategoryService' ) ) {
+			foreach ( ( new \BuddyNext\Spaces\SpaceCategoryService() )->get_all() as $cat ) {
+				$out[ (string) $cat['slug'] ] = (int) $cat['id'];
+			}
+		}
+		return $out;
 	}
 
 	/**

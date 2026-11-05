@@ -13,19 +13,33 @@ After a build each product's setup is finished the way its own wizard finishes i
 (no-sidebar product pages, Learnomy fills the theme container, title hidden beside the logo on BuddyX) and every
 change is restored by Remove everything. Test results: `docs/testing.md`.
 
-Open before release:
+Release 1.0.0 checklist:
 
-| Item | Notes |
+| Item | State |
 |---|---|
-| Review counts | `plan()` counts differ from what is created for some types (space categories, feed posts that other products bridge in, venues, organizers, applications, orders, enrolments). Make `plan()` report what will be created; the AI builder depends on it too. |
-| Roadmap heading | Shows "Main Product Roadmap"; set the product name from the site title. |
-| Member view | Log in as a sample person and walk profile, notifications, messages, progress, RSVPs, orders. |
-| B2, B3 | BuddyNext without WPMediaVerse; Jetonomy discussions in the BuddyNext feed. Not automated yet. |
-| Large existing site | Build and Finish on a site with 1,000+ users and posts. |
-| RTL, mid-build reload, uninstall | Browser RTL pass; reload during a build; uninstall with and without a demo on the site (code keeps records while sample content remains). |
-| Multisite | Undecided: per-site only, or blocked on network admin. |
-| Customer docs | FAQ and Troubleshooting sections (docs lint: 0 errors, 2 warnings for these). |
-| Owner warnings left on purpose | Learnomy "no payment method" and Sell Services "no Terms page": real owner tasks, not demo gaps. |
+| Review counts | Done. Every count equals what the build creates on the site (verified type by type against a full build). BuddyNext feed posts show its own count and say other products add theirs. |
+| Real site consent | Done. Other members, blog posts or comments are named on the site check; Build waits for a ticked confirmation; REST needs `consent`, WP-CLI needs `--yes`. |
+| Product setup wizards | Done. Activation redirects are cleared when the owner opens this wizard (Learnomy redirects from `plugins_loaded`, so this runs at priority 0) and each product's setup is completed on build. |
+| Member view | Done. Profile, connections, media, discussions, events, messages and notifications walked as a sample person; in-app notifications between sample people are now created during the build, never to real users. |
+| Mid-build reload | Done. Reloading the wizard during a build returns to the progress screen and the build completes. |
+| Uninstall | Done. With demo content present the records stay so Finish still works after reinstalling; after Finish, uninstall leaves no table or option. |
+| RTL | Done. The wizard mirrors; arrows flip in the RTL stylesheet. |
+| Roadmap heading | Done. Product name set from the site title when the owner has not set one. |
+| Customer docs | Done. FAQ and Troubleshooting added; docs lint 0 errors, 0 warnings. |
+| Large existing site | Out of scope (owner, 6 November 2026): the installer is for a fresh demonstration site. |
+| B2, B3 | After 1.0.0: automate BuddyNext without WPMediaVerse and Jetonomy discussions in the feed. |
+| Multisite | After 1.0.0: decide per-site only or blocked on network admin. |
+| Owner warnings left on purpose | Learnomy "no payment method" and Sell Services "no Terms page": real owner tasks. |
+
+Notes for the product teams (worked around in this plugin; each team decides):
+
+- Learnomy redirects to its setup wizard from its `plugins_loaded` callback, so the first admin page of any kind after
+  activation is taken over; Learnomy, Eventonomy, WP Sell Services, Product Roadmap and WB Gamification redirect even
+  when their setup is already complete.
+- Jetonomy awards reputation for a vote only in its votes REST route, not in `Vote::cast()`, so other writers
+  (importers, this installer) must award it themselves.
+- Jetonomy's `jetonomy_notification_should_send` filter receives no recipient, so a caller cannot allow some
+  notifications and hold others (BuddyNext's passes the notification data).
 
 ## Readiness audit
 

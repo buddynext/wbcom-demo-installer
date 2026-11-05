@@ -91,10 +91,16 @@ final class MediaVerse extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'mvs_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		return array(
-			'mvs_setup_complete'                => true,
-			'transient:mvs_activation_redirect' => null,
+			'mvs_setup_complete' => true,
 		);
 	}
 

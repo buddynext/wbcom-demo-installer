@@ -13,16 +13,16 @@ global $wpdb;
 $wbcom_demo_table = $wpdb->prefix . 'wbcom_demo_ledger';
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 $wbcom_demo_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wbcom_demo_table ) );
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-$wbcom_demo_left = $wbcom_demo_exists ? (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wbcom_demo_table} WHERE kind = 'sample'" ) : 0;
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+$wbcom_demo_left = $wbcom_demo_exists ? (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE kind = %s', $wbcom_demo_table, 'sample' ) ) : 0;
 
 if ( $wbcom_demo_left > 0 ) {
 	return;
 }
 
 if ( $wbcom_demo_exists ) {
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-	$wpdb->query( "DROP TABLE IF EXISTS {$wbcom_demo_table}" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wbcom_demo_table ) );
 }
 delete_option( 'wbcom_demo_state' );
 delete_option( 'wbcom_demo_snapshot' );

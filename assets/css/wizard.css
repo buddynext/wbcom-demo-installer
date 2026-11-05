@@ -117,6 +117,8 @@ html, body { margin: 0; }
 .wdi-callout--info .wdi-i { color: var(--wdi-info); }
 .wdi-callout--danger { background: var(--wdi-danger-soft); }
 .wdi-callout--success { background: var(--wdi-success-soft); }
+.wdi-consent { display: flex; gap: 10px; align-items: flex-start; margin: 0 var(--wdi-space-2xl) var(--wdi-space-lg); padding: var(--wdi-space-md) 14px; border: 1px solid var(--wdi-warning); border-radius: var(--wdi-r-md); background: var(--wdi-warning-soft); font-size: 13.5px; cursor: pointer; }
+.wdi-consent input { margin-block-start: 2px; flex: none; }
 .wdi-muted { color: var(--wdi-text-2); }
 .wdi-small { font-size: 13px; }
 .wdi-num { font-variant-numeric: tabular-nums; }

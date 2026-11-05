@@ -90,6 +90,13 @@ final class CareerBoard extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'wcb_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		return array( 'wcb_setup_complete' => true );
 	}
@@ -98,13 +105,30 @@ final class CareerBoard extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
+		$jobs  = $this->content()['jobs'];
+		$terms = array();
+		foreach ( $jobs as $j ) {
+			$terms['wcb_category'][]   = $j[2];
+			$terms['wcb_job_type'][]   = $j[3];
+			$terms['wcb_location'][]   = $j[4];
+			$terms['wcb_experience'][] = $j[5];
+		}
+		if ( class_exists( '\WCB\Core\Locations' ) ) {
+			// Career Board files each company under its HQ location too (Locations::sync_company_hq()).
+			$terms['wcb_location'] = array_merge( $terms['wcb_location'], array_column( $this->content()['companies'], 5 ) );
+		}
+		$applications = 0;
+		foreach ( array_keys( array_values( $jobs ) ) as $k ) {
+			$applications += 1 + $k % 3; // As applications() does.
+		}
+		$candidates = count( People::indexes( 'candidate' ) );
 		return array(
-			'term'        => array( 0, 'setup', __( 'job categories and types', 'wbcom-demo-installer' ) ),
-			'page'        => array( 0, 'setup', __( 'job board pages', 'wbcom-demo-installer' ) ),
+			'term'        => array( self::missing_terms( $terms ), 'setup', __( 'job categories, types and locations', 'wbcom-demo-installer' ) ),
+			'page'        => array( class_exists( '\WCB\Admin\Pages' ) ? count( \WCB\Admin\Pages::missing() ) : 0, 'setup', __( 'job board pages', 'wbcom-demo-installer' ) ),
 			'company'     => array( count( $this->content()['companies'] ), 'sample', __( 'companies', 'wbcom-demo-installer' ) ),
-			'job'         => array( count( $this->content()['jobs'] ), 'sample', __( 'jobs', 'wbcom-demo-installer' ) ),
-			'application' => array( 0, 'sample', __( 'applications', 'wbcom-demo-installer' ) ),
-			'attachment'  => array( 0, 'sample', __( 'resume files', 'wbcom-demo-installer' ) ),
+			'job'         => array( count( $jobs ), 'sample', __( 'jobs', 'wbcom-demo-installer' ) ),
+			'application' => array( $candidates ? $applications : 0, 'sample', __( 'applications', 'wbcom-demo-installer' ) ),
+			'attachment'  => array( $candidates, 'sample', __( 'resume files', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -184,25 +208,6 @@ final class CareerBoard extends Provider {
 	}
 
 	/**
-	 * A term id, created (and recorded) when missing.
-	 *
-	 * @param string  $name     Term name.
-	 * @param string  $taxonomy Taxonomy.
-	 * @param Context $ctx      Context.
-	 */
-	private function term( string $name, string $taxonomy, Context $ctx ): int {
-		$term = term_exists( $name, $taxonomy );
-		if ( ! $term ) {
-			$term = wp_insert_term( $name, $taxonomy );
-			if ( is_wp_error( $term ) ) {
-				return 0;
-			}
-			$ctx->record( $this->id(), 'term', (int) $term['term_id'], 'setup', array( 'taxonomy' => $taxonomy ) );
-		}
-		return (int) $term['term_id'];
-	}
-
-	/**
 	 * Jobs.
 	 *
 	 * @param Context $ctx Context.
@@ -252,7 +257,7 @@ final class CareerBoard extends Provider {
 				'wcb_location'   => $loc,
 				'wcb_experience' => $exp,
 			) as $tax => $name ) {
-				$tid = taxonomy_exists( $tax ) ? $this->term( $name, $tax, $ctx ) : 0;
+				$tid = taxonomy_exists( $tax ) ? $this->ensure_term( $name, $tax, $ctx ) : 0;
 				if ( $tid ) {
 					wp_set_post_terms( (int) $id, array( $tid ), $tax );
 				}
@@ -318,12 +323,7 @@ final class CareerBoard extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'term' === $row->object_type ) {
-			$tax  = (string) ( $row->meta['taxonomy'] ?? '' );
-			$term = $tax ? get_term( $id, $tax ) : null;
-			if ( $term && ! is_wp_error( $term ) && 0 === (int) $term->count ) {
-				wp_delete_term( $id, $tax );
-			}
-			return true;
+			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'attachment' === $row->object_type ) {
 			if ( get_post( $id ) ) {

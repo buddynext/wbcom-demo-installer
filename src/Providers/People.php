@@ -31,6 +31,16 @@ final class People extends Provider {
 	}
 
 	/**
+	 * Roster indexes of the people with a role, in roster order (the order Context::people() returns).
+	 *
+	 * @param string $role Role tag.
+	 * @return int[]
+	 */
+	public static function indexes( string $role ): array {
+		return array_keys( array_filter( self::roster(), static fn( $p ) => in_array( $role, (array) ( $p['roles'] ?? array() ), true ) ) );
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function id(): string {

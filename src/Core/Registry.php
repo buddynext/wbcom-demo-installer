@@ -61,6 +61,22 @@ final class Registry {
 	}
 
 	/**
+	 * Built-in providers, freshly made and not cached: for work that runs before add-ons register theirs
+	 * (clearing activation redirects at plugins_loaded), so all() still sees every add-on later.
+	 *
+	 * @return Provider[]
+	 */
+	public static function builtin_providers(): array {
+		$out = array();
+		foreach ( self::builtin() as $class ) {
+			if ( class_exists( $class ) ) {
+				$out[] = new $class();
+			}
+		}
+		return $out;
+	}
+
+	/**
 	 * Built-in provider classes.
 	 *
 	 * @return array<int,class-string<Provider>>

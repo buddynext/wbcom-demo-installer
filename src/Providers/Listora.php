@@ -89,6 +89,13 @@ final class Listora extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'wb_listora_show_wizard_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		// Same two flags as the plugin's own mark_setup_complete(), which it calls once a directory has listings.
 		return array(
@@ -103,7 +110,21 @@ final class Listora extends Provider {
 	 */
 	public function plan(): array {
 		return array(
-			'term'       => array( 0, 'setup', __( 'listing categories and features', 'wbcom-demo-installer' ) ),
+			'term'       => array(
+				self::missing_terms(
+					array(
+						'listora_listing_cat'      => array_column( $this->content()['listings'], 2 ),
+						'listora_listing_feature'  => array_merge( array(), ...array_map( static fn( $l ) => (array) $l[11], $this->content()['listings'] ) ),
+						// Listora files each listing under its city and country (Term_Helper::set_location_terms()).
+						'listora_listing_location' => array_merge(
+							array_column( $this->content()['listings'], 4 ),
+							class_exists( '\WBListora\Core\Countries' ) ? array_map( static fn( $c ) => (string) \WBListora\Core\Countries::name( $c ), array_column( $this->content()['listings'], 5 ) ) : array()
+						),
+					)
+				),
+				'setup',
+				__( 'listing categories, features and locations', 'wbcom-demo-installer' ),
+			),
 			'listing'    => array( count( $this->content()['listings'] ), 'sample', __( 'listings', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $this->content()['listings'] ), 'sample', __( 'listing photos', 'wbcom-demo-installer' ) ),
 		);
@@ -126,25 +147,6 @@ final class Listora extends Provider {
 	 */
 	public function run( string $step, Context $ctx ): void {
 		'reviews' === $step ? $this->reviews( $ctx ) : $this->listings( $ctx );
-	}
-
-	/**
-	 * A term id, created (and recorded) when missing.
-	 *
-	 * @param string  $name     Name.
-	 * @param string  $taxonomy Taxonomy.
-	 * @param Context $ctx      Context.
-	 */
-	private function term( string $name, string $taxonomy, Context $ctx ): int {
-		$term = term_exists( $name, $taxonomy );
-		if ( ! $term ) {
-			$term = wp_insert_term( $name, $taxonomy );
-			if ( is_wp_error( $term ) ) {
-				return 0;
-			}
-			$ctx->record( $this->id(), 'term', (int) $term['term_id'], 'setup', array( 'taxonomy' => $taxonomy ) );
-		}
-		return (int) $term['term_id'];
 	}
 
 	/**
@@ -177,10 +179,10 @@ final class Listora extends Provider {
 			}
 			$ctx->record( $this->id(), 'listing', (int) $id );
 			wp_set_object_terms( $id, $type, 'listora_listing_type' );
-			wp_set_object_terms( $id, array( $this->term( $cat, 'listora_listing_cat', $ctx ) ), 'listora_listing_cat' );
+			wp_set_object_terms( $id, array( $this->ensure_term( $cat, 'listora_listing_cat', $ctx ) ), 'listora_listing_cat' );
 			$feature_ids = array();
 			foreach ( $features as $f ) {
-				$feature_ids[] = $this->term( $f, 'listora_listing_feature', $ctx );
+				$feature_ids[] = $this->ensure_term( $f, 'listora_listing_feature', $ctx );
 			}
 			wp_set_object_terms( $id, array_filter( $feature_ids ), 'listora_listing_feature' );
 			$address = array(
@@ -276,12 +278,7 @@ final class Listora extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'term' === $row->object_type ) {
-			$tax  = (string) ( $row->meta['taxonomy'] ?? '' );
-			$term = $tax ? get_term( $id, $tax ) : null;
-			if ( $term && ! is_wp_error( $term ) && 0 === (int) $term->count ) {
-				wp_delete_term( $id, $tax );
-			}
-			return true;
+			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'attachment' === $row->object_type ) {
 			if ( get_post( $id ) ) {

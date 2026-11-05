@@ -98,11 +98,17 @@ final class Gamification extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'option:wb_gam_pending_setup_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
-		// The wizard's own Skip sets only the flag; the pending redirect option would still send the admin there.
+		// The wizard's own Skip sets only this flag.
 		return array(
-			'wb_gam_wizard_complete'        => true,
-			'wb_gam_pending_setup_redirect' => null,
+			'wb_gam_wizard_complete' => true,
 		);
 	}
 

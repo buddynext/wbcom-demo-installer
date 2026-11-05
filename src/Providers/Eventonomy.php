@@ -90,10 +90,16 @@ final class Eventonomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'evnm_show_wizard_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		return array(
-			'evnm_settings'                       => array( 'setup_complete' => true ),
-			'transient:evnm_show_wizard_redirect' => null,
+			'evnm_settings' => array( 'setup_complete' => true ),
 		);
 	}
 
@@ -101,10 +107,21 @@ final class Eventonomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
+		$venues     = array();
+		$organizers = array();
+		$cats       = array();
+		foreach ( $this->content() as $e ) {
+			if ( ! $e[10] && '' !== $e[2] ) {
+				$venues[ $e[2] ] = true;
+			}
+			$organizers[ $e[6] ] = true;
+			$cats[]              = $e[1];
+		}
+		// One venue per place and one organizer per sample person, as Eventonomy creates them.
 		return array(
-			'category'  => array( 0, 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),
-			'venue'     => array( 0, 'setup', __( 'venues', 'wbcom-demo-installer' ) ),
-			'organizer' => array( 0, 'setup', __( 'organizers', 'wbcom-demo-installer' ) ),
+			'category'  => array( self::missing_terms( array( 'evnm_event_category' => $cats ) ), 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),
+			'venue'     => array( count( $venues ), 'setup', __( 'venues', 'wbcom-demo-installer' ) ),
+			'organizer' => array( count( $organizers ), 'setup', __( 'organizers', 'wbcom-demo-installer' ) ),
 			'event'     => array( count( $this->content() ), 'sample', __( 'events', 'wbcom-demo-installer' ) ),
 		);
 	}
@@ -187,15 +204,9 @@ final class Eventonomy extends Provider {
 			if ( ! empty( $row['organizer_id'] ) ) {
 				$ctx->record( $this->id(), 'organizer', (int) $row['organizer_id'], 'setup' );
 			}
-			$term = term_exists( $cat, 'evnm_event_category' );
-			if ( ! $term ) {
-				$term = wp_insert_term( $cat, 'evnm_event_category' );
-				if ( ! is_wp_error( $term ) ) {
-					$ctx->record( $this->id(), 'category', (int) $term['term_id'], 'setup' );
-				}
-			}
-			if ( is_array( $term ) ) {
-				wp_set_object_terms( $id, array( (int) $term['term_id'] ), 'evnm_event_category' );
+			$term = $this->ensure_term( $cat, 'evnm_event_category', $ctx, '', 'category' );
+			if ( $term ) {
+				wp_set_object_terms( $id, array( $term ), 'evnm_event_category' );
 			}
 			$ctx->record( $this->id(), 'event', $id, 'sample', array( 'organizer' => $organizer ) );
 		}
@@ -258,11 +269,7 @@ final class Eventonomy extends Provider {
 				}
 				return true;
 			case 'category':
-				$term = get_term( $id, 'evnm_event_category' );
-				if ( $term && ! is_wp_error( $term ) && 0 === (int) $term->count ) {
-					wp_delete_term( $id, 'evnm_event_category' );
-				}
-				return true;
+				return self::remove_unused_term( $id, 'evnm_event_category' );
 		}
 		return true;
 	}

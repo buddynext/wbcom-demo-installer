@@ -25,10 +25,11 @@ Registering a provider with the id of a built-in one replaces it.
 | `available()` | yes | True when the product is active (check a class or constant). |
 | `version()`, `min_version()` | no | The wizard marks the product "not supported" below the tested minimum. |
 | `pro_label()` | no | "Pro add-on active" when the product's Pro is present. |
-| `plan()` | yes | `object_type => [count, 'sample'\|'setup', label]`, shown on Review and in the Finish choices. |
+| `plan()` | yes | `object_type => [count, 'sample'\|'setup', label]`, shown on Review and in the Finish choices. Counts must equal what a build creates on this site: count terms with `missing_terms()`, the same rule `ensure_term()` builds with. |
 | `steps()`, `run()` | yes | Small steps, each finishing well inside one request (chunk long lists). |
 | `remove()` | yes | Delete one recorded object through the product's own delete function. |
 | `settings()` | no | The product's best demo settings and its setup-complete flag (see below). |
+| `activation_redirects()` | no | The one-time "go to my setup wizard" redirects the product sets on activation; cleared when the owner opens this wizard and on build. |
 | `menu_items()`, `front_page()` | no | Pages for the demo menu and the home page; menu pages get the theme's no-sidebar layout. |
 | `handover()`, `late_types()`, `verify()` | no | Kept items handed to the owner, removal order, extra checks after Finish. |
 | `order()` | no | Build order; a provider that needs another product's content runs after it. |
@@ -52,7 +53,7 @@ public function settings(): array {
 	return array(
 		'myproduct_setup_complete'                => true,              // the flag its own wizard's Skip or Finish sets
 		'myproduct_settings'                      => array( 'layout' => 'grid' ), // merged into an array option
-		'transient:myproduct_activation_redirect' => null,              // a one-time redirect, cleared only
+		'transient:myproduct_notice_pending'      => null,              // a one-time notice transient, cleared only
 	);
 }
 ```
@@ -70,6 +71,7 @@ has not changed since.
 | `$ctx->record( $provider, $type, $id, $kind )` | Record every created object in the ledger. |
 | `$ctx->attachment( $rel, $author, $provider )`, `$ctx->media( $rel )` | Media from `media/`. |
 | `$ctx->set()`, `$ctx->get()` | Pass ids between steps. |
+| `$this->ensure_term( $name, $taxonomy, $ctx )`, `self::remove_unused_term( $id, $taxonomy )` | Create and record a term only when the site lacks it; remove it on Finish only while nothing uses it. |
 | `$ctx->warn( $provider, $what, $error )` | Report a non-fatal problem to the wizard. |
 
 ## Rules

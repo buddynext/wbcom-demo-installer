@@ -76,6 +76,9 @@ final class Command {
 	 * [--dry-run]
 	 * : Show what would be created.
 	 *
+	 * [--yes]
+	 * : Build even though the site already has members or content (the demo is made for a fresh site).
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp wbcom-demo build --recipe=community
@@ -105,9 +108,9 @@ final class Command {
 			}
 			return;
 		}
-		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo' );
+		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ) );
 		if ( is_wp_error( $status ) ) {
-			WP_CLI::error( $status->get_error_message() );
+			WP_CLI::error( $status->get_error_message() . ( 'wbcom_demo_live_site' === $status->get_error_code() ? ' Add --yes to build anyway.' : '' ) );
 		}
 		$this->run_steps( 'Building' );
 		$status = Engine::status();

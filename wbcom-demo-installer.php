@@ -3,7 +3,7 @@
  * Plugin Name:       Wbcom Demo Installer
  * Plugin URI:        https://github.com/buddynext/wbcom-demo-installer
  * Description:       Set up a believable demo across your Wbcom products from one screen, then remove the samples and keep your setup.
- * Version:           0.1.0
+ * Version:           1.0.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Wbcom Designs
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WBCOM_DEMO_VERSION', '0.1.0' );
+define( 'WBCOM_DEMO_VERSION', '1.0.0' );
 define( 'WBCOM_DEMO_FILE', __FILE__ );
 define( 'WBCOM_DEMO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WBCOM_DEMO_URL', plugin_dir_url( __FILE__ ) );
@@ -36,4 +36,6 @@ spl_autoload_register(
 );
 
 register_activation_hook( __FILE__, array( 'WbcomDemo\\Core\\Ledger', 'install' ) );
+// Before products that redirect to their own setup wizard from plugins_loaded; see Admin\Page::clear_redirects().
+add_action( 'plugins_loaded', array( 'WbcomDemo\\Admin\\Page', 'clear_redirects' ), 0 );
 add_action( 'plugins_loaded', array( 'WbcomDemo\\Plugin', 'boot' ), 20 );

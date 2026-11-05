@@ -101,9 +101,21 @@ final class Learnomy extends Provider {
 		return array(
 			'category'   => array( count( $c['categories'] ), 'setup', __( 'course categories', 'wbcom-demo-installer' ) ),
 			'course'     => array( count( $c['courses'] ), 'sample', __( 'courses', 'wbcom-demo-installer' ) ),
-			'enrollment' => array( 0, 'sample', __( 'enrolments', 'wbcom-demo-installer' ) ),
+			'enrollment' => array( $this->enrolment_count(), 'sample', __( 'enrolments', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $c['courses'] ), 'sample', __( 'course images', 'wbcom-demo-installer' ) ),
 		);
+	}
+
+	/**
+	 * Enrolments learners() makes: 4 to 7 students per course, never more than there are students.
+	 */
+	private function enrolment_count(): int {
+		$students = count( People::indexes( 'student' ) );
+		$n        = 0;
+		foreach ( array_keys( array_values( $this->content()['courses'] ) ) as $k ) {
+			$n += min( 4 + $k % 4, $students );
+		}
+		return $n;
 	}
 
 	/**
@@ -271,7 +283,7 @@ final class Learnomy extends Provider {
 		foreach ( Ledger::ids( $this->id(), 'course' ) as $k => $course_id ) {
 			$lessons = \Learnomy\Models\Lesson::get_for_course( $course_id );
 			$lessons = is_array( $lessons ) ? array_values( $lessons ) : array();
-			$take    = array_slice( array_merge( array_slice( $students, $k ), array_slice( $students, 0, $k ) ), 0, 4 + $k % 4 );
+			$take    = array_slice( array_merge( array_slice( $students, $k ), array_slice( $students, 0, $k ) ), 0, 4 + $k % 4 ); // Counted in enrolment_count().
 			foreach ( $take as $s => $uid ) {
 				$eid = $enrol->enroll(
 					$uid,
@@ -355,13 +367,19 @@ final class Learnomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'learnomy_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		// Inside a Wbcom theme the theme's own container sets the width, so Learnomy fills it instead of
 		// its narrower 960px default.
 		$settings = array(
-			'learnomy_setup_complete'                => true,
-			'learnomy_onboarding_dismissed'          => true,
-			'transient:learnomy_activation_redirect' => null,
+			'learnomy_setup_complete'       => true,
+			'learnomy_onboarding_dismissed' => true,
 		);
 		if ( in_array( Theme::theme_family(), array( 'BuddyX', 'BuddyX Pro', 'Reign' ), true ) ) {
 			$settings['learnomy_settings'] = array( 'container_width' => 'none' );

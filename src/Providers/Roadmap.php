@@ -95,12 +95,23 @@ final class Roadmap extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'roadmap_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
-		return array(
-			'roadmap_wizard_completed'              => true,
-			'roadmap_setup_notice_dismissed'        => true,
-			'transient:roadmap_activation_redirect' => null,
+		$settings = array(
+			'roadmap_wizard_completed'       => true,
+			'roadmap_setup_notice_dismissed' => true,
 		);
+		// The roadmap heading names the product; its own wizard fills it from the site title.
+		if ( '' === (string) get_option( 'roadmap_product_name', '' ) ) {
+			$settings['roadmap_product_name'] = get_bloginfo( 'name' );
+		}
+		return $settings;
 	}
 
 	/**
@@ -108,7 +119,16 @@ final class Roadmap extends Provider {
 	 */
 	public function plan(): array {
 		return array(
-			'term' => array( 0, 'setup', __( 'roadmap statuses and categories', 'wbcom-demo-installer' ) ),
+			'term' => array(
+				self::missing_terms(
+					array(
+						'roadmap_status'   => array_map( static fn( $s ) => self::STATUSES[ $s ], array_column( $this->content()['items'], 1 ) ),
+						'roadmap_category' => array_column( $this->content()['items'], 2 ),
+					)
+				),
+				'setup',
+				__( 'roadmap statuses and categories', 'wbcom-demo-installer' ),
+			),
 			'page' => array( 1, 'setup', __( 'roadmap page', 'wbcom-demo-installer' ) ),
 			'item' => array( count( $this->content()['items'] ), 'sample', __( 'roadmap items', 'wbcom-demo-installer' ) ),
 		);
@@ -121,27 +141,6 @@ final class Roadmap extends Provider {
 	 */
 	public function steps( Context $ctx ): array {
 		return array( 'items', 'votes' );
-	}
-
-	/**
-	 * A term id, created (and recorded) when missing.
-	 *
-	 * @param string  $slug     Slug.
-	 * @param string  $name     Name.
-	 * @param string  $taxonomy Taxonomy.
-	 * @param Context $ctx      Context.
-	 */
-	private function term( string $slug, string $name, string $taxonomy, Context $ctx ): int {
-		$term = get_term_by( 'slug', $slug, $taxonomy );
-		if ( $term ) {
-			return (int) $term->term_id;
-		}
-		$new = wp_insert_term( $name, $taxonomy, array( 'slug' => $slug ) );
-		if ( is_wp_error( $new ) ) {
-			return 0;
-		}
-		$ctx->record( $this->id(), 'term', (int) $new['term_id'], 'setup', array( 'taxonomy' => $taxonomy ) );
-		return (int) $new['term_id'];
 	}
 
 	/**
@@ -194,8 +193,8 @@ final class Roadmap extends Provider {
 				$ctx->warn( $this->id(), 'item ' . $title, $id );
 				continue;
 			}
-			wp_set_object_terms( $id, $this->term( $status, self::STATUSES[ $status ], 'roadmap_status', $ctx ), 'roadmap_status' );
-			wp_set_object_terms( $id, $this->term( sanitize_title( $cat ), $cat, 'roadmap_category', $ctx ), 'roadmap_category' );
+			wp_set_object_terms( $id, $this->ensure_term( self::STATUSES[ $status ], 'roadmap_status', $ctx, $status ), 'roadmap_status' );
+			wp_set_object_terms( $id, $this->ensure_term( $cat, 'roadmap_category', $ctx, sanitize_title( $cat ) ), 'roadmap_category' );
 			update_post_meta( $id, '_roadmap_priority', array( 'high', 'medium', 'low' )[ $i % 3 ] );
 			update_post_meta(
 				$id,
@@ -242,12 +241,7 @@ final class Roadmap extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'term' === $row->object_type ) {
-			$tax  = (string) ( $row->meta['taxonomy'] ?? '' );
-			$term = $tax ? get_term( $id, $tax ) : null;
-			if ( $term && ! is_wp_error( $term ) && 0 === (int) $term->count ) {
-				wp_delete_term( $id, $tax );
-			}
-			return true;
+			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( get_post( $id ) ) {
 			wp_delete_post( $id, true );

@@ -47,6 +47,9 @@ final class QuietMode {
 		foreach ( self::product_filters() as $filter => $value ) {
 			add_filter( $filter, $value ? '__return_true' : '__return_false', 999 );
 		}
+		// In-app notifications between sample people make their bells and notification pages look lived in;
+		// nothing reaches a real user, and mail stays held by filter_mail().
+		add_filter( 'buddynext_notification_should_send', array( self::class, 'only_sample_recipients' ), 999, 2 );
 	}
 
 	/**
@@ -58,11 +61,21 @@ final class QuietMode {
 		return (array) apply_filters(
 			'wbcom_demo_quiet_filters',
 			array(
-				'buddynext_notification_should_send' => false,
-				'jetonomy_notification_should_send'  => false,
-				'wb_gam_email_enabled'               => false,
+				'jetonomy_notification_should_send' => false,
+				'wb_gam_email_enabled'              => false,
 			)
 		);
+	}
+
+	/**
+	 * BuddyNext notification filter while building: send only to sample people.
+	 *
+	 * @param mixed $send Whether to send.
+	 * @param mixed $data Notification data, with recipient_id.
+	 */
+	public static function only_sample_recipients( $send, $data ): bool {
+		$to = is_array( $data ) ? (int) ( $data['recipient_id'] ?? 0 ) : 0;
+		return (bool) $send && $to > 0 && (bool) get_user_meta( $to, \WbcomDemo\Providers\People::FLAG, true );
 	}
 
 	/**

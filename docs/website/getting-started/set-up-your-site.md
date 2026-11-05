@@ -7,6 +7,9 @@ what your community will look like before your first real member joins.
 
 ## Before you start
 
+- Use a fresh site: a new install, a staging copy or a sandbox. The demo is made for showing and trying the
+  products, not for a site people already use. If the site already has other members, blog posts or comments,
+  the site check says so, and you have to confirm before the build starts.
 - Activate your theme (BuddyX, BuddyX Pro, Reign or any other theme) and the Wbcom products you want to try.
 - If a product shipped its own demo data earlier, remove it from that product first. The site check tells you.
 - You need to be a site administrator.
@@ -26,6 +29,8 @@ what your community will look like before your first real member joins.
 - 20 sample people shared by every product, with profiles and photos.
 - Content for each product you chose, dated over the last two months.
 - Your home page, menu and logo, if you chose them.
+- Each product's own setup finished and its pages shown without sidebars, so there are no setup wizards or
+  setup reminders waiting for you.
 - No email is sent to anyone.
 
 When you are done looking around, see [Finish the demo](finish-demo.md).

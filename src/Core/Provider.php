@@ -197,6 +197,86 @@ abstract class Provider {
 	}
 
 	/**
+	 * One-time redirects the product sets when it is activated (to its own setup wizard), as transient names,
+	 * or "option:<name>" for one kept in an option. Cleared when the owner opens this wizard, and again on build.
+	 *
+	 * @return string[]
+	 */
+	public function activation_redirects(): array {
+		return array();
+	}
+
+	/**
+	 * Clear this product's one-time activation redirects.
+	 */
+	public function clear_redirects(): void {
+		foreach ( $this->activation_redirects() as $key ) {
+			if ( str_starts_with( $key, 'option:' ) ) {
+				delete_option( substr( $key, 7 ) );
+			} else {
+				delete_transient( $key );
+			}
+		}
+	}
+
+	/**
+	 * A term's id, created and recorded when the site does not have it yet (an existing term is used as is and
+	 * never recorded, so Finish leaves it).
+	 *
+	 * @param string  $name     Term name.
+	 * @param string  $taxonomy Taxonomy.
+	 * @param Context $ctx      Context.
+	 * @param string  $slug     Slug to look up and create with; the name when empty.
+	 * @param string  $type     Ledger object type.
+	 * @return int Term id, 0 when it could not be created.
+	 */
+	protected function ensure_term( string $name, string $taxonomy, Context $ctx, string $slug = '', string $type = 'term' ): int {
+		$found = term_exists( '' !== $slug ? $slug : $name, $taxonomy );
+		if ( is_array( $found ) ) {
+			return (int) $found['term_id'];
+		}
+		$new = wp_insert_term( $name, $taxonomy, '' !== $slug ? array( 'slug' => $slug ) : array() );
+		if ( is_wp_error( $new ) ) {
+			return 0;
+		}
+		$ctx->record( $this->id(), $type, (int) $new['term_id'], 'setup', array( 'taxonomy' => $taxonomy ) );
+		return (int) $new['term_id'];
+	}
+
+	/**
+	 * Remove a recorded term, but only while no content uses it (the owner may have used it since).
+	 *
+	 * @param int    $id       Term id.
+	 * @param string $taxonomy Taxonomy.
+	 */
+	protected static function remove_unused_term( int $id, string $taxonomy ): bool {
+		$term = '' !== $taxonomy ? get_term( $id, $taxonomy ) : null;
+		if ( $term instanceof \WP_Term && 0 === (int) $term->count ) {
+			wp_delete_term( $id, $taxonomy );
+		}
+		return true;
+	}
+
+	/**
+	 * How many of these terms a build would create: the ones not on the site yet. Builds create a term only
+	 * when it is missing, so Review counts the same way.
+	 *
+	 * @param array<string,string[]> $terms Taxonomy => term names.
+	 */
+	protected static function missing_terms( array $terms ): int {
+		$n = 0;
+		foreach ( $terms as $taxonomy => $names ) {
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				continue;
+			}
+			foreach ( array_unique( $names ) as $name ) {
+				$n += term_exists( $name, $taxonomy ) ? 0 : 1;
+			}
+		}
+		return $n;
+	}
+
+	/**
 	 * Object types to remove only after everything else (e.g. a tag registry that counts posts).
 	 *
 	 * @return string[]

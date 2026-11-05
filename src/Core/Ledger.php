@@ -86,7 +86,8 @@ final class Ledger {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 		$wpdb->query(
 			$wpdb->prepare(
-				"INSERT IGNORE INTO {$table} (build_id, provider, object_type, object_id, kind, parent_id, meta, created_at) VALUES (%s, %s, %s, %d, %s, %d, %s, %s)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'INSERT IGNORE INTO %i (build_id, provider, object_type, object_id, kind, parent_id, meta, created_at) VALUES (%s, %s, %s, %d, %s, %d, %s, %s)',
+				$table,
 				$build_id,
 				$provider,
 				$type,
@@ -101,7 +102,7 @@ final class Ledger {
 			return (int) $wpdb->insert_id;
 		}
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE provider = %s AND object_type = %s AND object_id = %d", $provider, $type, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE provider = %s AND object_type = %s AND object_id = %d', $table, $provider, $type, $id ) );
 	}
 
 	/**
@@ -115,7 +116,7 @@ final class Ledger {
 		global $wpdb;
 		$table = self::table();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT 1 FROM {$table} WHERE provider = %s AND object_type = %s AND object_id = %d", $provider, $type, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return (bool) $wpdb->get_var( $wpdb->prepare( 'SELECT 1 FROM %i WHERE provider = %s AND object_type = %s AND object_id = %d', $table, $provider, $type, $id ) );
 	}
 
 	/**
@@ -127,7 +128,7 @@ final class Ledger {
 		global $wpdb;
 		$table = self::table();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$rows = $wpdb->get_results( "SELECT provider, object_type, kind, COUNT(*) AS n FROM {$table} GROUP BY provider, object_type, kind ORDER BY MIN(id)" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT provider, object_type, kind, COUNT(*) AS n FROM %i GROUP BY provider, object_type, kind ORDER BY MIN(id)', $table ) );
 		foreach ( $rows as $r ) {
 			$r->n = (int) $r->n;
 		}
@@ -147,18 +148,18 @@ final class Ledger {
 		if ( ! $keys ) {
 			return array();
 		}
-		$table  = self::table();
 		$where  = array();
-		$params = array();
+		$params = array( self::table() );
 		foreach ( $keys as $key ) {
 			list( $provider, $type ) = array_pad( explode( ':', $key, 2 ), 2, '' );
 			$where[]                 = '(provider = %s AND object_type = %s)';
 			$params[]                = $provider;
 			$params[]                = $type;
 		}
-		$sql = "SELECT * FROM {$table} WHERE (" . implode( ' OR ', $where ) . ')';
+		$sql = 'SELECT * FROM %i WHERE (' . implode( ' OR ', $where ) . ')';
 		if ( $skip ) {
-			$sql .= ' AND id NOT IN (' . implode( ',', array_map( 'absint', $skip ) ) . ')';
+			$sql   .= ' AND id NOT IN (' . implode( ',', array_fill( 0, count( $skip ), '%d' ) ) . ')';
+			$params = array_merge( $params, array_map( 'absint', $skip ) );
 		}
 		$sql     .= ' ORDER BY id DESC LIMIT %d';
 		$params[] = $limit;
@@ -181,9 +182,8 @@ final class Ledger {
 		if ( ! $ids ) {
 			return;
 		}
-		$table = self::table();
-		// Ids are absint()-ed above; the IN list holds only integers.
-		$wpdb->query( "DELETE FROM {$table} WHERE id IN (" . implode( ',', $ids ) . ')' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- one %d per id, built above.
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE id IN (' . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ')', self::table(), ...array_values( $ids ) ) );
 	}
 
 	/**
@@ -217,10 +217,10 @@ final class Ledger {
 		$table = self::table();
 		if ( $kind ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE kind = %s", $kind ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE kind = %s', $table, $kind ) );
 		}
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) );
 	}
 
 	/**
@@ -234,7 +234,7 @@ final class Ledger {
 		global $wpdb;
 		$table = self::table();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		return array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$table} WHERE provider = %s AND object_type = %s ORDER BY id", $provider, $type ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return array_map( 'intval', $wpdb->get_col( $wpdb->prepare( 'SELECT object_id FROM %i WHERE provider = %s AND object_type = %s ORDER BY id', $table, $provider, $type ) ) );
 	}
 
 	/**
@@ -243,8 +243,8 @@ final class Ledger {
 	public static function drop(): void {
 		global $wpdb;
 		$table = self::table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
 		delete_option( self::DB_OPTION );
 	}
 }

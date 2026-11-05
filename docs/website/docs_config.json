@@ -19,6 +19,30 @@
 			"description": "Build a demo from the wizard, then keep your setup or remove it."
 		},
 		{
+			"slug": "faq",
+			"title": "FAQ",
+			"folder": "faq",
+			"name": "FAQ",
+			"description": "Short answers about live sites, email, Pro add-ons and finishing the demo.",
+			"pages": [
+				{
+					"slug": "faq"
+				}
+			]
+		},
+		{
+			"slug": "troubleshooting",
+			"title": "Troubleshooting",
+			"folder": "troubleshooting",
+			"name": "Troubleshooting",
+			"description": "What to do when the site check warns you, a build stops or Finish leaves something.",
+			"pages": [
+				{
+					"slug": "troubleshooting"
+				}
+			]
+		},
+		{
 			"slug": "developer-guide",
 			"title": "Developer guide",
 			"folder": "developer-guide",

@@ -61,9 +61,13 @@ final class Controller {
 						'enum'    => array( 'demo', 'keep' ),
 						'default' => 'demo',
 					),
+					'consent' => array(
+						'type'    => 'boolean',
+						'default' => false,
+					),
 				),
 				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response(
-					Engine::start_build( (string) $r['recipe'], array_map( 'sanitize_key', (array) $r['include'] ), (string) $r['look'] )
+					Engine::start_build( (string) $r['recipe'], array_map( 'sanitize_key', (array) $r['include'] ), (string) $r['look'], (bool) $r['consent'] )
 				),
 			)
 		);

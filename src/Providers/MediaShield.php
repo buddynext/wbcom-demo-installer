@@ -88,6 +88,13 @@ final class MediaShield extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'ms_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		return array( 'ms_wizard_completed' => true );
 	}

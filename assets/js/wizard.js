@@ -14,7 +14,8 @@
 	const app = document.getElementById( 'wdi-app' );
 
 	const esc = ( s ) => String( s ?? '' ).replace( /[&<>"']/g, ( c ) => ( { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ] ) );
-	const ic = ( id, cls = '' ) => `<svg class="wdi-i ${ cls }" aria-hidden="true" focusable="false"><use href="#i-${ id }"></use></svg>`;
+	// Arrows point the way you read, so they get wdi-i--dir and flip in the RTL stylesheet.
+	const ic = ( id, cls = '' ) => `<svg class="wdi-i ${ 'left' === id || 'right' === id ? 'wdi-i--dir ' : '' }${ cls }" aria-hidden="true" focusable="false"><use href="#i-${ id }"></use></svg>`;
 	const fmt = ( n ) => Number( n ).toLocaleString();
 
 	const S = {
@@ -83,11 +84,12 @@
 			`<li><span class="wdi-checks__ic">${ ic( 'users' ) }</span><div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%1$s user, %2$s posts and pages', '%1$s users, %2$s posts and pages', s.users, 'wbcom-demo-installer' ), fmt( s.users ), fmt( s.posts ) ) ) }<small>${ esc( __( 'Yours. They are not changed or removed.', 'wbcom-demo-installer' ) ) }</small></div><span class="wdi-badge">${ esc( __( 'Untouched', 'wbcom-demo-installer' ) ) }</span></li>`,
 		];
 		const other = s.leftovers.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'Demo content from %s is still on this site. Remove it from that product first so the two demos do not mix.', 'wbcom-demo-installer' ), s.leftovers.join( ', ' ) ) ) }</div></div>` : '';
+		const live = s.live && s.live.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %s: what the site already has, e.g. "3 other members, 12 blog posts". */ __( 'This site already has %s.', 'wbcom-demo-installer' ), s.live.join( ', ' ) ) ) }</b> ${ esc( __( 'The demo is made for a fresh site you use to show or try the products. On a site people use, sample people appear next to your real members until you finish the demo. Use a staging copy or a fresh install.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( __( 'No supported Wbcom product is active yet. Activate one, then come back.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ other }${ none }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ live }${ other }${ none }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
@@ -141,7 +143,8 @@
 			__( 'This is what will be created.', 'wbcom-demo-installer' ),
 			`<div class="wdi-table-wrap"><table class="wdi-table"><thead><tr><th>${ esc( __( 'Product', 'wbcom-demo-installer' ) ) }</th><th>${ esc( __( 'Creates', 'wbcom-demo-installer' ) ) }</th></tr></thead><tbody>${ rows.join( '' ) }</tbody></table></div>
 			<div class="wdi-assure"><div>${ ic( 'mail' ) }<span><b>${ esc( __( 'Nothing is emailed.', 'wbcom-demo-installer' ) ) }</b> ${ esc( __( 'Sample people never get mail, now or later.', 'wbcom-demo-installer' ) ) }</span></div><div>${ ic( 'shield' ) }<span><b>${ esc( __( 'Your own users and content', 'wbcom-demo-installer' ) ) }</b> ${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '(%1$s user, %2$s posts and pages) are not changed.', '(%1$s users, %2$s posts and pages) are not changed.', S.site.users, 'wbcom-demo-installer' ), fmt( S.site.users ), fmt( S.site.posts ) ) ) }</span></div><div>${ ic( 'clock' ) }<span><b>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( 'About %d minute.', 'About %d minutes.', Math.max( 1, Math.round( n / 300 ) ), 'wbcom-demo-installer' ), Math.max( 1, Math.round( n / 300 ) ) ) ) }</b> ${ esc( __( 'Dates are spread over the last two months.', 'wbcom-demo-installer' ) ) }</span></div></div>`,
-			foot( 'look', 'build', { label: __( 'Build my demo', 'wbcom-demo-installer' ) } )
+			( S.site.live && S.site.live.length ? `<label class="wdi-consent"><input type="checkbox" id="wdi-consent" ${ S.consent ? 'checked' : '' }> <span>${ esc( sprintf( /* translators: %s: what the site already has. */ __( 'This site already has %s. I understand the demo is made for a fresh site, and I want sample content added here.', 'wbcom-demo-installer' ), S.site.live.join( ', ' ) ) ) }</span></label>` : '' ) +
+			foot( 'look', 'build', { label: __( 'Build my demo', 'wbcom-demo-installer' ), disabled: S.site.live && S.site.live.length && ! S.consent } )
 		);
 	}
 
@@ -361,6 +364,16 @@
 		render();
 	}
 
+	app.addEventListener( 'change', ( e ) => {
+		if ( 'wdi-consent' === e.target.id ) {
+			S.consent = e.target.checked;
+			const build = app.querySelector( '[data-go="build"]' );
+			if ( build ) {
+				build.disabled = ! S.consent;
+			}
+		}
+	} );
+
 	app.addEventListener( 'click', async ( e ) => {
 		const recipe = e.target.closest( '[data-recipe]' );
 		if ( recipe ) {
@@ -378,7 +391,7 @@
 		if ( 'build' === to ) {
 			btn.disabled = true;
 			try {
-				S.status = await api( '/build', { recipe: S.recipe, include: [ ...S.include ], look: S.look } );
+				S.status = await api( '/build', { recipe: S.recipe, include: [ ...S.include ], look: S.look, consent: !! S.consent } );
 				S.view = 'building';
 				render();
 				loop( [ 'building' ] );

@@ -95,6 +95,13 @@ final class Jetonomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function activation_redirects(): array {
+		return array( 'jetonomy_activation_redirect' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function settings(): array {
 		return array( 'jetonomy_setup_complete' => true );
 	}

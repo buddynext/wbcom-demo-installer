@@ -27,6 +27,41 @@ final class Engine {
 	private const LOCK = 'wbcom_demo_lock';
 
 	/**
+	 * Signs that people already use this site: members other than the admin and sample people, blog posts
+	 * beyond "Hello world!", comments. The installer is made for a fresh demonstration site, so a build here
+	 * needs the admin's explicit consent.
+	 *
+	 * @return string[] Readable findings, empty for a fresh site.
+	 */
+	public static function live_signals(): array {
+		$found  = array();
+		$sample = ( new \WP_User_Query(
+			array(
+				'meta_key' => People::FLAG, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one count, wizard only.
+			'fields'       => 'ID',
+			'number'       => 1,
+			'count_total'  => true,
+			)
+		) )->get_total();
+		$others = (int) count_users()['total_users'] - (int) $sample - 1;
+		if ( $others > 0 ) {
+			/* translators: %d: number of members. */
+			$found[] = sprintf( _n( '%d other member', '%d other members', $others, 'wbcom-demo-installer' ), $others );
+		}
+		$posts = (int) wp_count_posts( 'post' )->publish - 1; // A fresh install has "Hello world!".
+		if ( $posts > 0 ) {
+			/* translators: %d: number of blog posts. */
+			$found[] = sprintf( _n( '%d blog post', '%d blog posts', $posts, 'wbcom-demo-installer' ), $posts );
+		}
+		$comments = (int) wp_count_comments()->approved - 1; // And one sample comment.
+		if ( $comments > 0 ) {
+			/* translators: %d: number of comments. */
+			$found[] = sprintf( _n( '%d comment', '%d comments', $comments, 'wbcom-demo-installer' ), $comments );
+		}
+		return $found;
+	}
+
+	/**
 	 * What the site looks like now (wizard site check).
 	 *
 	 * @return array<string,mixed>
@@ -80,6 +115,7 @@ final class Engine {
 			'users'     => (int) $users['total_users'] - count( (array) ( new State() )->get( 'people' ) ),
 			'posts'     => $posts,
 			'leftovers' => self::other_demos(),
+			'live'      => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
 			'people'    => count( People::roster() ),
 		);
 	}
@@ -113,12 +149,22 @@ final class Engine {
 	 * @param string   $recipe  Recipe id.
 	 * @param string[] $products Provider ids.
 	 * @param string   $look    'demo' to set home page, menu and logo; 'keep' to leave them.
+	 * @param bool     $consent The admin confirmed a build on a site that already has members or content.
 	 * @return array<string,mixed>|\WP_Error Status.
 	 */
-	public static function start_build( string $recipe, array $products, string $look ) {
+	public static function start_build( string $recipe, array $products, string $look, bool $consent = false ) {
 		$state = new State();
 		if ( State::IDLE !== $state->get( 'status' ) ) {
 			return new \WP_Error( 'wbcom_demo_exists', __( 'A demo is already on this site. Finish it before building another.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
+		}
+		$live = self::live_signals();
+		if ( $live && ! $consent ) {
+			return new \WP_Error(
+				'wbcom_demo_live_site',
+				/* translators: %s: what the site already has, e.g. "3 other members, 12 blog posts". */
+				sprintf( __( 'This site already has %s. The demo is made for a fresh site; confirm that you want sample content added here.', 'wbcom-demo-installer' ), implode( ', ', $live ) ),
+				array( 'status' => 409 )
+			);
 		}
 		$choosable = Registry::choosable();
 		$products  = array_values( array_filter( $products, static fn( $id ) => isset( $choosable[ $id ] ) && $choosable[ $id ]->supported() ) );
@@ -147,7 +193,7 @@ final class Engine {
 			if ( 'theme' === $id && 'keep' === $state->get( 'look' ) ) {
 				continue;
 			}
-			if ( $p->available() && $p->settings() ) {
+			if ( $p->available() && ( $p->settings() || $p->activation_redirects() ) ) {
 				$queue[] = array( $id, self::SETTINGS_STEP );
 			}
 			foreach ( $p->steps( $ctx ) as $step ) {
@@ -195,6 +241,7 @@ final class Engine {
 	 * @param Provider $provider Provider.
 	 */
 	private static function apply_settings( Provider $provider ): void {
+		$provider->clear_redirects();
 		foreach ( $provider->settings() as $name => $value ) {
 			// A one-time activation redirect is only cleared: bringing it back on Remove everything would bounce the admin.
 			if ( str_starts_with( $name, 'transient:' ) ) {

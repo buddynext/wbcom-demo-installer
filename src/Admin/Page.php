@@ -26,6 +26,7 @@ final class Page {
 	 */
 	public static function init(): void {
 		add_action( 'admin_menu', array( self::class, 'menu' ) );
+		add_action( 'admin_init', array( self::class, 'clear_redirects' ), 0 );
 		add_action( 'admin_init', array( self::class, 'takeover' ) );
 		add_action( 'admin_notices', array( self::class, 'notice' ) );
 		add_action( 'wp_ajax_wbcom_demo_dismiss', array( self::class, 'dismiss' ) );
@@ -67,6 +68,25 @@ final class Page {
 	public static function links( array $links ): array {
 		array_unshift( $links, '<a href="' . esc_url( self::url() ) . '">' . esc_html__( 'Set up your site', 'wbcom-demo-installer' ) . '</a>' );
 		return $links;
+	}
+
+	/**
+	 * Products send the admin to their own setup wizard on the first admin page after activation. When that page
+	 * is this wizard, the owner chose to set the site up here, so those one-time redirects are cleared first.
+	 * Each product's own wizard stays available from its menu.
+	 *
+	 * Runs at plugins_loaded priority 0 (Learnomy redirects from its own plugins_loaded callback) with the
+	 * built-in providers, and again at admin_init for providers that add-ons register.
+	 */
+	public static function clear_redirects(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page routing.
+		if ( ! is_admin() || ! isset( $_GET['page'] ) || self::SLUG !== $_GET['page'] || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
+			return;
+		}
+		$providers = did_action( 'admin_init' ) || doing_action( 'admin_init' ) ? \WbcomDemo\Core\Registry::all() : \WbcomDemo\Core\Registry::builtin_providers();
+		foreach ( $providers as $provider ) {
+			$provider->clear_redirects();
+		}
 	}
 
 	/**

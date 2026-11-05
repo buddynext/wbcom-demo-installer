@@ -20,8 +20,12 @@ same step engine.
 - **Never touch existing users or content.** Sample people use `demo.<login>` logins and
   `@demo-people.invalid` addresses; a taken login is skipped, never adopted. Never author demo items as
   the admin; switch to the sample person when a product credits the current user.
+- **Fresh demonstration site:** a site with other members, blog posts or comments (`Engine::live_signals()`)
+  builds only with explicit consent (wizard checkbox, REST `consent`, WP-CLI `--yes`). No large-site work.
+- **Review counts are exact:** `plan()` reports what a build creates on this site; reuse the build's own rule
+  (`missing_terms()` / `ensure_term()`, `People::indexes()`), never a separate estimate.
 - **Quiet mode:** all mail is reported as handled while a step runs, and mail to sample people is
-  dropped always.
+  dropped always. In-app notifications go only to sample people.
 - **Dates:** use `Context::date()` / `after()`, and set `Clock::set()` around any create that another
   product bridges (BuddyNext feed posts) so the bridge gets the same date.
 
