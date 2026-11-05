@@ -113,6 +113,17 @@ final class BuddyNext extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		// The wizard's own finish() sets this flag; the demo already made the pages and space categories it would.
+		return array(
+			'buddynext_setup_complete'  => '1',
+			'buddynext_setup_dismissed' => 1,
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		$c = $this->content();
 		return array(

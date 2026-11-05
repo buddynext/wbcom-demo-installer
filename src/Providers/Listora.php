@@ -108,6 +108,18 @@ final class Listora extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		// Same two flags as the plugin's own mark_setup_complete(), which it calls once a directory has listings.
+		return array(
+			'wb_listora_setup_complete'                 => '1',
+			'wb_listora_settings'                       => array( 'setup_complete' => true ),
+			'transient:wb_listora_pages_review_pending' => null,
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'term'       => array( 0, 'setup', __( 'listing categories and features', 'wbcom-demo-installer' ) ),

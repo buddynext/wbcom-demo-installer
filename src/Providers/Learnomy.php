@@ -371,6 +371,26 @@ final class Learnomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		// Inside a Wbcom theme the theme's own container sets the width, so Learnomy fills it instead of
+		// its narrower 960px default.
+		$settings = array(
+			'learnomy_setup_complete'                => true,
+			'learnomy_onboarding_dismissed'          => true,
+			'transient:learnomy_activation_redirect' => null,
+		);
+		if ( in_array( Theme::theme_family(), array( 'BuddyX', 'BuddyX Pro', 'Reign' ), true ) ) {
+			$settings['learnomy_settings'] = array( 'container_width' => 'none' );
+		}
+		return $settings;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		return function_exists( '\Learnomy\route_url' )
 			? array(

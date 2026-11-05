@@ -99,6 +99,7 @@ final class Theme extends Provider {
 			'logo'  => $this->logo( $ctx ),
 			'home'  => $this->home( $ctx ),
 			'menu'  => $this->menu( $ctx ),
+			'pages' => $this->pages( $ctx ),
 			default => null,
 		};
 	}
@@ -194,6 +195,52 @@ final class Theme extends Provider {
 			$assigned[ $loc ] = (int) $menu_id;
 		}
 		Snapshot::write( 'theme_mod:nav_menu_locations', $assigned );
+	}
+
+	/**
+	 * Product pages (forums, media, leaderboard, roadmap...) are apps that bring their own columns, so they
+	 * get the theme's no-sidebar layout. Pages whose owner already chose a layout are left alone.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function pages( Context $ctx ): void {
+		// BuddyX offers its own demo pages on every admin screen; with this demo built, answer "No thanks" for the owner.
+		if ( str_starts_with( get_template(), 'buddyx' ) ) {
+			Snapshot::write( 'buddyx_demo_setup_state', 'dismissed' );
+		}
+		foreach ( $this->included( $ctx ) as $p ) {
+			foreach ( $p->menu_items() as $item ) {
+				$id = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( (string) ( $item['url'] ?? '' ) );
+				if ( $id && 'page' === get_post_type( $id ) ) {
+					self::no_sidebar( $id );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Give one page the active theme's layout without sidebars: the "Page No Sidebar" template on
+	 * BuddyX and BuddyX Pro, the full width layout in Reign's page settings. Other themes are left as they are.
+	 *
+	 * @param int $id Page id.
+	 */
+	public static function no_sidebar( int $id ): void {
+		$template = 'page-templates/full-width-container.php';
+		if ( isset( wp_get_theme()->get_page_templates()[ $template ] ) ) {
+			if ( in_array( (string) get_post_meta( $id, '_wp_page_template', true ), array( '', 'default' ), true ) ) {
+				Snapshot::write( 'post_meta:' . $id . ':_wp_page_template', $template );
+			}
+			return;
+		}
+		if ( 'Reign' === self::theme_family() ) {
+			$key  = 'reign_wbcom_metabox_data';
+			$data = get_post_meta( $id, $key, true );
+			$data = is_array( $data ) ? $data : array();
+			if ( empty( $data['layout']['site_layout'] ) ) {
+				$data['layout']['site_layout'] = 'full_width';
+				Snapshot::write( 'post_meta:' . $id . ':' . $key, $data );
+			}
+		}
 	}
 
 	/**

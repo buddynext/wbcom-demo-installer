@@ -19,7 +19,7 @@ final class Snapshot {
 	/**
 	 * Remember an option's current value and the value we are about to write, then write it.
 	 *
-	 * @param string $name  Option name, or "theme_mod:<name>".
+	 * @param string $name  Option name, "theme_mod:<name>" or "post_meta:<post id>:<key>".
 	 * @param mixed  $value New value.
 	 */
 	public static function write( string $name, $value ): void {
@@ -67,6 +67,10 @@ final class Snapshot {
 		if ( str_starts_with( $name, 'theme_mod:' ) ) {
 			return get_theme_mod( substr( $name, 10 ), null );
 		}
+		if ( str_starts_with( $name, 'post_meta:' ) ) {
+			list( , $id, $key ) = explode( ':', $name, 3 );
+			return metadata_exists( 'post', (int) $id, $key ) ? get_post_meta( (int) $id, $key, true ) : null;
+		}
 		return get_option( $name, null );
 	}
 
@@ -77,6 +81,11 @@ final class Snapshot {
 	 * @param mixed  $value Value.
 	 */
 	private static function put( string $name, $value ): void {
+		if ( str_starts_with( $name, 'post_meta:' ) ) {
+			list( , $id, $key ) = explode( ':', $name, 3 );
+			null === $value ? delete_post_meta( (int) $id, $key ) : update_post_meta( (int) $id, $key, $value );
+			return;
+		}
 		if ( str_starts_with( $name, 'theme_mod:' ) ) {
 			null === $value ? remove_theme_mod( substr( $name, 10 ) ) : set_theme_mod( substr( $name, 10 ), $value );
 			return;

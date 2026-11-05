@@ -109,6 +109,13 @@ final class CareerBoard extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		return array( 'wcb_setup_complete' => true );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'term'        => array( 0, 'setup', __( 'job categories and types', 'wbcom-demo-installer' ) ),

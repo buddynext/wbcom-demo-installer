@@ -99,6 +99,16 @@ final class SellServices extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		return array(
+			'wpss_setup_wizard_completed'        => time(),
+			'transient:wpss_activation_redirect' => null,
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'term'       => array( 0, 'setup', __( 'service categories', 'wbcom-demo-installer' ) ),

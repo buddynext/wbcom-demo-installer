@@ -107,6 +107,16 @@ final class MediaVerse extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		return array(
+			'mvs_setup_complete'                => true,
+			'transient:mvs_activation_redirect' => null,
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'media' => array( count( $this->content()['photos'] ), 'sample', __( 'photos', 'wbcom-demo-installer' ) ),

@@ -201,23 +201,23 @@ return array(
 		array( 4, 'trail-runners', 'Solid overview of trail running for anyone just starting out. #running #outdoors', 'https://en.wikipedia.org/wiki/Trail_running' ),
 	),
 	'photos'     => array(
-		array( 9, '', 'Golden hour from last night\'s walk. The light did all the work. #photography', 'covers/cover-02.png' ),
-		array( 3, 'design-critique', 'New gradient study: soft, rounded, calm. #illustration #design', 'covers/cover-05.png' ),
-		array( 4, 'trail-runners', 'Trail snapshot from the river loop this morning. #running #outdoors', 'covers/cover-07.png' ),
-		array( 13, '', 'Moodboard for the packaging project. Warm paper, one accent. #branding', 'covers/cover-04.png' ),
+		array( 9, '', 'Golden hour from last night\'s walk. The light did all the work. #photography', 'photos/highland-ridge-sunrise.jpg' ),
+		array( 3, 'design-critique', 'New gradient study: soft, rounded, calm. #illustration #design', 'photos/spectrum-gradient.jpg' ),
+		array( 4, 'trail-runners', 'Trail snapshot from the river loop this morning. #running #outdoors', 'photos/sunlit-forest-trail.jpg' ),
+		array( 13, '', 'Moodboard for the packaging project. Warm paper, one accent. #branding', 'photos/abstract-light.jpg' ),
 	),
 	'albums'     => array(
 		array(
 			'space'  => 'photo-walks',
 			'title'  => 'City walk, October',
 			'desc'   => 'Best frames from the October photo walk.',
-			'images' => array( 'covers/cover-01.png', 'covers/cover-03.png', 'covers/cover-04.png' ),
+			'images' => array( 'photos/angular-glass-facade.jpg', 'photos/coffee-cheers.jpg', 'photos/tasting-plates.jpg' ),
 		),
 		array(
 			'space'  => 'design-critique',
 			'title'  => 'Work in progress',
 			'desc'   => 'Screens shared for feedback this month.',
-			'images' => array( 'covers/cover-06.png', 'covers/cover-08.png', 'covers/cover-02.png' ),
+			'images' => array( 'photos/developer-workspace.jpg', 'photos/server-room.jpg', 'photos/neon-grid.jpg' ),
 		),
 	),
 	'threads'    => array(

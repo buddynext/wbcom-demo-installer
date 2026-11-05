@@ -19,6 +19,11 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Engine {
 
+	/**
+	 * Queue step that applies a provider's settings().
+	 */
+	private const SETTINGS_STEP = '__settings';
+
 	private const LOCK = 'wbcom_demo_lock';
 
 	/**
@@ -142,10 +147,15 @@ final class Engine {
 			if ( 'theme' === $id && 'keep' === $state->get( 'look' ) ) {
 				continue;
 			}
+			if ( $p->available() && $p->settings() ) {
+				$queue[] = array( $id, self::SETTINGS_STEP );
+			}
 			foreach ( $p->steps( $ctx ) as $step ) {
 				$queue[] = array( $id, $step );
 			}
 		}
+		// Product pages without a sidebar, also when the owner keeps their own home page and menu.
+		$queue[] = array( 'theme', 'pages' );
 		$state->set( 'queue', $queue )->set( 'total', count( $queue ) )->set( 'done', 0 )->save();
 		return self::status();
 	}
@@ -180,7 +190,26 @@ final class Engine {
 	}
 
 	/**
-	 * One build step.
+	 * Apply a provider's presentation settings through the snapshot.
+	 *
+	 * @param Provider $provider Provider.
+	 */
+	private static function apply_settings( Provider $provider ): void {
+		foreach ( $provider->settings() as $name => $value ) {
+			// A one-time activation redirect is only cleared: bringing it back on Remove everything would bounce the admin.
+			if ( str_starts_with( $name, 'transient:' ) ) {
+				delete_transient( substr( $name, 10 ) );
+				continue;
+			}
+			if ( is_array( $value ) && ! str_contains( $name, ':' ) ) {
+				$value = array_merge( (array) get_option( $name, array() ), $value );
+			}
+			Snapshot::write( $name, $value );
+		}
+	}
+
+	/**
+	 * Run one build step.
 	 *
 	 * @param State $state State.
 	 */
@@ -197,7 +226,11 @@ final class Engine {
 			$failed            = (array) $state->get( 'failed' );
 			if ( $provider && ! in_array( $id, $failed, true ) ) {
 				try {
-					$provider->run( $step, $ctx );
+					if ( self::SETTINGS_STEP === $step ) {
+						self::apply_settings( $provider );
+					} else {
+						$provider->run( $step, $ctx );
+					}
 				} catch ( \Throwable $e ) {
 					$failed[] = $id;
 					$errors   = (array) $state->get( 'errors' );

@@ -111,6 +111,13 @@ final class Jetonomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		return array( 'jetonomy_setup_complete' => true );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		$c      = $this->content();
 		$spaces = array_sum( array_map( static fn( $cat ) => count( $cat['spaces'] ), $c['categories'] ) );
@@ -241,15 +248,17 @@ final class Jetonomy extends Provider {
 	 * @param Context $ctx    Context.
 	 */
 	private function topics( int $offset, Context $ctx ): void {
-		$c       = $this->content();
-		$spaces  = (array) $ctx->get( $this->id(), 'spaces', array() );
-		$tags    = (array) $ctx->get( $this->id(), 'tags', array() );
-		$people  = $ctx->people();
-		$n       = count( $people );
-		$total   = count( $c['topics'] );
-		$answers = 0;
+		$c      = $this->content();
+		$spaces = (array) $ctx->get( $this->id(), 'spaces', array() );
+		$tags   = (array) $ctx->get( $this->id(), 'tags', array() );
+		$people = $ctx->people();
+		$n      = count( $people );
+		$total  = count( $c['topics'] );
 		foreach ( array_slice( $c['topics'], $offset, self::TOPICS_PER_STEP, true ) as $i => $t ) {
+			// Replies: a count drawn from the shared pool, or the topic's own lines. Accepted: the answer text or false.
 			list( $space, $who, $title, $body, $replies, $accepted ) = $t;
+			$lines = is_array( $replies ) ? $replies : array();
+			$count = $lines ? count( $lines ) : (int) $replies;
 			if ( empty( $spaces[ $space ] ) ) {
 				continue;
 			}
@@ -290,14 +299,15 @@ final class Jetonomy extends Provider {
 				\Jetonomy\Models\Post::set_idea_status( $post_id, array( 'planned', 'in_progress' )[ $i % 2 ] );
 			}
 			$last = $date;
-			for ( $r = 0; $r < $replies; $r++ ) {
+			for ( $r = 0; $r < $count; $r++ ) {
+				$text = $lines ? $lines[ $r ] : $c['replies'][ ( $i + $r ) % count( $c['replies'] ) ];
 				$last = $ctx->after( $last, $i + $r );
 				$rid  = \Jetonomy\Models\Reply::create(
 					array(
 						'post_id'       => $post_id,
 						'author_id'     => $people[ ( $who + $r + 1 ) % $n ],
-						'content'       => wpautop( $c['replies'][ ( $i + $r ) % count( $c['replies'] ) ] ),
-						'content_plain' => $c['replies'][ ( $i + $r ) % count( $c['replies'] ) ],
+						'content'       => wpautop( $text ),
+						'content_plain' => $text,
 						'status'        => 'publish',
 						'created_at'    => $last,
 					)
@@ -307,10 +317,9 @@ final class Jetonomy extends Provider {
 				}
 			}
 			$active = (array) $ctx->get( $this->id(), 'active', array() );
-			if ( $accepted ) {
-				$body = $c['answers'][ $answers % count( $c['answers'] ) ];
-				++$answers;
-				$aid = \Jetonomy\Models\Reply::create(
+			if ( is_string( $accepted ) && '' !== $accepted ) {
+				$body = $accepted;
+				$aid  = \Jetonomy\Models\Reply::create(
 					array(
 						'post_id'       => $post_id,
 						'author_id'     => $people[ ( $who + 7 ) % $n ],

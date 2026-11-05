@@ -107,6 +107,17 @@ final class Roadmap extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		return array(
+			'roadmap_wizard_completed'              => true,
+			'roadmap_setup_notice_dismissed'        => true,
+			'transient:roadmap_activation_redirect' => null,
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'term' => array( 0, 'setup', __( 'roadmap statuses and categories', 'wbcom-demo-installer' ) ),

@@ -40,7 +40,8 @@ same step engine.
 
 Extend `Core\Provider`: `id`, `label`, `available`, `version`/`min_version`, `summary`, `plan`
 (type => [count, kind, label]), `steps`, `run`, `remove`, optional `menu_items`, `front_page`,
-`late_types`, `handover`, `verify`. Register in `Registry::builtin()` or from the product via the
+`late_types`, `handover`, `verify`, `settings` (the product's best-presentation options and its setup-complete flag,
+applied through `Snapshot` before its content so Remove everything restores them). Register in `Registry::builtin()` or from the product via the
 `wbcom_demo_register` action. Each step must finish well inside one request.
 
 ## Checks before a release

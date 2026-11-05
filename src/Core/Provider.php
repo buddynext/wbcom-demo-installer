@@ -157,6 +157,18 @@ abstract class Provider {
 	public function handover( array $kept, int $owner_id ): void {}
 
 	/**
+	 * Settings that present this product at its best in a demo, applied before its content.
+	 * Option name => value; an array value is merged into an array option; "transient:<name>" => null
+	 * clears a one-time activation redirect. "Keep my setup" keeps
+	 * them, "Remove everything" restores the values the owner has not changed since.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function settings(): array {
+		return array();
+	}
+
+	/**
 	 * Object types to remove only after everything else (e.g. a tag registry that counts posts).
 	 *
 	 * @return string[]

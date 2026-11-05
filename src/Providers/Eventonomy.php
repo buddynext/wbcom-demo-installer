@@ -106,6 +106,16 @@ final class Eventonomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		return array(
+			'evnm_settings'                       => array( 'setup_complete' => true ),
+			'transient:evnm_show_wizard_redirect' => null,
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'category'  => array( 0, 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),

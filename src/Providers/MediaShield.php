@@ -96,6 +96,13 @@ final class MediaShield extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function settings(): array {
+		return array( 'ms_wizard_completed' => true );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function plan(): array {
 		return array(
 			'video'    => array( count( self::VIDEOS ), 'sample', __( 'videos', 'wbcom-demo-installer' ) ),
