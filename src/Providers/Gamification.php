@@ -221,8 +221,10 @@ final class Gamification extends Provider {
 		return $page && 'publish' === get_post_status( $page )
 			? array(
 				array(
-					'title'   => __( 'Leaderboard', 'wbcom-demo-installer' ),
-					'page_id' => $page,
+					'title' => __( 'Leaderboard', 'wbcom-demo-installer' ),
+					// The hub opens on the viewer's own stats, which are empty for the site owner; open its
+					// leaderboard panel so the menu shows the community ranking.
+					'url'   => add_query_arg( 'panel', 'leaderboard', get_permalink( $page ) ),
 				),
 			)
 			: array();

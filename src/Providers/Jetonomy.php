@@ -352,9 +352,23 @@ final class Jetonomy extends Provider {
 		$people = $ctx->people();
 		$n      = count( $people );
 		foreach ( Ledger::ids( $this->id(), 'post' ) as $k => $post_id ) {
-			$votes = 2 + ( $k * 5 ) % 9;
+			$post   = \Jetonomy\Models\Post::find( $post_id );
+			$author = $post ? (int) $post->author_id : 0;
+			$votes  = 2 + ( $k * 5 ) % 9;
 			for ( $v = 0; $v < $votes; $v++ ) {
-				\Jetonomy\Models\Vote::cast( $people[ ( $k + $v * 3 ) % $n ], 'post', $post_id, 1 );
+				$result = \Jetonomy\Models\Vote::cast( $people[ ( $k + $v * 3 ) % $n ], 'post', $post_id, 1 );
+				// The vote REST route awards the author's reputation, the model does not; do what the route does
+				// so the community leaderboards rank the sample people.
+				if ( $author && is_array( $result ) && 'created' === $result['action'] ) {
+					\Jetonomy\Trust\Reputation::award(
+						$author,
+						'post_upvoted',
+						array(
+							'object_type' => 'post',
+							'object_id'   => $post_id,
+						)
+					);
+				}
 			}
 		}
 		if ( class_exists( '\Jetonomy\Recount' ) ) {

@@ -210,7 +210,7 @@ final class Theme extends Provider {
 		}
 		foreach ( $this->included( $ctx ) as $p ) {
 			foreach ( $p->menu_items() as $item ) {
-				$id = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( (string) ( $item['url'] ?? '' ) );
+				$id = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );
 				if ( $id && 'page' === get_post_type( $id ) ) {
 					self::no_sidebar( $id );
 				}
