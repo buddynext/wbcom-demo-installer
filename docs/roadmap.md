@@ -1,7 +1,7 @@
 # Roadmap and readiness audit
 
 Where the installer stands after Wave 1, and what Wave 2 (third-party plugins) and Wave 3 (an AI site builder)
-need from it. Written 6 November 2026, version 0.1.0.
+need from it. Written 6 November 2026, updated for the 1.0.0 release.
 
 ## Wave 1: Wbcom products (release candidate)
 
