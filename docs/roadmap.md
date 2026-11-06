@@ -11,7 +11,13 @@ BuddyX, BuddyX Pro and Reign plus a generic one, seven starting points, three Fi
 
 After a build each product's setup is finished the way its own wizard finishes it, presentation settings are applied
 (no-sidebar product pages, Learnomy fills the theme container, title hidden beside the logo on BuddyX) and every
-change is restored by Remove everything. Test results: `docs/testing.md`.
+change is restored by Remove everything. Test results: `docs/testing.md`; the team's manual test plan:
+`docs/team-testing.md`. Lab scripts (matrix, extra cases, rebuild after keep) live outside the repo in
+`~/work-artifacts/keep/demo-installer-lab/`.
+
+Planning artifact: `docs/plans/site-blueprints.html` (open in a browser) holds the blueprint catalogue for what we can
+offer after Waves 2 and 3, including prebuilt templates such as a multivendor community with Dokan, and a preview of
+the admin wizard organised by wave. Published copy: https://claude.ai/artifact/CEV6Qo1UoSbJDhwarrFnUa
 
 Release 1.0.0 checklist:
 

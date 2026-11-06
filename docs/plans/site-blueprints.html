@@ -1,0 +1,664 @@
+<title>Wbcom Site Blueprints</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a kit catalogue. Hero thesis, how a blueprint is assembled, the waves, a filterable catalogue, the Dokan answer, then what is left to decide. */
+:root {
+  --bg: #f3f6f5;
+  --surface: #ffffff;
+  --ink: #142320;
+  --muted: #55665f;
+  --line: #d6e0dc;
+  --accent: #0b7a63;
+  --accent-soft: #dcefe9;
+  --w1: #0b7a63;  --w1-soft: #dcefe9;
+  --w2: #a8650a;  --w2-soft: #f6e7cf;
+  --w3: #4b4fc4;  --w3-soft: #e3e4f8;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1716; --surface: #16211f; --ink: #e4ece9; --muted: #9db0a9; --line: #2a3a36;
+  --accent: #4cc7a7; --accent-soft: #173a32;
+  --w1: #4cc7a7; --w1-soft: #173a32; --w2: #e3a24a; --w2-soft: #3a2a12; --w3: #9a9df2; --w3-soft: #26284d;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f1716; --surface: #16211f; --ink: #e4ece9; --muted: #9db0a9; --line: #2a3a36;
+  --accent: #4cc7a7; --accent-soft: #173a32;
+  --w1: #4cc7a7; --w1-soft: #173a32; --w2: #e3a24a; --w2-soft: #3a2a12; --w3: #9a9df2; --w3-soft: #26284d;
+  color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 64px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.05; font-weight: 700; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1.15; font-weight: 700; }
+h3 { font-size: 1.15rem; line-height: 1.3; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 500 0.75rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+section { display: grid; gap: 20px; min-width: 0; }
+.muted { color: var(--muted); }
+
+/* Hero */
+.hero { display: grid; gap: 18px; padding-block: 8px; }
+.hero .prompt { font-family: var(--mono); font-size: 0.95rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; max-width: 640px; }
+.hero .prompt span { color: var(--muted); }
+
+/* Assembly */
+.assembly { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+.part { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 6px; align-content: start; }
+.part b { font-family: var(--display); font-size: 1rem; }
+.part small { color: var(--muted); font-size: 0.85rem; line-height: 1.45; }
+.part.result { background: var(--accent-soft); border-color: transparent; }
+.note { font-size: 0.95rem; color: var(--muted); }
+
+/* Waves */
+.waves { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.wave { border-top: 4px solid var(--c); background: var(--surface); border-radius: 0 0 10px 10px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.wave .tag { font: 500 0.75rem/1 var(--mono); color: var(--c); text-transform: uppercase; letter-spacing: 0.1em; }
+.wave ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.95rem; }
+
+/* Catalogue */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filters button { font: 500 0.9rem/1 var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 14px; border-radius: 999px; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.filters button:focus-visible, .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.bp { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.bp header { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+.chip { font: 500 0.72rem/1 var(--mono); padding: 6px 8px; border-radius: 6px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.06em; }
+.chip.w1 { background: var(--w1-soft); color: var(--w1); }
+.chip.w2 { background: var(--w2-soft); color: var(--w2); }
+.chip.w3 { background: var(--w3-soft); color: var(--w3); }
+.bp .for { font-size: 0.92rem; color: var(--muted); }
+.stack { display: flex; flex-wrap: wrap; gap: 6px; }
+.stack span { font-size: 0.78rem; border: 1px solid var(--line); border-radius: 6px; padding: 3px 7px; }
+.stack span.third { border-style: dashed; }
+.bp ul { margin: 0; padding-left: 18px; font-size: 0.9rem; display: grid; gap: 3px; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.85rem; color: var(--muted); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.legend i { width: 18px; height: 12px; border: 1px solid var(--line); border-radius: 3px; display: inline-block; }
+.legend i.third { border-style: dashed; }
+
+/* Dokan answer */
+.answer { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: grid; gap: 18px; }
+.answer .yes { font-family: var(--display); font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.cols ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: 0.95rem; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.75rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+td code, p code { font-family: var(--mono); font-size: 0.85em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+
+/* Owner tasks and decisions */
+.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.box ul, .box ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 0.95rem; }
+.size { font: 500 0.75rem/1 var(--mono); padding: 4px 6px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+
+/* Wizard preview: the installer's own tokens (assets/css/wizard.css), so Waves 2 and 3 read as the same product. */
+:root {
+  --wdi-bg: #eef1f0; --wdi-surface: #ffffff; --wdi-ink: #17201d; --wdi-muted: #5b6863; --wdi-border: #d7dedb;
+  --wdi-accent: #0f6b5a; --wdi-accent-ink: #ffffff; --wdi-accent-soft: #dcefe9; --wdi-success: #1d7a3e; --wdi-success-soft: #e1f3e7;
+  --wdi-info: #2459a8; --wdi-info-soft: #e3ecfa; --wdi-warn: #8a5a00; --wdi-warn-soft: #fbefd6; --wdi-ai: #4b4fc4; --wdi-ai-soft: #e8e9fb;
+  --wp-bar: #1d2327; --wp-side: #2c3338; --wp-side-ink: #c3c4c7;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --wdi-bg: #101513; --wdi-surface: #18201d; --wdi-ink: #e3eae7; --wdi-muted: #9aaaa4; --wdi-border: #2e3935;
+  --wdi-accent: #4cc3a6; --wdi-accent-ink: #06201a; --wdi-accent-soft: #163a31; --wdi-success: #6bd38c; --wdi-success-soft: #143222;
+  --wdi-info: #8db6f5; --wdi-info-soft: #1a2a44; --wdi-warn: #f0b85a; --wdi-warn-soft: #3a2a10; --wdi-ai: #a6a8f5; --wdi-ai-soft: #25274a;
+  --wp-bar: #0b0d0e; --wp-side: #16191b; --wp-side-ink: #9ea3a8; } }
+:root[data-theme="dark"] {
+  --wdi-bg: #101513; --wdi-surface: #18201d; --wdi-ink: #e3eae7; --wdi-muted: #9aaaa4; --wdi-border: #2e3935;
+  --wdi-accent: #4cc3a6; --wdi-accent-ink: #06201a; --wdi-accent-soft: #163a31; --wdi-success: #6bd38c; --wdi-success-soft: #143222;
+  --wdi-info: #8db6f5; --wdi-info-soft: #1a2a44; --wdi-warn: #f0b85a; --wdi-warn-soft: #3a2a10; --wdi-ai: #a6a8f5; --wdi-ai-soft: #25274a;
+  --wp-bar: #0b0d0e; --wp-side: #16191b; --wp-side-ink: #9ea3a8; }
+
+.pv-controls { display: grid; gap: 10px; }
+.pv-waves, .pv-steps { display: flex; flex-wrap: wrap; gap: 8px; }
+.pv-waves button, .pv-steps button { font: 500 0.88rem/1 var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 13px; border-radius: 999px; cursor: pointer; }
+.pv-waves button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pv-steps button { font-size: 0.82rem; padding: 7px 11px; }
+.pv-steps button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.pv-waves button:focus-visible, .pv-steps button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pv-caption { font-size: 0.92rem; color: var(--muted); max-width: 80ch; }
+
+.adm { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--wdi-bg); box-shadow: 0 12px 40px rgba(16, 24, 22, 0.12); }
+.adm-bar { background: var(--wp-bar); height: 30px; display: flex; align-items: center; gap: 14px; padding-inline: 12px; font: 400 12px/1 var(--body); color: #c3c4c7; }
+.adm-bar b { color: #fff; font-weight: 500; }
+.adm-body { display: grid; grid-template-columns: 150px minmax(0, 1fr); min-height: 560px; }
+.adm-side { background: var(--wp-side); color: var(--wp-side-ink); font-size: 12.5px; padding-block: 10px; display: grid; align-content: start; }
+.adm-side span { padding: 7px 12px; }
+.adm-side span.on { background: var(--wdi-accent); color: var(--wdi-accent-ink); }
+.adm-side span.sub { padding-left: 22px; font-size: 12px; }
+.wiz { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--wdi-ink); padding: 22px clamp(12px, 3vw, 36px) 32px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.wiz-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; max-width: 760px; width: 100%; margin-inline: auto; }
+.wiz-brand { display: flex; gap: 10px; align-items: center; }
+.wiz-logo { width: 34px; height: 34px; border-radius: 8px; background: var(--wdi-accent); color: var(--wdi-accent-ink); display: grid; place-items: center; font-size: 17px; }
+.wiz-brand b { display: block; font-size: 14.5px; }
+.wiz-brand small { color: var(--wdi-muted); font-size: 12.5px; }
+.wiz-exit { color: var(--wdi-accent); font-size: 13px; text-decoration: underline; }
+.wiz-steps { display: flex; justify-content: space-between; max-width: 680px; width: 100%; margin-inline: auto; position: relative; }
+.wiz-steps::before { content: ""; position: absolute; top: 11px; left: 6%; right: 6%; height: 1px; background: var(--wdi-border); }
+.wiz-step { display: grid; justify-items: center; gap: 5px; font-size: 11.5px; color: var(--wdi-muted); position: relative; min-width: 0; text-align: center; }
+.wiz-step i { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--wdi-border); background: var(--wdi-surface); display: grid; place-items: center; font-style: normal; font-size: 10.5px; font-weight: 600; }
+.wiz-step.done i { background: var(--wdi-accent); border-color: var(--wdi-accent); color: var(--wdi-accent-ink); }
+.wiz-step.on { color: var(--wdi-ink); font-weight: 600; }
+.wiz-step.on i { border-color: var(--wdi-accent); box-shadow: 0 0 0 3px var(--wdi-accent-soft); }
+.wiz-card { background: var(--wdi-surface); border: 1px solid var(--wdi-border); border-radius: 12px; max-width: 760px; width: 100%; margin-inline: auto; overflow: hidden; }
+.wiz-in { padding: 20px 22px; display: grid; gap: 12px; }
+.wiz-in h4 { margin: 0; font-size: 19px; font-family: inherit; }
+.wiz-in > p { margin: 0; color: var(--wdi-muted); font-size: 13.5px; }
+.wiz-foot { border-top: 1px solid var(--wdi-border); padding: 12px 22px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.wbtn { background: var(--wdi-accent); color: var(--wdi-accent-ink); border-radius: 8px; padding: 9px 16px; font-size: 13.5px; font-weight: 600; }
+.wbtn.ghost { background: transparent; color: var(--wdi-ink); border: 1px solid var(--wdi-border); font-weight: 500; }
+.wlink { color: var(--wdi-accent); font-size: 13px; text-decoration: underline; }
+.rows { border: 1px solid var(--wdi-border); border-radius: 10px; display: grid; }
+.row { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 12px; font-size: 13.5px; }
+.row + .row { border-top: 1px solid var(--wdi-border); }
+.row .ic { width: 26px; height: 26px; border-radius: 6px; background: var(--wdi-bg); display: grid; place-items: center; font-size: 13px; }
+.row small { display: block; color: var(--wdi-muted); font-size: 12.5px; }
+.pill { font-size: 11.5px; font-weight: 600; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--wdi-success-soft); color: var(--wdi-success); }
+.pill.n { background: var(--wdi-bg); color: var(--wdi-muted); }
+.pill.tp { background: var(--wdi-warn-soft); color: var(--wdi-warn); }
+.pill.ai { background: var(--wdi-ai-soft); color: var(--wdi-ai); }
+.pill.info { background: var(--wdi-info-soft); color: var(--wdi-info); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.tile { border: 1px solid var(--wdi-border); border-radius: 10px; padding: 12px; display: grid; gap: 5px; font-size: 13px; align-content: start; }
+.tile b { font-size: 13.5px; }
+.tile small { color: var(--wdi-muted); font-size: 12px; line-height: 1.4; }
+.tile.sel { border-color: var(--wdi-accent); box-shadow: 0 0 0 2px var(--wdi-accent-soft); }
+.tile.dim { opacity: 0.72; }
+.grp { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--wdi-muted); font-weight: 600; margin-top: 4px; }
+.chk { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 10px 12px; font-size: 13px; }
+.chk + .chk { border-top: 1px solid var(--wdi-border); }
+.chk em { width: 16px; height: 16px; border-radius: 4px; background: var(--wdi-accent); color: var(--wdi-accent-ink); display: grid; place-items: center; font-style: normal; font-size: 11px; margin-top: 2px; }
+.chk small { display: block; color: var(--wdi-muted); font-size: 12.5px; }
+.chk .tag { margin-left: 6px; }
+.rtab { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 0; }
+.rtab td, .rtab th { border-bottom: 1px solid var(--wdi-border); padding: 8px 6px; text-align: left; vertical-align: top; }
+.rtab th { font: 600 11px/1.2 inherit; text-transform: uppercase; letter-spacing: 0.06em; color: var(--wdi-muted); }
+.notes { display: grid; gap: 5px; font-size: 12.5px; color: var(--wdi-muted); }
+.prompt-box { border: 1.5px solid var(--wdi-ai); border-radius: 10px; padding: 12px; font-size: 14px; min-height: 84px; background: var(--wdi-surface); }
+.ex { display: flex; flex-wrap: wrap; gap: 6px; }
+.ex span { font-size: 12px; border: 1px solid var(--wdi-border); border-radius: 999px; padding: 4px 9px; color: var(--wdi-muted); }
+.brief { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px 14px; font-size: 13px; }
+.brief dt { color: var(--wdi-muted); }
+.brief dd { margin: 0; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--wdi-border); }
+.bar { height: 8px; border-radius: 99px; background: var(--wdi-bg); overflow: hidden; }
+.bar span { display: block; height: 100%; width: 62%; background: var(--wdi-accent); }
+.big-ok { font-size: 13px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.big-ok div { border: 1px solid var(--wdi-border); border-radius: 10px; padding: 10px 12px; }
+.big-ok b { display: block; font-size: 20px; }
+.ai-say { background: var(--wdi-ai-soft); color: var(--wdi-ink); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+
+@media (max-width: 860px) {
+  .assembly { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .assembly .result { grid-column: 1 / -1; }
+  .waves, .cols, .split { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .adm-body { grid-template-columns: 1fr; }
+  .adm-side { display: none; }
+  .wiz-step span { display: none; }
+  .brief { grid-template-columns: 1fr; gap: 2px; }
+  .brief dd { margin-bottom: 8px; }
+}
+@media (max-width: 480px) {
+  .assembly { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) { .bp { transition: opacity .15s ease; } }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Wbcom Demo Installer · offer after Wave 3</div>
+    <h1>Pick a blueprint, or describe the site. Get a working one.</h1>
+    <p class="lede">Today the installer fills a site with believable demo content from our eleven products and removes it again. After Waves 2 and 3 the same engine builds complete, working sites from ready blueprints, including stacks with third-party plugins like Dokan, and from a plain description the owner types.</p>
+    <div class="prompt"><span>Owner types:</span> "A running club with group runs, a forum, paid coaching plans and a shop for club kit."</div>
+  </header>
+
+  <section aria-labelledby="what">
+    <div class="eyebrow">What a blueprint is</div>
+    <h2 id="what">Five parts the installer already knows how to apply</h2>
+    <div class="assembly">
+      <div class="part"><b>Products</b><small>Which plugins it needs, ours and third-party, checked on the site before anything runs.</small></div>
+      <div class="part"><b>Setup</b><small>Each product's wizard finished, its pages created and mapped, best settings applied.</small></div>
+      <div class="part"><b>Look</b><small>Logo, home page, menu and product pages without sidebars on BuddyX, BuddyX Pro or Reign.</small></div>
+      <div class="part"><b>Content pack</b><small>People, posts, courses, stores, products and reviews written for the niche.</small></div>
+      <div class="part result"><b>Working site</b><small>"Keep my setup" removes the sample people and keeps a real, configured site.</small></div>
+    </div>
+    <p class="note">Every change goes through the ledger and snapshot, so an owner can keep only the setup, keep chosen parts, or remove everything and get the site back as it was.</p>
+  </section>
+
+  <section aria-labelledby="waves">
+    <div class="eyebrow">How we get there</div>
+    <h2 id="waves">Three waves</h2>
+    <div class="waves">
+      <div class="wave" style="--c: var(--w1)">
+        <span class="tag">Wave 1 · release candidate</span>
+        <h3>Our products</h3>
+        <ul>
+          <li>11 products, free and Pro, any mix</li>
+          <li>7 starting points</li>
+          <li>BuddyX, BuddyX Pro, Reign, any theme</li>
+          <li>Setup finished, best settings, full removal</li>
+        </ul>
+      </div>
+      <div class="wave" style="--c: var(--w2)">
+        <span class="tag">Wave 2 · third-party plugins</span>
+        <h3>The plugins our buyers already run</h3>
+        <ul>
+          <li>One provider and one content file per plugin</li>
+          <li>WooCommerce first, then marketplace, LMS and membership plugins</li>
+          <li>Mixed blueprints: our products plus theirs</li>
+          <li>The list is the owner's call</li>
+        </ul>
+      </div>
+      <div class="wave" style="--c: var(--w3)">
+        <span class="tag">Wave 3 · AI builder</span>
+        <h3>Describe it, review it, build it</h3>
+        <ul>
+          <li>Chat turns a description into a site brief</li>
+          <li>Owner approves the plan before anything is written</li>
+          <li>Content packs written for the niche and language</li>
+          <li>Same engine, so still fully removable</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="preview">
+    <div class="eyebrow">Wizard preview</div>
+    <h2 id="preview">How it looks in the dashboard, wave by wave</h2>
+    <div class="pv-controls">
+      <div class="pv-waves" role="group" aria-label="Choose a wave">
+        <button type="button" id="pv-w1" data-wave="w1" aria-pressed="true">Wave 1 · shipped</button>
+        <button type="button" id="pv-w2" data-wave="w2" aria-pressed="false">Wave 2 · third-party</button>
+        <button type="button" id="pv-w3" data-wave="w3" aria-pressed="false">Wave 3 · describe it</button>
+      </div>
+      <div class="pv-steps" id="pv-steps" role="group" aria-label="Choose a screen"></div>
+      <p class="pv-caption" id="pv-caption"></p>
+    </div>
+    <div class="adm" aria-live="polite">
+      <div class="adm-bar"><b>My Community</b><span>Customize</span><span>+ New</span></div>
+      <div class="adm-body">
+        <div class="adm-side" aria-hidden="true"><span>Dashboard</span><span>Posts</span><span>Pages</span><span class="on">Appearance</span><span class="sub">Themes</span><span class="sub">Set up your site</span><span>Plugins</span><span>Users</span><span>Settings</span></div>
+        <div class="wiz">
+          <div class="wiz-head">
+            <div class="wiz-brand"><div class="wiz-logo" aria-hidden="true">✦</div><div><b>Wbcom Demo Installer</b><small>Set up your site</small></div></div>
+            <span class="wiz-exit">Exit to dashboard</span>
+          </div>
+          <div class="wiz-steps" id="pv-track"></div>
+          <div class="wiz-card" id="pv-card"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="catalogue">
+    <div class="eyebrow">What we can offer</div>
+    <h2 id="catalogue">Blueprint catalogue</h2>
+    <div class="filters" role="group" aria-label="Filter blueprints by wave">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
+      <button type="button" id="f-w1" data-f="w1" aria-pressed="false">Ready in Wave 1</button>
+      <button type="button" id="f-w2" data-f="w2" aria-pressed="false">Wave 2</button>
+      <button type="button" id="f-w3" data-f="w3" aria-pressed="false">Wave 3</button>
+    </div>
+    <div class="legend"><span><i></i> Our product</span><span><i class="third"></i> Third-party plugin</span></div>
+    <div class="grid" id="grid">
+
+      <article class="bp" data-w="w1">
+        <header><h3>Community Hub</h3><span class="chip w1">Ready</span></header>
+        <p class="for">Clubs, creators and brands starting a member community.</p>
+        <div class="stack"><span>BuddyNext</span><span>WPMediaVerse</span><span>Jetonomy</span><span>Roadmap</span><span>Gamification</span></div>
+        <ul><li>Feed, spaces, profiles, messages</li><li>12 forum spaces, 49 discussions</li><li>Photo albums, roadmap, leaderboard</li></ul>
+      </article>
+
+      <article class="bp" data-w="w1">
+        <header><h3>Learning Community</h3><span class="chip w1">Ready</span></header>
+        <p class="for">Course creators who want students to talk to each other.</p>
+        <div class="stack"><span>Learnomy</span><span>BuddyNext</span><span>MediaShield</span><span>WPMediaVerse</span><span>Gamification</span></div>
+        <ul><li>5 courses, 22 lessons, instructors</li><li>Enrolments, progress, reviews</li><li>Protected video lessons</li></ul>
+      </article>
+
+      <article class="bp" data-w="w1">
+        <header><h3>Events Community</h3><span class="chip w1">Ready</span></header>
+        <p class="for">Meetup groups, venues and event organisers.</p>
+        <div class="stack"><span>Eventonomy</span><span>BuddyNext</span><span>WPMediaVerse</span><span>Gamification</span></div>
+        <ul><li>Upcoming and past events, online and in person</li><li>Venues, organisers, RSVPs</li></ul>
+      </article>
+
+      <article class="bp" data-w="w1">
+        <header><h3>Job Board Community</h3><span class="chip w1">Ready</span></header>
+        <p class="for">Niche job boards and talent networks.</p>
+        <div class="stack"><span>WP Career Board</span><span>BuddyNext</span><span>Gamification</span></div>
+        <ul><li>Companies, jobs, candidate applications</li><li>Employer and candidate dashboards</li></ul>
+      </article>
+
+      <article class="bp" data-w="w1">
+        <header><h3>Local Directory</h3><span class="chip w1">Ready</span></header>
+        <p class="for">City guides and business directories.</p>
+        <div class="stack"><span>WB Listora</span><span>BuddyNext</span><span>Gamification</span></div>
+        <ul><li>Listings with photos, hours and map</li><li>Reviews from members</li></ul>
+      </article>
+
+      <article class="bp" data-w="w1">
+        <header><h3>Services Marketplace</h3><span class="chip w1">Ready</span></header>
+        <p class="for">Freelancer marketplaces and agencies.</p>
+        <div class="stack"><span>WP Sell Services</span><span>BuddyNext</span><span>Gamification</span></div>
+        <ul><li>Services with packages</li><li>Completed orders and reviews</li></ul>
+      </article>
+
+      <article class="bp" data-w="w2">
+        <header><h3>Multivendor Community</h3><span class="chip w2">Wave 2</span></header>
+        <p class="for">A marketplace where sellers are also community members.</p>
+        <div class="stack"><span class="third">WooCommerce</span><span class="third">Dokan</span><span>BuddyNext</span><span>Jetonomy</span><span>Gamification</span></div>
+        <ul><li>Vendor stores with products and orders</li><li>Seller profiles and a sellers' forum</li><li>New products in the community feed</li></ul>
+      </article>
+
+      <article class="bp" data-w="w2">
+        <header><h3>Community Store</h3><span class="chip w2">Wave 2</span></header>
+        <p class="for">A brand selling its own products to its members.</p>
+        <div class="stack"><span class="third">WooCommerce</span><span>BuddyNext</span><span>WPMediaVerse</span><span>Gamification</span></div>
+        <ul><li>Shop, products, sample orders</li><li>Member reviews and purchase activity</li></ul>
+      </article>
+
+      <article class="bp" data-w="w2">
+        <header><h3>Paid Membership Community</h3><span class="chip w2">Wave 2</span></header>
+        <p class="for">Communities behind a subscription.</p>
+        <div class="stack"><span class="third">Membership plugin</span><span>BuddyNext</span><span>Jetonomy</span><span>Learnomy</span></div>
+        <ul><li>Membership levels and members on them</li><li>Members-only spaces and courses</li></ul>
+      </article>
+
+      <article class="bp" data-w="w2">
+        <header><h3>LMS Community on Reign</h3><span class="chip w2">Wave 2</span></header>
+        <p class="for">Reign buyers already running a third-party LMS.</p>
+        <div class="stack"><span class="third">LMS plugin</span><span>BuddyNext</span><span>Jetonomy</span><span>Gamification</span></div>
+        <ul><li>Courses in their LMS, students in the community</li><li>Course discussion spaces</li></ul>
+      </article>
+
+      <article class="bp" data-w="w3">
+        <header><h3>Describe Your Site</h3><span class="chip w3">Wave 3</span></header>
+        <p class="for">Anyone who would rather say what they need than choose.</p>
+        <div class="stack"><span>Any of our products</span><span class="third">Any Wave 2 plugin</span></div>
+        <ul><li>Chat to a site brief, owner approves the plan</li><li>Name, tagline, colours, pages and menu</li><li>Content written for the niche</li></ul>
+      </article>
+
+      <article class="bp" data-w="w3">
+        <header><h3>Niche packs</h3><span class="chip w3">Wave 3</span></header>
+        <p class="for">Ready content for common niches, picked or generated.</p>
+        <div class="stack"><span>Coaching</span><span>Alumni</span><span>Nonprofit</span><span>Makers market</span><span>Fan club</span></div>
+        <ul><li>Same blueprints, different people and content</li><li>One pack per niche and language</li></ul>
+      </article>
+
+    </div>
+  </section>
+
+  <section aria-labelledby="dokan">
+    <div class="eyebrow">Your question</div>
+    <h2 id="dokan">Can we offer "a working multivendor community with Dokan"?</h2>
+    <div class="answer">
+      <div class="yes">Yes. It is a Wave 2 blueprint, and the installer is built for it.</div>
+      <p>Since the 6 November refactor, adding a third-party plugin means writing one provider class and one content file. The wizard, Finish, removal, REST and WP-CLI work unchanged. Our cast already has a vendor role, so the sellers come from the same 20 people who post, comment and review across the other products.</p>
+      <div class="cols">
+        <div>
+          <h3>What the owner would get</h3>
+          <ul>
+            <li>WooCommerce and Dokan set up the way their own setup wizards finish</li>
+            <li>Vendor stores with logos, banners and products</li>
+            <li>Sample orders and reviews</li>
+            <li>Store list and shop pages in the menu, full width on Reign or BuddyX</li>
+            <li>Sellers' profiles in BuddyNext and a sellers' forum in Jetonomy</li>
+            <li>Points and badges for selling and reviewing, if Gamification is active</li>
+          </ul>
+        </div>
+        <div>
+          <h3>What we would build</h3>
+          <ul>
+            <li>A WooCommerce provider (products, orders, reviews) that other blueprints reuse</li>
+            <li>A Dokan provider (vendors, stores, store settings), using Pro features only when Dokan Pro is active</li>
+            <li>A content pack: stores and products that fit the community niche</li>
+            <li>The blueprint itself, plus lab cases on Reign and BuddyX</li>
+          </ul>
+        </div>
+      </div>
+      <p class="muted">Rules stay the same as Wave 1: only Dokan's and WooCommerce's own functions, never raw database writes; created as the sample vendor, never as the site owner; every object removable.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="working">
+    <div class="eyebrow">Being straight with buyers</div>
+    <h2 id="working">What "working" means</h2>
+    <div class="split">
+      <div class="box">
+        <h3>The blueprint does</h3>
+        <ul>
+          <li>Installs the structure: pages, menus, categories, spaces, settings</li>
+          <li>Finishes every product's setup and turns off its first-run nags</li>
+          <li>Fills the site so every linked page looks lived in</li>
+          <li>Leaves a real site after "Keep my setup"</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>The owner still does</h3>
+        <ul>
+          <li>Connects real payments (we never enter keys)</li>
+          <li>Writes their own Terms and policies (we never publish legal text)</li>
+          <li>Sets up real email sending</li>
+          <li>Swaps in their own brand and content, or keeps ours to start</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="build">
+    <div class="eyebrow">Work behind the offer</div>
+    <h2 id="build">What each wave needs</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Wave</th><th>Work</th><th>Size</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Exact Review counts, Roadmap heading, sample-member walk, FAQ and Troubleshooting docs</td><td><span class="size">S</span></td><td>Before release</td></tr>
+          <tr><td>2</td><td>WooCommerce provider, shared by store and marketplace blueprints</td><td><span class="size">M</span></td><td>First</td></tr>
+          <tr><td>2</td><td>One provider per marketplace, membership and LMS plugin</td><td><span class="size">S–M each</span></td><td>Owner picks the list</td></tr>
+          <tr><td>2</td><td>Blueprints as named starting points (<code>wbcom_demo_recipes</code>)</td><td><span class="size">S</span></td><td>Mechanism exists</td></tr>
+          <tr><td>3</td><td>Site brief as build input, stored with the build</td><td><span class="size">M</span></td><td>Designed</td></tr>
+          <tr><td>3</td><td>Schema per content file, pack validation before step one</td><td><span class="size">M</span></td><td>Designed</td></tr>
+          <tr><td>3</td><td>Media library tagged by subject and shape</td><td><span class="size">S</span></td><td>Designed</td></tr>
+          <tr><td>3</td><td>Site name, tagline and brand colour, restorable</td><td><span class="size">S</span></td><td>Designed</td></tr>
+          <tr><td>3</td><td>Steps split by item count in every provider, for bigger sites</td><td><span class="size">M</span></td><td>Designed</td></tr>
+          <tr><td>3</td><td>Chat that writes the brief (WordPress AI client first, our adapters as fallback)</td><td><span class="size">L</span></td><td>Needs decisions</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Plan in the plugin repo: <code>docs/roadmap.md</code>. Developer guide for adding any plugin: <code>docs/website/developer-guide/providers.md</code>.</p>
+  </section>
+
+  <section aria-labelledby="decide">
+    <div class="eyebrow">Your calls</div>
+    <h2 id="decide">Decisions that shape the offer</h2>
+    <div class="box">
+      <ol>
+        <li>Which third-party plugins Wave 2 supports, and in what order (WooCommerce first is assumed).</li>
+        <li>Whether blueprints are sold on their own, bundled with themes and product packs, or launched as sandbox sites buyers try first.</li>
+        <li>Wave 3: which AI service, and whether content is generated live or picked from curated niche packs.</li>
+        <li>How big a site a brief may ask for, and which languages launch first.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>Wbcom Demo Installer 0.1.0 · plan as of 6 November 2026 · Wave 1 matrix: 27 of 27 cases passing.</footer>
+</div>
+
+<script>
+(function () {
+  // Wizard preview. Wave 1 copies the shipped wizard's wording; Waves 2 and 3 are proposals in the same style.
+  var foot = function (left, right) { return '<div class="wiz-foot">' + (left || '<span></span>') + '<span style="display:flex;gap:8px">' + right + '</span></div>'; };
+  var back = '<span class="wbtn ghost">Back</span>';
+  var row = function (ic, t, s, pill) { return '<div class="row"><span class="ic" aria-hidden="true">' + ic + '</span><div>' + t + (s ? '<small>' + s + '</small>' : '') + '</div>' + (pill || '') + '</div>'; };
+  var tile = function (t, s, meta, cls) { return '<div class="tile ' + (cls || '') + '"><b>' + t + '</b><small>' + s + '</small>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>'; };
+  var chk = function (t, tag, s) { return '<div class="chk"><em aria-hidden="true">✓</em><div>' + t + (tag ? ' <span class="pill ' + tag[0] + ' tag">' + tag[1] + '</span>' : '') + '<small>' + s + '</small></div></div>'; };
+  var pro = ['info', 'Pro add-on active'];
+  var tp = ['tp', 'Third-party'];
+
+  var finish = '<div class="wiz-in"><h4>Your site is ready</h4><p>Finish the demo: remove the sample people and content and keep everything you set up.</p>' +
+    '<div class="tiles">' +
+    tile('Keep my setup, remove sample content', 'Removes the sample people and everything they made. Keeps settings, pages, menus, spaces, categories and plans.', '', 'sel') +
+    tile('Let me choose', 'Pick which kinds of content stay, for example keep the courses and their instructors.') +
+    tile('Remove everything the demo added', 'Also removes sample spaces, categories and plans, and puts back your previous home page, menu and logo.') +
+    '</div></div>' + foot('<span class="wlink">Not yet, keep exploring</span>', '<span class="wbtn">Finish demo</span>');
+
+  var W = {
+    w1: { track: ['Site check', 'Starting point', 'Products', 'Home page', 'Review', 'Build'], screens: [
+      { k: 'Site check', at: 0, cap: 'Reads the site and changes nothing. Shown with every Wave 1 product and its Pro add-on active.',
+        html: '<div class="wiz-in"><h4>Let\'s see what you have</h4><p>We only read your site on this step. Nothing changes until you click Build.</p><div class="rows">' +
+          row('🎨', 'BuddyX 5.2.0', 'Theme. The home page, menu and logo can be set up for you.', '<span class="pill ok">✓ Ready</span>') +
+          row('🔌', '11 Wbcom products ready', 'BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification', '<span class="pill ok">✓ Supported</span>') +
+          row('👥', '1 user, 27 posts and pages', 'Yours. They are not changed or removed.', '<span class="pill n">Untouched</span>') +
+          '</div></div>' + foot('<span class="wlink">Skip, I will add my own content</span>', '<span class="wbtn">Continue →</span>') },
+      { k: 'Starting point', at: 1, cap: 'Only starting points whose products are active are offered.',
+        html: '<div class="wiz-in"><h4>What kind of site are you building?</h4><p>Pick the closest one. You can change every product on the next step.</p><div class="tiles">' +
+          tile('Community', 'Members, spaces, feed, photos and forums', '5 products', 'sel') + tile('Learning community', 'Courses with a member community around them', '5 products') +
+          tile('Events community', 'Meetups, tickets and RSVPs for members', '4 products') + tile('Job board community', 'Employers, jobs and candidate profiles', '3 products') +
+          tile('Directory', 'Listings with reviews, maps and favorites', '3 products') + tile('Services marketplace', 'Freelancers selling services, with orders and reviews', '3 products') +
+          tile('Everything I have', 'Every active product, linked together', 'Best for evaluating · 11 products') +
+          '</div></div>' + foot('', back + '<span class="wbtn">Continue →</span>') },
+      { k: 'Products', at: 2, cap: 'Each product card says what it will create and whether its Pro add-on is active.',
+        html: '<div class="wiz-in"><h4>Choose what to include</h4><p>The same 20 sample people appear across every product, so one person can post in the feed, teach a course and run an event.</p><div class="rows">' +
+          chk('BuddyNext', pro, 'Profiles for everyone, 13 spaces, 49 posts with comments and reactions, follows, a poll and direct messages') +
+          chk('WPMediaVerse', pro, '30 photos with titles and tags across the sample people, 3 albums and favorites') +
+          chk('Jetonomy', pro, '3 forum categories, 12 forum spaces, 49 discussions with replies, accepted answers, votes and ideas') +
+          chk('Product Roadmap', pro, 'A community roadmap with 8 items across planned, in progress and completed, voted on by members') +
+          chk('WB Gamification', null, 'Points history, levels, earned badges and kudos between the sample people') +
+          '</div></div>' + foot('', back + '<span class="wbtn">Continue →</span>') },
+      { k: 'Home page', at: 3, cap: 'Either choice is restored on Remove everything.',
+        html: '<div class="wiz-in"><h4>Home page and menu</h4><p>BuddyX can open on your community from the first visit.</p><div class="tiles">' +
+          tile('Use the community home page, menu and logo', 'The home page opens on your community and the menu links every product you chose.', 'Recommended for a new site', 'sel') +
+          tile('Keep my home page, menu and logo', 'Sample content is added. Your home page, menu and theme settings stay exactly as they are.') +
+          '</div><div class="notes"><span>We save your current home page, menu and logo first, so you can put them back when you finish the demo.</span></div></div>' + foot('', back + '<span class="wbtn">Continue →</span>') },
+      { k: 'Review', at: 4, cap: 'Everything that will be created, per product, before anything is written.',
+        html: '<div class="wiz-in"><h4>Ready to build</h4><p>This is what will be created.</p><div style="overflow-x:auto"><table class="rtab"><thead><tr><th>Product</th><th>Creates</th></tr></thead><tbody>' +
+          '<tr><td>Shared</td><td>20 sample people, home page, menu and logo</td></tr>' +
+          '<tr><td>BuddyNext</td><td>13 spaces, 49 feed posts, 10 photos, 2 space albums, 20 profile pictures</td></tr>' +
+          '<tr><td>WPMediaVerse</td><td>30 photos, 3 albums</td></tr>' +
+          '<tr><td>Jetonomy</td><td>3 forum categories, 12 forum spaces, 9 forum tags, 49 discussions</td></tr>' +
+          '<tr><td>Product Roadmap</td><td>1 roadmap page, 8 roadmap items</td></tr>' +
+          '<tr><td>WB Gamification</td><td>20 points histories, 20 badge sets</td></tr></tbody></table></div>' +
+          '<div class="notes"><span>Nothing is emailed. Sample people never get mail, now or later.</span><span>Your own users and content (1 user, 27 posts and pages) are not changed.</span><span>About 1 minute. Dates are spread over the last two months.</span></div></div>' +
+          foot('', back + '<span class="wbtn">Build my demo</span>') },
+      { k: 'Building', at: 5, cap: 'Runs in small steps; closing the tab is safe.',
+        html: '<div class="wiz-in"><h4>Building your demo</h4><p>Jetonomy: discussions 25 of 49</p><div class="bar" role="img" aria-label="62 percent done"><span></span></div><div class="notes"><span>You can leave this page. It keeps going and picks up where it stopped when you come back.</span></div></div>' },
+      { k: 'Finish demo', at: 6, cap: 'After testing, the owner keeps a working setup or removes everything.', html: finish }
+    ] },
+    w2: { track: ['Site check', 'Starting point', 'Products', 'Home page', 'Review', 'Build'], screens: [
+      { k: 'Site check', at: 0, cap: 'Proposal. Third-party plugins are detected and labelled; a missing Pro is named, never required.',
+        html: '<div class="wiz-in"><h4>Let\'s see what you have</h4><p>We only read your site on this step. Nothing changes until you click Build.</p><div class="rows">' +
+          row('🎨', 'Reign 8.0.9', 'Theme. The home page, menu and logo can be set up for you.', '<span class="pill ok">✓ Ready</span>') +
+          row('🔌', '6 Wbcom products ready', 'BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WB Gamification', '<span class="pill ok">✓ Supported</span>') +
+          row('🧩', '2 plugins you already use', 'WooCommerce, Dokan. Dokan Pro is not active, so store reviews are left out.', '<span class="pill tp">Third-party · supported</span>') +
+          row('👥', '1 user, 27 posts and pages', 'Yours. They are not changed or removed.', '<span class="pill n">Untouched</span>') +
+          '</div></div>' + foot('<span class="wlink">Skip, I will add my own content</span>', '<span class="wbtn">Continue →</span>') },
+      { k: 'Starting point', at: 1, cap: 'Proposal. Blueprints that use third-party plugins sit in their own group and say what they need.',
+        html: '<div class="wiz-in"><h4>What kind of site are you building?</h4><p>Pick the closest one. You can change every product on the next step.</p>' +
+          '<div class="grp">With plugins you already use</div><div class="tiles">' +
+          tile('Multivendor community', 'Sellers with their own stores who are also community members', 'Needs WooCommerce and Dokan · both active', 'sel') +
+          tile('Community store', 'Your own shop, with members reviewing and talking about products', 'Needs WooCommerce · active') +
+          tile('Paid membership community', 'Members-only spaces and courses behind a plan', 'Needs a membership plugin · none found', 'dim') +
+          '</div><div class="grp">With our products</div><div class="tiles">' +
+          tile('Community', 'Members, spaces, feed, photos and forums', '5 products') + tile('Learning community', 'Courses with a member community around them', '4 products') +
+          tile('Everything I have', 'Every active product, linked together', '8 products') +
+          '</div></div>' + foot('', back + '<span class="wbtn">Continue →</span>') },
+      { k: 'Products', at: 2, cap: 'Proposal. Third-party products get the same card, marked Third-party.',
+        html: '<div class="wiz-in"><h4>Choose what to include</h4><p>The same 20 sample people appear across every product, so a seller can run a store, post in the feed and answer in the forum.</p><div class="rows">' +
+          chk('WooCommerce', tp, 'Shop pages, 24 products across the vendor stores, 15 completed orders and product reviews') +
+          chk('Dokan', tp, '6 stores run by sample sellers, with logos, banners and store settings') +
+          chk('BuddyNext', null, 'Profiles for everyone, spaces, feed posts, follows and messages; new products appear in the feed') +
+          chk('Jetonomy', null, 'A sellers\' forum next to the community forums') +
+          chk('WB Gamification', null, 'Points and badges for selling, buying and reviewing') +
+          '</div></div>' + foot('', back + '<span class="wbtn">Continue →</span>') },
+      { k: 'Review', at: 4, cap: 'Proposal. Owner tasks the blueprint cannot do are listed before the build, not discovered after.',
+        html: '<div class="wiz-in"><h4>Ready to build</h4><p>This is what will be created.</p><div style="overflow-x:auto"><table class="rtab"><thead><tr><th>Product</th><th>Creates</th></tr></thead><tbody>' +
+          '<tr><td>Shared</td><td>20 sample people, home page, menu and logo</td></tr>' +
+          '<tr><td>WooCommerce <span class="pill tp">Third-party</span></td><td>Shop pages, 24 products, 15 orders, product reviews</td></tr>' +
+          '<tr><td>Dokan <span class="pill tp">Third-party</span></td><td>6 vendor stores, store pages in the menu</td></tr>' +
+          '<tr><td>BuddyNext</td><td>13 spaces, feed posts, seller profiles</td></tr>' +
+          '<tr><td>Jetonomy</td><td>Sellers\' forum, 49 discussions</td></tr></tbody></table></div>' +
+          '<div class="notes"><span>After the build you connect a payment method and set the vendor commission in Dokan. We never enter payment keys.</span><span>Nothing is emailed. Your own users and content are not changed.</span></div></div>' +
+          foot('', back + '<span class="wbtn">Build my site</span>') },
+      { k: 'Finish demo', at: 6, cap: 'Same Finish for every blueprint: keep a working marketplace, or remove it all.', html: finish }
+    ] },
+    w3: { track: ['Describe', 'Your brief', 'Products', 'Home page', 'Plan', 'Build'], screens: [
+      { k: 'Describe', at: 0, cap: 'Proposal. A new first step: the owner says what they need, or picks a starting point as today.',
+        html: '<div class="wiz-in"><h4>What do you want to build?</h4><p>Describe your site in a sentence or two. We draft a plan from the products you have, and nothing changes until you approve it.</p>' +
+          '<div class="prompt-box">A running club in Leeds with weekly group runs, a forum for routes and gear, paid coaching plans and a small shop for club kit.</div>' +
+          '<div class="ex"><span>Alumni network for a design school</span><span>Volunteer hub for a food bank</span><span>Fan club for a podcast</span><span>Local makers market</span></div></div>' +
+          foot('<span class="wlink">Or pick a starting point</span>', '<span class="wbtn">Draft my site</span>') },
+      { k: 'Your brief', at: 1, cap: 'Proposal. The brief is plain and editable; it names anything the site is missing.',
+        html: '<div class="wiz-in"><h4>Here is what we understood</h4><div class="ai-say">Change anything before we plan it. The shop needs WooCommerce, which is not installed: install it, or build without the shop.</div>' +
+          '<dl class="brief"><dt>Site name</dt><dd>Leeds Riverside Runners</dd><dt>Tagline</dt><dd>Run together, every week</dd><dt>Audience</dt><dd>Club members and new runners in Leeds</dd>' +
+          '<dt>Look</dt><dd><span class="sw" style="background:#0b6e8a"></span>Reign, deep teal, logo from your upload</dd><dt>Language</dt><dd>English (UK)</dd>' +
+          '<dt>Products</dt><dd>BuddyNext, Eventonomy, Jetonomy, Learnomy <span class="pill tp">WooCommerce missing</span></dd><dt>Size</dt><dd>Small: 20 people, about 120 items</dd></dl></div>' +
+          foot('', back + '<span class="wbtn">Plan my site</span>') },
+      { k: 'Plan', at: 4, cap: 'Proposal. Content is written for the niche; the owner approves the plan before the build.',
+        html: '<div class="wiz-in"><h4>Your plan</h4><p>Written for a running club. Every item can be removed later, or kept as your starting site.</p><div style="overflow-x:auto"><table class="rtab"><thead><tr><th>Product</th><th>Creates</th></tr></thead><tbody>' +
+          '<tr><td>Eventonomy</td><td>Saturday long run, Tuesday track session, Riverside 10K race day, with RSVPs</td></tr>' +
+          '<tr><td>Learnomy</td><td>3 coaching plans: First 5K, 10K under 50, Half marathon build</td></tr>' +
+          '<tr><td>Jetonomy</td><td>Forums for routes, gear talk, injury and recovery</td></tr>' +
+          '<tr><td>BuddyNext</td><td>Spaces for pace groups, run photos in the feed</td></tr>' +
+          '<tr><td>Site</td><td>Name, tagline, colours, home page and menu</td></tr></tbody></table></div>' +
+          '<div class="notes"><span>Start without sample people: builds the setup only, ready for real members.</span></div></div>' +
+          foot('', back + '<span class="wbtn">Build my site</span>') },
+      { k: 'Building', at: 5, cap: 'Same engine as Wave 1, so progress, resume and Finish work the same way.',
+        html: '<div class="wiz-in"><h4>Building Leeds Riverside Runners</h4><p>Learnomy: coaching plans 2 of 3</p><div class="bar" role="img" aria-label="62 percent done"><span></span></div><div class="notes"><span>You can leave this page. It keeps going and picks up where it stopped when you come back.</span></div></div>' },
+      { k: 'Finish demo', at: 6, cap: 'Keep the working site, keep chosen parts, or remove everything.', html: finish }
+    ] }
+  };
+
+  var wave = 'w1', idx = 0;
+  var track = document.getElementById('pv-track'), card = document.getElementById('pv-card');
+  var stepsEl = document.getElementById('pv-steps'), cap = document.getElementById('pv-caption');
+  function render() {
+    var w = W[wave], s = w.screens[idx];
+    track.innerHTML = w.track.map(function (t, i) {
+      var c = i < s.at ? 'done' : (i === s.at ? 'on' : '');
+      return '<div class="wiz-step ' + c + '"><i>' + (i < s.at ? '✓' : i + 1) + '</i><span>' + t + '</span></div>';
+    }).join('');
+    card.innerHTML = s.html;
+    cap.textContent = s.cap;
+    stepsEl.innerHTML = w.screens.map(function (x, i) {
+      return '<button type="button" id="pv-s-' + wave + '-' + i + '" data-i="' + i + '" aria-pressed="' + (i === idx) + '">' + x.k + '</button>';
+    }).join('');
+  }
+  stepsEl.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; idx = +b.getAttribute('data-i'); render(); });
+  document.querySelectorAll('.pv-waves button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      wave = b.getAttribute('data-wave'); idx = 0;
+      document.querySelectorAll('.pv-waves button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      render();
+    });
+  });
+  render();
+})();
+(function () {
+  var buttons = document.querySelectorAll('.filters button');
+  var cards = document.querySelectorAll('#grid .bp');
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var f = b.getAttribute('data-f');
+      buttons.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      cards.forEach(function (c) { c.hidden = f !== 'all' && c.getAttribute('data-w') !== f; });
+    });
+  });
+})();
+</script>
