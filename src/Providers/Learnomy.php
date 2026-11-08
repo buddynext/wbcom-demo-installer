@@ -206,7 +206,7 @@ final class Learnomy extends Provider {
 				'category_id'   => $categories[ $c['category'] ] ?? 0,
 				'status'        => 'published',
 				'difficulty'    => $c['difficulty'],
-				'thumbnail_url' => $this->thumbnail( $i, $instructor, $ctx ),
+				'thumbnail_url' => $this->thumbnail( $c['image'], $instructor, $ctx ),
 			),
 			$instructor
 		);
@@ -254,13 +254,11 @@ final class Learnomy extends Provider {
 	/**
 	 * Course thumbnail from the photo pack.
 	 *
-	 * @param int     $i      Course index.
+	 * @param string  $file   Photo path under media/, from the course content.
 	 * @param int     $author Instructor.
 	 * @param Context $ctx    Context.
 	 */
-	private function thumbnail( int $i, int $author, Context $ctx ): string {
-		$files = array( 'creative-studio-portrait.jpg', 'developer-desk.jpg', 'festival-friends.jpg', 'tech-workspace.jpg', 'misty-forest-path.jpg' );
-		$file  = 'photos/' . $files[ $i % count( $files ) ];
+	private function thumbnail( string $file, int $author, Context $ctx ): string {
 		if ( ! is_readable( $ctx->media( $file ) ) ) {
 			return '';
 		}

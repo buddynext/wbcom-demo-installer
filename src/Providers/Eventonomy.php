@@ -119,10 +119,11 @@ final class Eventonomy extends Provider {
 		}
 		// One venue per place and one organizer per sample person, as Eventonomy creates them.
 		return array(
-			'category'  => array( self::missing_terms( array( 'evnm_event_category' => $cats ) ), 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),
-			'venue'     => array( count( $venues ), 'setup', __( 'venues', 'wbcom-demo-installer' ) ),
-			'organizer' => array( count( $organizers ), 'setup', __( 'organizers', 'wbcom-demo-installer' ) ),
-			'event'     => array( count( $this->content() ), 'sample', __( 'events', 'wbcom-demo-installer' ) ),
+			'category'   => array( self::missing_terms( array( 'evnm_event_category' => $cats ) ), 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),
+			'venue'      => array( count( $venues ), 'setup', __( 'venues', 'wbcom-demo-installer' ) ),
+			'organizer'  => array( count( $organizers ), 'setup', __( 'organizers', 'wbcom-demo-installer' ) ),
+			'event'      => array( count( $this->content() ), 'sample', __( 'events', 'wbcom-demo-installer' ) ),
+			'attachment' => array( count( $this->content() ), 'sample', __( 'event images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -152,7 +153,7 @@ final class Eventonomy extends Provider {
 		$tz     = wp_timezone_string();
 		foreach ( array_slice( $this->content(), $offset, 5, true ) as $i => $e ) {
 			$i = (int) $i; // content/eventonomy.php is a list.
-			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual ) = $e;
+			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual, $image ) = $e;
 			$organizer = $ctx->person( $who );
 			if ( function_exists( 'evnm_grant_organizer_role' ) ) {
 				evnm_grant_organizer_role( $organizer );
@@ -170,8 +171,14 @@ final class Eventonomy extends Provider {
 				'organizer'   => array( 'name' => (string) ( $ctx->profile( $organizer )['name'] ?? '' ) ),
 				'is_virtual'  => $virtual ? 1 : 0,
 			);
+			$input['settings']   = array();
+			// Eventonomy reads the cover from settings.image (a URL), the same field its importers fill.
+			$photo = $ctx->attachment( $image, $organizer, $this->id() );
+			if ( $photo ) {
+				$input['settings']['image'] = (string) wp_get_attachment_url( $photo );
+			}
 			if ( $virtual ) {
-				$input['settings'] = array( 'join_url' => 'https://meet.example.com/' . sanitize_title( $title ) );
+				$input['settings']['join_url'] = 'https://meet.example.com/' . sanitize_title( $title );
 			} else {
 				$input['city']    = $city;
 				$input['country'] = $country;
@@ -270,6 +277,11 @@ final class Eventonomy extends Provider {
 				return true;
 			case 'category':
 				return self::remove_unused_term( $id, 'evnm_event_category' );
+			case 'attachment':
+				if ( get_post( $id ) ) {
+					wp_delete_attachment( $id, true );
+				}
+				return true;
 		}
 		return true;
 	}

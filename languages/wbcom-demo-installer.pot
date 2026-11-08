@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-08T13:51:07+00:00\n"
+"POT-Creation-Date: 2026-11-08T19:08:34+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -298,7 +298,11 @@ msgstr ""
 msgid "events"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:291
+#: src/Providers/Eventonomy.php:126
+msgid "event images"
+msgstr ""
+
+#: src/Providers/Eventonomy.php:303
 msgid "Events"
 msgstr ""
 
@@ -366,7 +370,7 @@ msgstr ""
 msgid "course images"
 msgstr ""
 
-#: src/Providers/Learnomy.php:400
+#: src/Providers/Learnomy.php:398
 msgid "Courses"
 msgstr ""
 
@@ -457,7 +461,7 @@ msgstr ""
 msgid "sample people"
 msgstr ""
 
-#: src/Providers/People.php:193
+#: src/Providers/People.php:195
 msgid "Sample people are still on the site."
 msgstr ""
 
