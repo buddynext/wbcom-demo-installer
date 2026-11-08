@@ -118,6 +118,8 @@ final class People extends Provider {
 					'user_login'      => $login,
 					'user_email'      => $person['login'] . '@' . QuietMode::DOMAIN,
 					'user_pass'       => wp_generate_password( 32, true, true ),
+					// Profile URLs and @handles read the nicename: show "@lucia-ferrari", not the "demo." login prefix. Core adds -2 on a clash.
+					'user_nicename'   => sanitize_title( str_replace( '.', '-', $person['login'] ) ),
 					'display_name'    => $person['name'],
 					'first_name'      => strtok( $person['name'], ' ' ),
 					'last_name'       => trim( (string) strstr( $person['name'], ' ' ) ),
@@ -147,8 +149,9 @@ final class People extends Provider {
 				'field'    => $person['field'] ?? '',
 				'topics'   => $person['topics'] ?? array(),
 				'roles'    => array_merge( array( 'member' ), $person['roles'] ),
-				'avatar'   => sprintf( 'avatars/avatar-%02d.png', ( $i % 12 ) + 1 ),
-				'cover'    => sprintf( 'covers/cover-%02d.png', ( $i % 8 ) + 1 ),
+				// One photo per person, named by login, so no two people share a face.
+				'avatar'   => 'avatars/' . $person['login'] . '.jpg',
+				'cover'    => sprintf( 'covers/cover-%02d.jpg', ( $i % 8 ) + 1 ),
 			);
 		}
 		$ctx->state->set( 'people', $people );

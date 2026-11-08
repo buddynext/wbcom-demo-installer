@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-05T21:16:41+00:00\n"
+"POT-Creation-Date: 2026-11-08T13:51:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -158,7 +158,7 @@ msgid "Employers, jobs and candidate profiles"
 msgstr ""
 
 #: src/Core/Recipes.php:49
-#: src/Providers/Listora.php:310
+#: src/Providers/Listora.php:321
 msgid "Directory"
 msgstr ""
 
@@ -198,7 +198,7 @@ msgstr ""
 #. translators: 1: spaces, 2: posts
 #: src/Providers/BuddyNext.php:88
 #, php-format
-msgid "Profiles for everyone, %1$d spaces, %2$d posts with comments and reactions, follows, a poll and direct messages"
+msgid "Profiles for everyone, %1$d spaces, %2$d posts with comments, replies, mentions and reactions, follows, polls and direct messages"
 msgstr ""
 
 #: src/Providers/BuddyNext.php:118
@@ -230,15 +230,15 @@ msgstr ""
 msgid "hashtags"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:863
+#: src/Providers/BuddyNext.php:908
 msgid "Activity"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:864
+#: src/Providers/BuddyNext.php:909
 msgid "Members"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:865
+#: src/Providers/BuddyNext.php:910
 msgid "Spaces"
 msgstr ""
 
@@ -376,15 +376,15 @@ msgstr ""
 msgid "%d places run by the sample people, with photos, hours, map locations and reviews"
 msgstr ""
 
-#: src/Providers/Listora.php:126
+#: src/Providers/Listora.php:137
 msgid "listing categories, features and locations"
 msgstr ""
 
-#: src/Providers/Listora.php:128
+#: src/Providers/Listora.php:139
 msgid "listings"
 msgstr ""
 
-#: src/Providers/Listora.php:129
+#: src/Providers/Listora.php:140
 msgid "listing photos"
 msgstr ""
 
@@ -457,7 +457,7 @@ msgstr ""
 msgid "sample people"
 msgstr ""
 
-#: src/Providers/People.php:192
+#: src/Providers/People.php:193
 msgid "Sample people are still on the site."
 msgstr ""
 
@@ -522,20 +522,20 @@ msgstr ""
 msgid "Classic theme"
 msgstr ""
 
-#: src/Providers/Theme.php:77
+#: src/Providers/Theme.php:79
 msgid "logo and site icon"
 msgstr ""
 
-#: src/Providers/Theme.php:78
+#: src/Providers/Theme.php:80
 msgid "menu"
 msgstr ""
 
-#: src/Providers/Theme.php:155
+#: src/Providers/Theme.php:165
 msgid "Community menu"
 msgstr ""
 
 #. translators: %d: number
-#: src/Providers/Theme.php:159
+#: src/Providers/Theme.php:169
 #, php-format
 msgid "Community menu %d"
 msgstr ""

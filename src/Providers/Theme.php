@@ -73,8 +73,10 @@ final class Theme extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
+		// BuddyX and BuddyX Pro also get the light-text logo for dark mode.
+		$dark = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
 		return array(
-			'attachment' => array( 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
+			'attachment' => array( $dark ? 3 : 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
 			'menu'       => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
 		);
 	}
@@ -118,6 +120,14 @@ final class Theme extends Provider {
 			// both unless its "Display Site Title and Tagline" setting is off; BuddyX Pro and Reign already hide it.
 			if ( 'BuddyX' === self::theme_family() ) {
 				Snapshot::write( 'theme_mod:display_header_text', false );
+			}
+			// Both BuddyX themes swap to dark_mode_logo (a URL) in dark mode; without it an owner's old dark logo, or the
+			// navy wordmark on a near-black header, would show there.
+			if ( in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true ) ) {
+				$dark = $ctx->attachment( 'brand/site-logo-dark.png', $admin, $this->id(), 'setup' );
+				if ( $dark ) {
+					Snapshot::write( 'theme_mod:dark_mode_logo', (string) wp_get_attachment_url( $dark ) );
+				}
 			}
 		}
 		$icon = $ctx->attachment( 'brand/site-icon.png', $admin, $this->id(), 'setup' );

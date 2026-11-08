@@ -98,11 +98,22 @@ final class Listora extends Provider {
 	 */
 	public function settings(): array {
 		// Same two flags as the plugin's own mark_setup_complete(), which it calls once a directory has listings.
-		return array(
+		$settings = array(
 			'wb_listora_setup_complete'                 => '1',
 			'wb_listora_settings'                       => array( 'setup_complete' => true ),
 			'transient:wb_listora_pages_review_pending' => null,
 		);
+		// Listora ships with no map tile source, so its maps draw nothing until the owner picks one. The demo sets
+		// OpenStreetMap's standard tiles with their required credit so the Directory and listing maps show; Remove
+		// everything puts the owner's blank values back. A live site should move to its own or a paid tile provider.
+		if ( function_exists( 'wb_listora_get_setting' ) && '' === trim( (string) wb_listora_get_setting( 'map_tile_url', '' ) ) ) {
+			$settings['wb_listora_settings'] += array(
+				'map_provider'         => 'osm',
+				'map_tile_url'         => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+				'map_tile_attribution' => '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			);
+		}
+		return $settings;
 	}
 
 	/**
