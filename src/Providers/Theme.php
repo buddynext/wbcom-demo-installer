@@ -117,9 +117,11 @@ final class Theme extends Provider {
 		if ( $logo && current_theme_supports( 'custom-logo' ) ) {
 			Snapshot::write( 'theme_mod:custom_logo', $logo );
 			// The logo carries the name, so the site title beside it repeats it and crowds the menu. BuddyX shows
-			// both unless its "Display Site Title and Tagline" setting is off; BuddyX Pro and Reign already hide it.
+			// both unless "Display Site Title and Tagline" is off; BuddyX Pro and Reign already hide it. That core
+			// checkbox stores header_textcolor 'blank' (BuddyX then hides the text visually, still read by screen
+			// readers), so write that: the owner sees the box unticked and can tick it to bring the title back.
 			if ( 'BuddyX' === self::theme_family() ) {
-				Snapshot::write( 'theme_mod:display_header_text', false );
+				Snapshot::write( 'theme_mod:header_textcolor', 'blank' );
 			}
 			// Both BuddyX themes swap to dark_mode_logo (a URL) in dark mode; without it an owner's old dark logo, or the
 			// navy wordmark on a near-black header, would show there.
