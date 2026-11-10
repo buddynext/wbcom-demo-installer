@@ -40,8 +40,8 @@ categories and settings. "Remove everything" also puts back your previous home p
 
 ## Can I run it again?
 
-Yes, once the current demo is finished. After "Keep my setup", a new build reuses the spaces and categories you
-kept.
+Yes, once the current demo is finished. After "Keep my setup", choose **Keep them as mine** first; a new build then
+reuses the spaces and categories you kept, and adds its own Demo menu without changing yours.
 
 ## Does it work with my theme?
 

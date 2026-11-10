@@ -113,11 +113,20 @@ final class Command {
 			WP_CLI::error( $status->get_error_message() . ( 'wbcom_demo_live_site' === $status->get_error_code() ? ' Add --yes to build anyway.' : '' ) );
 		}
 		$this->run_steps( 'Building' );
-		$status = Engine::status();
-		foreach ( array_merge( (array) $status['errors'], (array) $status['warnings'] ) as $error ) {
-			WP_CLI::warning( $error );
+		$status   = Engine::status();
+		$problems = array_merge( (array) $status['errors'], (array) $status['warnings'] );
+		foreach ( $problems as $problem ) {
+			WP_CLI::warning( $problem );
 		}
-		WP_CLI::success( sprintf( 'Demo built: %d items.', array_sum( array_column( $status['ledger'], 'count' ) ) ) );
+		$items = array_sum( array_column( $status['ledger'], 'count' ) );
+		if ( $status['errors'] ) {
+			WP_CLI::error( sprintf( 'Demo built with problems: %d items, %d problems. Fix the cause, then run Finish and build again.', $items, count( $problems ) ) );
+		}
+		if ( $problems ) {
+			WP_CLI::success( sprintf( 'Demo built: %d items, %d could not be created (listed above).', $items, count( $problems ) ) );
+			return;
+		}
+		WP_CLI::success( sprintf( 'Demo built: %d items.', $items ) );
 	}
 
 	/**
@@ -179,6 +188,14 @@ final class Command {
 	public function resume( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- WP-CLI command signature.
 		$this->as_admin();
 		$status = Engine::status();
+		if ( 'built' === $status['status'] && ! empty( $status['report']['left'] ) ) {
+			// A finish ended with items waiting for a product or failed: try them again with the same choices.
+			$started = Finisher::resume();
+			if ( is_wp_error( $started ) ) {
+				WP_CLI::error( $started->get_error_message() );
+			}
+			$status = Engine::status();
+		}
 		if ( ! in_array( $status['status'], array( 'building', 'finishing' ), true ) ) {
 			WP_CLI::success( 'Nothing to resume.' );
 			return;
@@ -204,18 +221,50 @@ final class Command {
 			WP_CLI::line( 'No finish has run yet.' );
 			return;
 		}
-		WP_CLI::line( sprintf( 'Removed: %d  Left: %d  Waiting: %d  Failed: %d  Sample people left: %d', $report['removed'], $report['left'], $report['waiting'], $report['failed'], $report['people_left'] ) );
+		WP_CLI::line( sprintf( 'Removed: %d  Not removed yet: %d  Waiting: %d  Failed: %d  Sample people left: %d', $report['removed'], $report['left'], $report['waiting'], $report['failed'], $report['people_left'] ) );
+		if ( ! empty( $report['waiting_for'] ) ) {
+			WP_CLI::line( 'Waiting for: ' . implode( ', ', (array) $report['waiting_for'] ) . ' (activate, then run: wp wbcom-demo resume)' );
+		}
+		$kept = (int) ( $report['kept_sample'] ?? 0 ) + (int) ( $report['kept_setup'] ?? 0 );
+		if ( $kept ) {
+			WP_CLI::line( sprintf( 'Kept by your choice: %d sample items, %d setup items. Remove them later with wp wbcom-demo finish, or keep them as yours with wp wbcom-demo adopt.', $report['kept_sample'] ?? 0, $report['kept_setup'] ?? 0 ) );
+		}
 		foreach ( (array) $report['issues'] as $issue ) {
 			WP_CLI::warning( $issue );
+		}
+		foreach ( (array) ( $report['leftovers'] ?? array() ) as $note ) {
+			WP_CLI::line( $note );
 		}
 		foreach ( (array) $report['kept_options'] as $name ) {
 			WP_CLI::line( "Kept your change to: $name" );
 		}
 		if ( $report['left'] || $report['failed'] || $report['issues'] ) {
-			WP_CLI::error( 'Verify found leftovers.', false );
+			WP_CLI::error( 'Not everything you chose was removed.', false );
+			WP_CLI::halt( 1 );
+		}
+		if ( $kept ) {
+			WP_CLI::success( 'Everything you chose was removed. The items you kept are still tracked.' );
 			return;
 		}
 		WP_CLI::success( 'Nothing from the demo was left behind.' );
+	}
+
+	/**
+	 * Keep what the demo left (settings, pages, menus, categories) as your own and end the demo.
+	 *
+	 * Only after the sample content is removed. The installer stops tracking these items, so it can be
+	 * deleted afterwards.
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function adopt( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- WP-CLI command signature.
+		$this->as_admin();
+		$status = Finisher::adopt();
+		if ( is_wp_error( $status ) ) {
+			WP_CLI::error( $status->get_error_message() );
+		}
+		WP_CLI::success( 'The demo is finished. What it set up is yours now.' );
 	}
 
 	/**

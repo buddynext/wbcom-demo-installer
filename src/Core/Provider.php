@@ -185,6 +185,14 @@ abstract class Provider {
 	public function handover( array $kept, int $owner_id ): void {}
 
 	/**
+	 * Records the product keeps about removed people on its own (logs, transactions), named in the finish
+	 * report. The installer never deletes product rows directly; empty when the product keeps none.
+	 */
+	public function keeps_logs(): string {
+		return '';
+	}
+
+	/**
 	 * Settings that present this product at its best in a demo, applied before its content.
 	 * Option name => value; an array value is merged into an array option; "transient:<name>" => null
 	 * clears a one-time activation redirect. "Keep my setup" keeps
@@ -253,8 +261,26 @@ abstract class Provider {
 		$term = '' !== $taxonomy ? get_term( $id, $taxonomy ) : null;
 		if ( $term instanceof \WP_Term && 0 === (int) $term->count ) {
 			wp_delete_term( $id, $taxonomy );
+			clean_term_cache( $id, $taxonomy );
+			return ! term_exists( $id, $taxonomy );
 		}
+		// Gone already, or in use by the owner's content since the build: either way not ours to delete.
 		return true;
+	}
+
+	/**
+	 * Delete a post or attachment the demo made; true only when it is gone afterwards.
+	 *
+	 * @param int  $id         Post id.
+	 * @param bool $attachment Delete as an attachment (files too).
+	 */
+	protected static function delete_post( int $id, bool $attachment = false ): bool {
+		if ( ! get_post( $id ) ) {
+			return true;
+		}
+		$attachment ? wp_delete_attachment( $id, true ) : wp_delete_post( $id, true );
+		clean_post_cache( $id );
+		return false === get_post_status( $id ); // Read again after the delete.
 	}
 
 	/**

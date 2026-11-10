@@ -111,6 +111,24 @@ final class Controller {
 				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response( Finisher::start( (string) $r['mode'], self::custom( $r ) ) ),
 			)
 		);
+		register_rest_route(
+			self::NS,
+			'/finish/resume',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'callback'            => static fn() => rest_ensure_response( Finisher::resume() ),
+			)
+		);
+		register_rest_route(
+			self::NS,
+			'/adopt',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'callback'            => static fn() => rest_ensure_response( Finisher::adopt() ),
+			)
+		);
 	}
 
 	/**

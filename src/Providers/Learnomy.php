@@ -70,6 +70,13 @@ final class Learnomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function keeps_logs(): string {
+		return __( 'Learnomy keeps its own audit log for removed people.', 'wbcom-demo-installer' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'LEARNOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -336,8 +343,10 @@ final class Learnomy extends Provider {
 		$id = (int) $row->object_id;
 		switch ( $row->object_type ) {
 			case 'course':
-				( new \Learnomy\Services\Course_Service() )->delete( $id );
-				return true;
+				if ( \Learnomy\Models\Course::find( $id ) ) {
+					( new \Learnomy\Services\Course_Service() )->delete( $id );
+				}
+				return ! \Learnomy\Models\Course::find( $id );
 			case 'enrollment':
 				// Certificates are kept by Learnomy on purpose; a sample person's certificate goes with them.
 				$cert = \Learnomy\Models\Certificate::find_active_for_user_course( (int) ( $row->meta['user'] ?? 0 ), (int) ( $row->meta['course'] ?? 0 ) );
@@ -347,17 +356,16 @@ final class Learnomy extends Provider {
 				if ( \Learnomy\Models\Enrollment::find( $id ) ) {
 					( new \Learnomy\Services\Enrollment_Service() )->remove_by_admin( $id );
 				}
-				return true;
+				// Learnomy keeps an ended enrolment as history (removed with the person); ended is done.
+				$after = \Learnomy\Models\Enrollment::find( $id );
+				return ! $after || ! in_array( (string) $after->status, \Learnomy\Models\Enrollment::current_statuses(), true );
 			case 'category':
 				if ( \Learnomy\Models\Category::find( $id ) ) {
 					\Learnomy\Models\Category::delete( $id );
 				}
-				return true;
+				return ! \Learnomy\Models\Category::find( $id );
 			case 'attachment':
-				if ( get_post( $id ) ) {
-					wp_delete_attachment( $id, true );
-				}
-				return true;
+				return self::delete_post( $id, true );
 		}
 		return true;
 	}

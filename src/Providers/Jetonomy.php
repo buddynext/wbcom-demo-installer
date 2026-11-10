@@ -395,8 +395,10 @@ final class Jetonomy extends Provider {
 				}
 				return ! is_wp_error( \Jetonomy\Models\Category::delete( $id ) );
 			case 'tag':
-				\Jetonomy\Models\Tag::delete_with_relations( $id );
-				return true;
+				if ( \Jetonomy\Models\Tag::find( $id ) ) {
+					\Jetonomy\Models\Tag::delete_with_relations( $id );
+				}
+				return ! \Jetonomy\Models\Tag::find( $id );
 		}
 		return true;
 	}

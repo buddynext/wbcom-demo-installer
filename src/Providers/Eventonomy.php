@@ -278,10 +278,7 @@ final class Eventonomy extends Provider {
 			case 'category':
 				return self::remove_unused_term( $id, 'evnm_event_category' );
 			case 'attachment':
-				if ( get_post( $id ) ) {
-					wp_delete_attachment( $id, true );
-				}
-				return true;
+				return self::delete_post( $id, true );
 		}
 		return true;
 	}

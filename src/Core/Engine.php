@@ -48,12 +48,15 @@ final class Engine {
 			/* translators: %d: number of members. */
 			$found[] = sprintf( _n( '%d other member', '%d other members', $others, 'wbcom-demo-installer' ), $others );
 		}
-		$posts = (int) wp_count_posts( 'post' )->publish - 1; // A fresh install has "Hello world!".
+		// A fresh install has "Hello world!" (post 1) and its comment (comment 1): discount them only while they exist.
+		$hello = get_post( 1 );
+		$posts = (int) wp_count_posts( 'post' )->publish - ( $hello && 'post' === $hello->post_type && 'publish' === $hello->post_status ? 1 : 0 );
 		if ( $posts > 0 ) {
 			/* translators: %d: number of blog posts. */
 			$found[] = sprintf( _n( '%d blog post', '%d blog posts', $posts, 'wbcom-demo-installer' ), $posts );
 		}
-		$comments = (int) wp_count_comments()->approved - 1; // And one sample comment.
+		$first    = get_comment( 1 );
+		$comments = (int) wp_count_comments()->approved - ( $first && '1' === (string) $first->comment_approved ? 1 : 0 );
 		if ( $comments > 0 ) {
 			/* translators: %d: number of comments. */
 			$found[] = sprintf( _n( '%d comment', '%d comments', $comments, 'wbcom-demo-installer' ), $comments );
@@ -166,6 +169,9 @@ final class Engine {
 				array( 'status' => 409 )
 			);
 		}
+		if ( ! isset( Recipes::available()[ $recipe ] ) ) {
+			return new \WP_Error( 'wbcom_demo_recipe', __( 'Choose one of the starting points shown on this site.', 'wbcom-demo-installer' ), array( 'status' => 400 ) );
+		}
 		$choosable = Registry::choosable();
 		$products  = array_values( array_filter( $products, static fn( $id ) => isset( $choosable[ $id ] ) && $choosable[ $id ]->supported() ) );
 		if ( ! $products ) {
@@ -212,12 +218,26 @@ final class Engine {
 	 * @return array<string,mixed> Status after the step.
 	 */
 	public static function step(): array {
-		if ( ! add_option( self::LOCK, time(), '', false ) ) {
-			if ( time() - (int) get_option( self::LOCK ) < 120 ) {
+		// The lock holds "<time>|<token>": only the request that owns the token releases it, and a lock older
+		// than two minutes belongs to a request that died, so it is taken over.
+		$token = wp_generate_uuid4();
+		$mine  = time() . '|' . $token;
+		if ( ! add_option( self::LOCK, $mine, '', false ) ) {
+			wp_cache_delete( self::LOCK, 'options' );
+			$held = (string) get_option( self::LOCK );
+			if ( time() - (int) strtok( $held, '|' ) < 120 ) {
 				return self::status() + array( 'busy' => true );
 			}
-			update_option( self::LOCK, time(), false );
+			update_option( self::LOCK, $mine, false );
 		}
+		$release = static function () use ( $mine ): void {
+			wp_cache_delete( self::LOCK, 'options' );
+			if ( get_option( self::LOCK ) === $mine ) {
+				delete_option( self::LOCK );
+			}
+		};
+		// A fatal error (memory, a product bug) skips finally; shutdown still runs, so the next request is not held.
+		register_shutdown_function( $release );
 		try {
 			QuietMode::on();
 			if ( function_exists( 'set_time_limit' ) ) {
@@ -230,7 +250,7 @@ final class Engine {
 				Finisher::step( $state );
 			}
 		} finally {
-			delete_option( self::LOCK );
+			$release();
 		}
 		return self::status();
 	}
@@ -271,6 +291,24 @@ final class Engine {
 			list( $id, $step ) = $item;
 			$provider          = Registry::get( $id );
 			$failed            = (array) $state->get( 'failed' );
+			// A request that dies inside a step (memory, a fatal error) never returns, so the same step would
+			// run again forever. Count attempts on the queue head; the third ends that product's build.
+			$trying   = (array) $state->get( 'trying' );
+			$attempts = ( $trying['item'] ?? null ) === $item ? (int) $trying['n'] + 1 : 1;
+			if ( $provider && $attempts > 2 && ! in_array( $id, $failed, true ) ) {
+				$failed[] = $id;
+				$errors   = (array) $state->get( 'errors' );
+				/* translators: %s: product name. */
+				$errors[] = sprintf( __( '%s: a step stopped the request twice (often the PHP memory limit), so the rest of this product was skipped.', 'wbcom-demo-installer' ), $provider->label() );
+				$state->set( 'failed', $failed )->set( 'errors', $errors );
+			}
+			$state->set(
+				'trying',
+				array(
+					'item' => $item,
+					'n'    => $attempts,
+				)
+			)->save();
 			if ( $provider && ! in_array( $id, $failed, true ) ) {
 				try {
 					if ( self::SETTINGS_STEP === $step ) {
@@ -285,7 +323,7 @@ final class Engine {
 					$state->set( 'failed', $failed )->set( 'errors', $errors );
 				}
 			}
-			$state->set( 'queue', $queue )->set( 'done', (int) $state->get( 'done' ) + 1 );
+			$state->set( 'queue', $queue )->set( 'done', (int) $state->get( 'done' ) + 1 )->set( 'trying', array() );
 		}
 		if ( ! $queue ) {
 			$state->set( 'status', State::BUILT )->set( 'built_at', current_time( 'mysql', true ) );

@@ -188,9 +188,6 @@ final class MediaShield extends Provider {
 	 * @param object $row Ledger row.
 	 */
 	public function remove( object $row ): bool {
-		if ( get_post( (int) $row->object_id ) ) {
-			wp_delete_post( (int) $row->object_id, true );
-		}
-		return true;
+		return self::delete_post( (int) $row->object_id );
 	}
 }

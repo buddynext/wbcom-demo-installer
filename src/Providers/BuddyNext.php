@@ -74,6 +74,13 @@ final class BuddyNext extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function keeps_logs(): string {
+		return __( 'BuddyNext keeps its own rate-limit records for removed people.', 'wbcom-demo-installer' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'BUDDYNEXTPRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -132,6 +139,9 @@ final class BuddyNext extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
+		// Decide which hashtags are new now, before any feed post exists: BuddyNext indexes posts in background
+		// jobs, so by the hashtags step the tags would already be on the site and look like the owner's.
+		$ctx->state->ref_set( $this->id(), 'new_tags', array_keys( array_filter( $this->hashtag_slugs() ) ) );
 		$steps = array( 'profiles:0', 'profiles:10', 'spaces' );
 		$n     = count( $this->content()['posts'] );
 		for ( $i = 0; $i < $n; $i += self::POSTS_PER_STEP ) {
@@ -687,14 +697,14 @@ final class BuddyNext extends Provider {
 			return;
 		}
 		$svc     = new \BuddyNext\Hashtags\HashtagService();
-		$tags    = $this->hashtag_slugs();
 		$indexer = new \BuddyNext\Hashtags\HashtagListener( $svc );
 		foreach ( Ledger::ids( $this->id(), 'post' ) as $pid ) {
 			$indexer->async_index_hashtags( 'post', (int) $pid, '' );
 		}
-		foreach ( $tags as $slug => $is_new ) {
-			$tag = $is_new ? $svc->get_by_slug( $slug ) : null;
-			if ( $tag && ! empty( $tag['id'] ) ) {
+		foreach ( (array) $ctx->state->ref( $this->id(), 'new_tags', array() ) as $slug ) {
+			$slug = (string) $slug;
+			$tag  = $svc->get_by_slug( $slug );
+			if ( $tag && ! empty( $tag['id'] ) && ! Ledger::has( $this->id(), 'hashtag', (int) $tag['id'] ) ) {
 				$ctx->record( $this->id(), 'hashtag', (int) $tag['id'], 'sample', array( 'slug' => $slug ) );
 			}
 		}
@@ -782,15 +792,13 @@ final class BuddyNext extends Provider {
 				return ! is_wp_error( $result ) || ! $svc->get( $id );
 			case 'media':
 				$repo = \BuddyNext\Media\MediaClient::available() ? \BuddyNext\Media\MediaClient::repo() : null;
-				if ( is_object( $repo ) && method_exists( $repo, 'delete_cascade' ) ) {
-					$repo->delete_cascade( $id );
+				if ( ! is_object( $repo ) || ! method_exists( $repo, 'delete_cascade' ) ) {
+					return false; // WPMediaVerse is off: the media waits for it.
 				}
-				return true;
+				$repo->delete_cascade( $id );
+				return ! method_exists( $repo, 'exists' ) || ! $repo->exists( $id );
 			case 'album':
-				if ( 'mvs_album' === get_post_type( $id ) ) {
-					wp_delete_post( $id, true );
-				}
-				return true;
+				return 'mvs_album' !== get_post_type( $id ) || self::delete_post( $id );
 			case 'space':
 				$svc   = new \BuddyNext\Spaces\SpaceService();
 				$space = $svc->get( $id );

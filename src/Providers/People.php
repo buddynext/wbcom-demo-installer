@@ -172,11 +172,20 @@ final class People extends Provider {
 		if ( ! get_user_meta( $user_id, self::FLAG, true ) ) {
 			return true;
 		}
-		if ( function_exists( 'buddynext_remove_member' ) ) {
-			return (bool) buddynext_remove_member( $user_id );
-		}
 		require_once ABSPATH . 'wp-admin/includes/user.php';
-		return wp_delete_user( $user_id );
+		// Anything still credited to the person after their sample content is gone is the owner's
+		// (written by the owner as them, or kept): give it to the admin running Finish, never delete it.
+		$owner = (int) get_current_user_id();
+		if ( ! is_multisite() ) {
+			// deleted_user still fires, so BuddyNext and the other products purge their own rows.
+			wp_delete_user( $user_id, $owner && $owner !== $user_id ? $owner : null );
+		} elseif ( function_exists( 'buddynext_remove_member' ) ) {
+			buddynext_remove_member( $user_id );
+		} else {
+			wp_delete_user( $user_id, $owner && $owner !== $user_id ? $owner : null );
+		}
+		clean_user_cache( $user_id );
+		return ! get_userdata( $user_id ) || ! is_user_member_of_blog( $user_id );
 	}
 
 	/**

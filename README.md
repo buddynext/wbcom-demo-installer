@@ -7,8 +7,8 @@ remove the samples and keep their setup.
   include, review the exact counts, build. One shared cast of 20 sample people is used across every product, dates
   are spread over recent weeks, and nothing is emailed.
 - **Finish demo**: keep your settings, pages, menus and structure, remove the sample people and content (or choose
-  per product, or remove everything and restore your previous home page and menu). A verify report confirms nothing
-  is left behind.
+  per product, or remove everything and restore your previous home page and menu). A verify report shows what was
+  removed, what you kept and anything still waiting.
 - Existing users and content are never changed.
 
 Supports the Wbcom product family (BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board,
@@ -25,6 +25,7 @@ wp wbcom-demo build --recipe=community [--include=buddynext,jetonomy] [--keep-lo
 wp wbcom-demo finish [--mode=keep|all] [--keep=learnomy:course] [--dry-run]
 wp wbcom-demo resume
 wp wbcom-demo verify
+wp wbcom-demo adopt
 ```
 
 ## License

@@ -1,6 +1,6 @@
 <?php
 /**
- * WP Career Board sample content: companies and jobs. Owners are roster indices (content/people.php).
+ * WP Career Board sample content: companies and jobs. Owners are roster indices (content/people.php). Company industry is one of WP Career Board's registered slugs (core/class-industries.php).
  *
  * @package WbcomDemo
  */
@@ -9,9 +9,9 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
 	'companies' => array(
-		array( 7, 'Roastworks', 'Coffee subscriptions for people who care about the bean', 'Food and drink', '11-50', 'Berlin, DE', 'https://roastworks.example' ),
-		array( 12, 'Paperplane Studio', 'A remote-first product studio for small brands', 'Design and software', '11-50', 'Lagos, NG', 'https://paperplane.example' ),
-		array( 15, 'Crumb', 'Ordering and stock software for independent bakeries', 'Software', '1-10', 'Kochi, IN', 'https://crumb.example' ),
+		array( 7, 'Roastworks', 'Coffee subscriptions for people who care about the bean', 'retail', '11-50', 'Berlin, DE', 'https://roastworks.example' ),
+		array( 12, 'Paperplane Studio', 'A remote-first product studio for small brands', 'design', '11-50', 'Lagos, NG', 'https://paperplane.example' ),
+		array( 15, 'Crumb', 'Ordering and stock software for independent bakeries', 'technology', '1-10', 'Kochi, IN', 'https://crumb.example' ),
 	),
 	'jobs'      => array(
 		array( 0, 'Backend Engineer (Go)', 'Engineering', 'Full-time', 'Berlin, DE', 'Mid Level', 65000, 85000, true, "We are rebuilding our subscription engine in Go and need a second backend engineer.\n\nYou will own billing and delivery scheduling, work closely with our two-person ops team, and help us choose what not to build.\n\nYou have shipped a Go service to production, you like boring reliable systems, and you write things down." ),

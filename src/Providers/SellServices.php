@@ -310,15 +310,9 @@ final class SellServices extends Provider {
 			case 'term':
 				return self::remove_unused_term( $id, 'wpss_service_category' );
 			case 'attachment':
-				if ( get_post( $id ) ) {
-					wp_delete_attachment( $id, true );
-				}
-				return true;
+				return self::delete_post( $id, true );
 			case 'service':
-				if ( get_post( $id ) ) {
-					wp_delete_post( $id, true );
-				}
-				return true;
+				return self::delete_post( $id );
 			case 'order':
 				// Orders are removed with the buyer (Sell Services cascades orders, reviews and wallet rows on user delete).
 				return true;

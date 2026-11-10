@@ -64,8 +64,8 @@ A demo tool that touches real content loses the customer's trust for good, so th
 | Person removal trashes owner content | A post the owner wrote, credited to a sample person, is trashed on Finish | `People::remove` reassigns to the admin running Finish |
 | Snapshot restore overwrites owner change | A setting the owner changed after the build is put back on Remove everything | `Snapshot::restore` compares normalised values strictly |
 | Live check misses real content | A site with real posts is treated as fresh once the default post is deleted | `live_signals()` counts posts and comments other than the install defaults by id |
-| Partial finish hands setup over too early | Remove everything later leaves course categories behind | Hand setup over only when no sample rows remain |
-| Rebuild after Keep duplicates menu | "Community menu 2" appears; kept categories leave the ledger | Reuse the kept menu; record reused terms as kept |
+| Partial finish hands setup over too early | Remove everything later leaves course categories behind | Keep tracking setup after Keep my setup; "Keep them as mine" hands it over (owner, 10 November) |
+| Rebuild after Keep duplicates menu | "Community menu 2" appears; kept categories leave the ledger | Never edit the owner's menu: the demo adds its own "Demo menu", explained on the Home page step (owner, 10 November) |
 
 ### 2. Tell the truth on screen (P1)
 

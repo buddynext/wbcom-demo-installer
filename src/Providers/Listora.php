@@ -274,6 +274,20 @@ final class Listora extends Provider {
 				$res = rest_do_request( $req );
 				if ( $res->is_error() ) {
 					$ctx->warn( $this->id(), 'review', $res->as_error() );
+					continue;
+				}
+				$data = (array) $res->get_data();
+				if ( 'pending' === ( $data['status'] ?? '' ) && ! empty( $data['id'] ) ) {
+					// Listora holds new reviews for moderation by default, which is right for real reviews. A demo
+					// listing with only pending reviews reads "No reviews yet", so the admin approves our own sample
+					// reviews through Listora's moderator route; the owner's moderation setting is not changed.
+					wp_set_current_user( $was );
+					$approve = new \WP_REST_Request( 'PUT', '/listora/v1/reviews/' . (int) $data['id'] );
+					$approve->set_param( 'status', 'approved' );
+					$done = rest_do_request( $approve );
+					if ( $done->is_error() ) {
+						$ctx->warn( $this->id(), 'review', $done->as_error() );
+					}
 				}
 			}
 		}
@@ -292,15 +306,9 @@ final class Listora extends Provider {
 			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
-		if ( get_post( $id ) ) {
-			wp_delete_post( $id, true );
-		}
-		return true;
+		return self::delete_post( $id );
 	}
 
 	/**

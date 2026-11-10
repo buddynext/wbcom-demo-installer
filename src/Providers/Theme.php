@@ -164,11 +164,11 @@ final class Theme extends Provider {
 		if ( ! $locations ) {
 			return;
 		}
-		$name = __( 'Community menu', 'wbcom-demo-installer' );
+		$name = __( 'Demo menu', 'wbcom-demo-installer' );
 		$i    = 2;
 		while ( wp_get_nav_menu_object( $name ) ) {
 			/* translators: %d: number */
-			$name = sprintf( __( 'Community menu %d', 'wbcom-demo-installer' ), $i++ );
+			$name = sprintf( __( 'Demo menu %d', 'wbcom-demo-installer' ), $i++ );
 		}
 		$menu_id = wp_create_nav_menu( $name );
 		if ( is_wp_error( $menu_id ) ) {
@@ -300,22 +300,16 @@ final class Theme extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
 		if ( 'menu' === $row->object_type ) {
 			if ( wp_get_nav_menu_object( $id ) ) {
 				wp_delete_nav_menu( $id );
 			}
-			return true;
+			return ! wp_get_nav_menu_object( $id );
 		}
 		if ( 'page' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_post( $id, true );
-			}
-			return true;
+			return self::delete_post( $id );
 		}
 		return true;
 	}

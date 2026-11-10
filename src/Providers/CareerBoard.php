@@ -326,18 +326,14 @@ final class CareerBoard extends Provider {
 			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
 		if ( get_post( $id ) ) {
 			// Career Board links a company to its HQ location term outside the post type's
 			// registered taxonomies, so wp_delete_post() leaves that link behind.
 			wp_delete_object_term_relationships( $id, array( 'wcb_location' ) );
-			wp_delete_post( $id, true );
 		}
-		return true;
+		return self::delete_post( $id );
 	}
 
 	/**
