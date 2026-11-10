@@ -25,7 +25,7 @@ way the wizard does, with `AS=1` running Action Scheduler between steps.
 | B5 | 10483372883 | Custom finish keeping Learnomy | PASS: "Everything you chose was removed. The items you kept are still tracked." |
 | B6 | 10483229501 | Learnomy off, Remove everything, Learnomy on, `resume` | PASS: 60 waiting, "Waiting for: Learnomy"; resume removes 60, nothing left |
 | B7 | 10483229454 | REST build with recipe=doesnotexist | PASS: HTTP 400 |
-| B8 | 10483229033 | Remove everything | PASS: report names BuddyNext, WPMediaVerse and Learnomy logs; "Nothing from the demo was left behind" with ledger 0 |
+| B8 | 10483229033 | Remove everything | PASS: report names the WPMediaVerse usage ledger and the Learnomy audit log; "Nothing from the demo was left behind" with ledger 0. Rows checked: WPMediaVerse 40 usage rows anonymised to user 0 and Learnomy 26 "access ended" audit rows, both kept on purpose by the products' privacy maps (accounting, security); BuddyNext 20 expired rate-limit counters, purged by `RateLimiter::purge_expired()`, so not named. No product card needed |
 | C1 | 10488092598 | Everything build | PASS: 18 of 18 reviews approved; `auto_approve` still off |
 | C2 | 10488805254 | Everything build | PASS: Crumb technology, Paperplane Studio design, Roastworks retail |
 | C3 | 10483334519 | Community build one step per request with Action Scheduler between steps | PASS: 38 of 38 hashtags recorded (was 0); 0 hashtag rows after Remove everything |

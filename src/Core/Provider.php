@@ -185,8 +185,9 @@ abstract class Provider {
 	public function handover( array $kept, int $owner_id ): void {}
 
 	/**
-	 * Records the product keeps about removed people on its own (logs, transactions), named in the finish
-	 * report. The installer never deletes product rows directly; empty when the product keeps none.
+	 * Records the product keeps on purpose after the demo is removed (an accounting ledger, a security
+	 * audit log), named in the finish report so the owner is not surprised. The installer never deletes
+	 * product rows directly; empty when the product keeps none.
 	 */
 	public function keeps_logs(): string {
 		return '';

@@ -25,5 +25,5 @@ When you are ready for real members, remove the sample content and keep everythi
 - What you keep stays tracked, so you can remove it later from the same screen. Once only settings, pages, menus and
   categories are left, choose **Keep them as mine** to end the demo; after that you can deactivate and delete the
   plugin.
-- Some products keep their own records about removed people (logs, transactions). The report names them; they are
-  not shown on the site.
+- WPMediaVerse keeps its usage ledger (an accounting record) and Learnomy keeps an audit log of the removal (a
+  security record), both with the sample people removed. The report names them; they are not shown on the site.

@@ -74,7 +74,7 @@ final class MediaVerse extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function keeps_logs(): string {
-		return __( 'WPMediaVerse keeps its own upload and transaction log for removed people.', 'wbcom-demo-installer' );
+		return __( 'WPMediaVerse keeps its usage ledger as an accounting record, with the sample people removed from it.', 'wbcom-demo-installer' );
 	}
 
 	/**

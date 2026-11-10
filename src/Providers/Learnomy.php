@@ -71,7 +71,7 @@ final class Learnomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function keeps_logs(): string {
-		return __( 'Learnomy keeps its own audit log for removed people.', 'wbcom-demo-installer' );
+		return __( 'Learnomy keeps an audit log of the removal as a security record, with the sample people removed from it.', 'wbcom-demo-installer' );
 	}
 
 	/**

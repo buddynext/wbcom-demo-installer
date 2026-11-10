@@ -74,13 +74,6 @@ final class BuddyNext extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
-	public function keeps_logs(): string {
-		return __( 'BuddyNext keeps its own rate-limit records for removed people.', 'wbcom-demo-installer' );
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function pro_label(): string {
 		return defined( 'BUDDYNEXTPRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-10T18:56:34+00:00\n"
+"POT-Creation-Date: 2026-11-10T21:12:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -202,10 +202,6 @@ msgid "Every active product, linked together"
 msgstr ""
 
 #: src/Providers/BuddyNext.php:78
-msgid "BuddyNext keeps its own rate-limit records for removed people."
-msgstr ""
-
-#: src/Providers/BuddyNext.php:85
 #: src/Providers/CareerBoard.php:75
 #: src/Providers/Eventonomy.php:74
 #: src/Providers/Jetonomy.php:77
@@ -219,49 +215,49 @@ msgid "Pro add-on active"
 msgstr ""
 
 #. translators: 1: spaces, 2: posts
-#: src/Providers/BuddyNext.php:95
+#: src/Providers/BuddyNext.php:88
 #, php-format
 msgid "Profiles for everyone, %1$d spaces, %2$d posts with comments, replies, mentions and reactions, follows, polls and direct messages"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:125
+#: src/Providers/BuddyNext.php:118
 msgid "space categories"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:126
+#: src/Providers/BuddyNext.php:119
 msgid "spaces"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:128
+#: src/Providers/BuddyNext.php:121
 msgid "feed posts, plus posts other products share to the feed"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:129
+#: src/Providers/BuddyNext.php:122
 #: src/Providers/MediaVerse.php:119
 msgid "photos"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:130
+#: src/Providers/BuddyNext.php:123
 msgid "space albums"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:131
+#: src/Providers/BuddyNext.php:124
 msgid "profile pictures"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:132
+#: src/Providers/BuddyNext.php:125
 msgid "hashtags"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:916
+#: src/Providers/BuddyNext.php:909
 msgid "Activity"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:917
+#: src/Providers/BuddyNext.php:910
 msgid "Members"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:918
+#: src/Providers/BuddyNext.php:911
 msgid "Spaces"
 msgstr ""
 
@@ -372,7 +368,7 @@ msgid "Forums"
 msgstr ""
 
 #: src/Providers/Learnomy.php:74
-msgid "Learnomy keeps its own audit log for removed people."
+msgid "Learnomy keeps an audit log of the removal as a security record, with the sample people removed from it."
 msgstr ""
 
 #. translators: 1: courses, 2: lessons
@@ -438,7 +434,7 @@ msgid "Open Movie Night"
 msgstr ""
 
 #: src/Providers/MediaVerse.php:77
-msgid "WPMediaVerse keeps its own upload and transaction log for removed people."
+msgid "WPMediaVerse keeps its usage ledger as an accounting record, with the sample people removed from it."
 msgstr ""
 
 #. translators: %d: photos
@@ -1167,7 +1163,7 @@ msgid "You changed your home page, menu or logo after the build, so we kept your
 msgstr ""
 
 #: assets/js/wizard.js:269
-msgid "These are product records, not sample content, and they are not shown on the site."
+msgid "These are records the products keep on purpose; they are not sample content and are not shown on the site."
 msgstr ""
 
 #: assets/js/wizard.js:270

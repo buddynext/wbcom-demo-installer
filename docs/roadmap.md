@@ -132,8 +132,8 @@ validation, a tagged `media/` manifest, site identity through `Snapshot`, chunki
 ### Product-side notes (for each product team, no change here)
 
 - Jetonomy Pro needs about 165 MB just to boot with all products active.
-- WPMediaVerse (`mvs_transactions`), Learnomy (`lrn_audit_log`) and BuddyNext (`bn_rate_limits`) keep rows for
-  deleted users.
+- Rows left after Remove everything are kept on purpose (checked 11 November): WPMediaVerse usage ledger anonymised
+  for accounting, Learnomy audit log for security, BuddyNext expired rate-limit counters purged by its housekeeping.
 
 ### Done means
 

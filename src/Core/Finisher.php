@@ -275,8 +275,8 @@ final class Finisher {
 	}
 
 	/**
-	 * Products that keep their own records about removed people (logs, transactions). The installer does not
-	 * touch product tables, so it names them; each product team owns the cleanup.
+	 * Products that keep records on purpose after the demo is removed (accounting ledger, audit log). The
+	 * installer does not touch product tables, so it names them.
 	 *
 	 * @return string[]
 	 */
