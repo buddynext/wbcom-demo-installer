@@ -30,6 +30,19 @@ way the wizard does, with `AS=1` running Action Scheduler between steps.
 | C2 | 10488805254 | Everything build | PASS: Crumb technology, Paperplane Studio design, Roastworks retail |
 | C3 | 10483334519 | Community build one step per request with Action Scheduler between steps | PASS: 38 of 38 hashtags recorded (was 0); 0 hashtag rows after Remove everything |
 
+## Themes
+
+The cases above ran on BuddyX 5.2.0 (release). They are theme-independent (engine, finish, ledger, providers). The
+theme-dependent cases ran again on BuddyX Pro 5.2.0 (release zip) and Reign from the `8.0.9` branch head `e89122c`
+(10 November 2026, header version 8.1.0-beta.2), with `themecase.sh` in the lab:
+
+| Case | BuddyX Pro 5.2.0 | Reign 8.0.9 branch e89122c |
+|---|---|---|
+| Everything build: home page, logo, site icon, Demo menu on every location | PASS: 565 items, 0 warnings, 0 errors, 4 locations | PASS: 564 items, 0 warnings, 0 errors, 4 locations |
+| Remove everything: theme state identical to before the build (front page, logo, icon, menu locations, menus) | PASS | PASS |
+| Owner changes the logo after the build, then Remove everything | PASS: owner logo kept, reported as kept | PASS: same |
+| Keep my setup, Keep them as mine, build again, Remove everything | PASS: second build adds "Demo menu 2"; owner's kept Demo menu, logo and home page come back on every location | PASS: same |
+
 ## Wizard states (rendered in Node from `assets/js/wizard.js`)
 
 | View | State | Shows |
