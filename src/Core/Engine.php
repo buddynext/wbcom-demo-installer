@@ -120,6 +120,7 @@ final class Engine {
 			'leftovers' => self::other_demos(),
 			'live'      => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
 			'people'    => count( People::roster() ),
+			'catalog'   => Installer::overview(),
 		);
 	}
 

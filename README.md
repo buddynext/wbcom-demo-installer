@@ -23,6 +23,7 @@ Requires WordPress 6.5+ and PHP 8.1+.
 wp wbcom-demo status
 wp wbcom-demo build --recipe=community [--include=buddynext,jetonomy] [--keep-look] [--dry-run]
 wp wbcom-demo finish [--mode=keep|all] [--keep=learnomy:course] [--dry-run]
+wp wbcom-demo install --all
 wp wbcom-demo resume
 wp wbcom-demo verify
 wp wbcom-demo adopt

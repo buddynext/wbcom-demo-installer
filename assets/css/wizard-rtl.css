@@ -213,6 +213,12 @@ html, body { margin: 0; }
 	.wdi-opt:hover { border-color: var(--wdi-accent-line); }
 }
 
+.wdi-install { margin-block-start: var(--wdi-space-lg); }
+.wdi-install__title { font-size: 13px; font-weight: 600; color: var(--wdi-text-2); margin: var(--wdi-space-md) 0 var(--wdi-space-sm); }
+.wdi-install .wdi-checks__ic input { width: 18px; height: 18px; accent-color: var(--wdi-accent); margin: 0; }
+.wdi-checks small.wdi-install__error { color: var(--wdi-danger); }
+.wdi-install__foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--wdi-space-sm); margin-block-start: var(--wdi-space-md); }
+
 @media (max-width: 1024px) {
 	.wdi-app { padding-block: var(--wdi-space-xl) 32px; }
 }
@@ -226,4 +232,5 @@ html, body { margin: 0; }
 	.wdi-split { grid-template-columns: minmax(0, 1fr); }
 	.wdi-choice { grid-template-columns: 22px minmax(0, 1fr); }
 	.wdi-choice__ic { display: none; }
+	.wdi-install__foot .wdi-btn { flex: 1 1 100%; }
 }

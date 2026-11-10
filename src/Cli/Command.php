@@ -9,6 +9,7 @@ namespace WbcomDemo\Cli;
 
 use WbcomDemo\Core\Engine;
 use WbcomDemo\Core\Finisher;
+use WbcomDemo\Core\Installer;
 use WbcomDemo\Core\Recipes;
 use WP_CLI;
 
@@ -79,16 +80,43 @@ final class Command {
 	 * [--yes]
 	 * : Build even though the site already has members or content (the demo is made for a fresh site).
 	 *
+	 * [--install-missing]
+	 * : First install and activate the free Wbcom products the starting point uses that are not active yet.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp wbcom-demo build --recipe=community
 	 *     wp wbcom-demo build --include=buddynext,jetonomy --keep-look
 	 *
-	 * @param array<int,string>    $args  Args.
-	 * @param array<string,string> $assoc Assoc args.
+	 * @param array<int,string>         $args  Args.
+	 * @param array<string,string|bool> $assoc Assoc args.
 	 */
 	public function build( $args, $assoc ): void {
 		$this->as_admin();
+		if ( isset( $assoc['install-missing'] ) ) {
+			$recipe = (string) ( $assoc['recipe'] ?? 'community' );
+			$all    = \WbcomDemo\Core\Recipes::all();
+			if ( ! isset( $all[ $recipe ] ) ) {
+				WP_CLI::error( sprintf( 'Unknown starting point "%s". Starting points: %s', $recipe, implode( ', ', array_keys( $all ) ) ) );
+			}
+			$want = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : array_merge( Installer::CORE, $all[ $recipe ]['use'], $all[ $recipe ]['needs'] );
+			$this->install_ids( array_values( array_unique( $want ) ) );
+			// New plugins boot on the next request, so the build runs in a fresh process.
+			unset( $assoc['install-missing'] );
+			$flags = '';
+			foreach ( $assoc as $k => $v ) {
+				// WP-CLI passes a bare flag as true.
+				$flags .= ! is_string( $v ) || '' === $v ? " --$k" : ' --' . $k . '=' . escapeshellarg( $v );
+			}
+			WP_CLI::runcommand(
+				'wbcom-demo build' . $flags,
+				array(
+					'launch'     => true,
+					'exit_error' => true,
+				)
+			);
+			return;
+		}
 		$recipes = Recipes::available();
 		if ( ! $recipes ) {
 			WP_CLI::error( 'No supported products are active.' );
@@ -247,6 +275,62 @@ final class Command {
 			return;
 		}
 		WP_CLI::success( 'Nothing from the demo was left behind.' );
+	}
+
+	/**
+	 * Install and activate free Wbcom products (and the free BuddyX theme) the same way the wizard does.
+	 *
+	 * Released versions only, from wbcomdesigns.com (the channel each plugin uses for its updates) or
+	 * WordPress.org. Pro add-ons need a licence and are not installed here.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [<ids>...]
+	 * : Product ids: buddynext, mediaverse, jetonomy, learnomy, eventonomy, careerboard, listora, sellservices,
+	 * mediashield, roadmap, gamification, or buddyx for the theme.
+	 *
+	 * [--all]
+	 * : Every free product in the list.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wbcom-demo install buddynext mediaverse jetonomy
+	 *     wp wbcom-demo install --all
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function install( $args, $assoc ): void {
+		$this->as_admin();
+		$ids = isset( $assoc['all'] ) ? array_values( array_diff( array_keys( Installer::catalog() ), array( 'buddyx' ) ) ) : array_map( 'sanitize_key', $args );
+		if ( ! $ids ) {
+			WP_CLI::error( 'Name the products to install, or pass --all.' );
+		}
+		$this->install_ids( $ids );
+	}
+
+	/**
+	 * Install and activate each id that is not active yet; stop on the first failure.
+	 *
+	 * @param string[] $ids Catalog ids.
+	 */
+	private function install_ids( array $ids ): void {
+		$states = array_column( Installer::overview(), 'state', 'id' );
+		foreach ( $ids as $id ) {
+			if ( ! isset( $states[ $id ] ) ) {
+				WP_CLI::error( sprintf( '"%s" is not a product this installer can add. Products: %s', $id, implode( ', ', array_keys( Installer::catalog() ) ) ) );
+			}
+			if ( 'active' === $states[ $id ] ) {
+				continue;
+			}
+			WP_CLI::log( sprintf( '%s %s...', 'inactive' === $states[ $id ] ? 'Activating' : 'Installing', $id ) );
+			$done = Installer::install( $id );
+			if ( is_wp_error( $done ) ) {
+				WP_CLI::error( sprintf( '%s: %s', $id, $done->get_error_message() ) );
+			}
+			WP_CLI::log( sprintf( '%s is active.', $id ) );
+		}
+		WP_CLI::success( 'Products are ready.' );
 	}
 
 	/**

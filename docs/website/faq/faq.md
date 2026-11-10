@@ -47,3 +47,8 @@ reuses the spaces and categories you kept, and adds its own Demo menu without ch
 
 It works with any theme. BuddyX, BuddyX Pro and Reign also get the community home page, menu, logo and product
 pages without sidebars.
+
+## Do I have to install every product first?
+
+No. The site check lists the free Wbcom products and installs and activates the ones you tick, using the same
+releases you get as updates. Pro add-ons need your licence, so install them from your account.

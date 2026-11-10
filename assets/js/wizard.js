@@ -31,6 +31,8 @@
 		ack: false,
 		error: '',
 		running: false,
+		pick: null, // Catalog ids ticked to install; filled from the site check.
+		installing: {}, // id => 'busy' | 'done' | error message.
 	};
 
 	const SETUP = [ __( 'Site check', 'wbcom-demo-installer' ), __( 'Starting point', 'wbcom-demo-installer' ), __( 'Products', 'wbcom-demo-installer' ), __( 'Home page', 'wbcom-demo-installer' ), __( 'Review', 'wbcom-demo-installer' ), __( 'Build', 'wbcom-demo-installer' ) ];
@@ -74,6 +76,66 @@
 
 	/* ---------- Set up ---------- */
 
+	// Wbcom products the wizard can install and activate (free only; Pro needs a licence and stays manual).
+	function installPanel() {
+		const cat = S.site.catalog || [];
+		if ( ! cat.length ) {
+			return '';
+		}
+		if ( ! S.pick ) {
+			// The community set is ticked by default when part of it is missing; extras are the owner's choice.
+			S.pick = new Set( cat.filter( ( c ) => c.core && 'active' !== c.state && c.can ).map( ( c ) => c.id ) );
+		}
+		const busy = Object.values( S.installing ).includes( 'busy' );
+		const label = { active: __( 'Active', 'wbcom-demo-installer' ), inactive: __( 'Installed, not active', 'wbcom-demo-installer' ), not_installed: __( 'Not installed', 'wbcom-demo-installer' ) };
+		const pro = { active: __( 'Pro add-on active', 'wbcom-demo-installer' ), inactive: __( 'Pro add-on installed, not active', 'wbcom-demo-installer' ), not_installed: __( 'Pro add-on needs a licence: install it from your account', 'wbcom-demo-installer' ) };
+		const row = ( c ) => {
+			const st = S.installing[ c.id ];
+			const badge = 'busy' === st
+				? `<span class="wdi-badge"><span class="wdi-spin" aria-hidden="true"></span>${ esc( 'inactive' === c.state ? __( 'Activating', 'wbcom-demo-installer' ) : __( 'Installing', 'wbcom-demo-installer' ) ) }</span>`
+				: `<span class="wdi-badge ${ 'active' === c.state ? 'wdi-badge--success' : 'inactive' === c.state ? 'wdi-badge--warning' : '' }">${ 'active' === c.state ? ic( 'check' ) : '' }${ esc( label[ c.state ] ) }</span>`;
+			const box = 'active' === c.state
+				? `<span class="wdi-checks__ic">${ ic( 'check' ) }</span>`
+				: `<span class="wdi-checks__ic"><input type="checkbox" data-pick="${ esc( c.id ) }" ${ S.pick.has( c.id ) ? 'checked' : '' } ${ c.can && ! busy ? '' : 'disabled' } aria-label="${ esc( sprintf( /* translators: %s: product name. */ __( 'Install %s', 'wbcom-demo-installer' ), c.label ) ) }"></span>`;
+			const note = [ 'theme' === c.type ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro ? pro[ c.pro ] : '', ! c.can && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
+			return `<li>${ box }<div>${ esc( c.label ) }${ note.map( ( n ) => `<small${ n === st ? ' class="wdi-install__error" role="alert"' : '' }>${ esc( n ) }</small>` ).join( '' ) }</div>${ badge }</li>`;
+		};
+		const group = ( title, rows ) => rows.length ? `<h2 class="wdi-install__title">${ esc( title ) }</h2><ul class="wdi-checks">${ rows.map( row ).join( '' ) }</ul>` : '';
+		const todo = cat.filter( ( c ) => S.pick.has( c.id ) && 'active' !== c.state );
+		return `<div class="wdi-install">
+			${ group( __( 'Community set, used by every starting point', 'wbcom-demo-installer' ), cat.filter( ( c ) => c.core ) ) }
+			${ group( __( 'Add more products', 'wbcom-demo-installer' ), cat.filter( ( c ) => ! c.core && 'plugin' === c.type ) ) }
+			${ group( __( 'Theme', 'wbcom-demo-installer' ), cat.filter( ( c ) => 'theme' === c.type ) ) }
+			<div class="wdi-install__foot"><span class="wdi-muted wdi-small">${ esc( __( 'Free versions from wbcomdesigns.com and WordPress.org, the same releases you get as updates.', 'wbcom-demo-installer' ) ) }</span><span class="wdi-spacer"></span><button type="button" class="wdi-btn" data-go="install" ${ todo.length && ! busy ? '' : 'disabled' }>${ esc( todo.length ? sprintf( /* translators: %d: number of products. */ _n( 'Install and activate %d product', 'Install and activate %d products', todo.length, 'wbcom-demo-installer' ), todo.length ) : __( 'Install selected', 'wbcom-demo-installer' ) ) }</button></div>
+		</div>`;
+	}
+
+	// One product per request: each activation runs in its own request and boots on the next one.
+	async function installPicked() {
+		const todo = ( S.site.catalog || [] ).filter( ( c ) => S.pick.has( c.id ) && 'active' !== c.state && c.can );
+		// The community set goes first so products that build on BuddyNext find it active.
+		todo.sort( ( a, b ) => ( b.core ? 1 : 0 ) - ( a.core ? 1 : 0 ) );
+		todo.forEach( ( c ) => ( S.installing[ c.id ] = 'busy' ) );
+		render();
+		for ( const c of todo ) {
+			try {
+				await api( '/install', { id: c.id } );
+				S.installing[ c.id ] = 'done';
+				S.pick.delete( c.id );
+			} catch ( e ) {
+				S.installing[ c.id ] = ( e && e.message ) || __( 'It could not be installed.', 'wbcom-demo-installer' );
+			}
+			// Re-read the site after each one, so the list and the starting points show what is active now.
+			try {
+				const res = await api( '/site' );
+				S.site = res.site;
+			} catch ( e ) {}
+			render();
+		}
+		S.recipe = '';
+		route();
+	}
+
 	function viewCheck() {
 		const s = S.site;
 		const supported = products().filter( ( p ) => p.supported );
@@ -85,11 +147,11 @@
 		];
 		const other = s.leftovers.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'Demo content from %s is still on this site. Remove it from that product first so the two demos do not mix.', 'wbcom-demo-installer' ), s.leftovers.join( ', ' ) ) ) }</div></div>` : '';
 		const live = s.live && s.live.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %s: what the site already has, e.g. "3 other members, 12 blog posts". */ __( 'This site already has %s.', 'wbcom-demo-installer' ), s.live.join( ', ' ) ) ) }</b> ${ esc( __( 'The demo is made for a fresh site you use to show or try the products. On a site people use, sample people appear next to your real members until you finish the demo. Use a staging copy or a fresh install.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
-		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( __( 'No supported Wbcom product is active yet. Activate one, then come back.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
+		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( __( 'No supported Wbcom product is active yet. Install the community set below to start.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ live }${ other }${ none }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ live }${ other }${ none }${ installPanel() }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
@@ -455,6 +517,8 @@
 				S.error = err.message;
 				render();
 			}
+		} else if ( 'install' === to ) {
+			installPicked();
 		} else if ( 'retry' === to ) {
 			S.stalled = false;
 			S.error = '';
@@ -495,7 +559,11 @@
 
 	app.addEventListener( 'change', ( e ) => {
 		const t = e.target;
-		if ( t.dataset.prod ) {
+		if ( t.dataset.pick ) {
+			t.checked ? S.pick.add( t.dataset.pick ) : S.pick.delete( t.dataset.pick );
+			render();
+			app.querySelector( `[data-pick="${ t.dataset.pick }"]` )?.focus();
+		} else if ( t.dataset.prod ) {
 			t.checked ? S.include.add( t.dataset.prod ) : S.include.delete( t.dataset.prod );
 			render();
 		} else if ( 'look' === t.name ) {

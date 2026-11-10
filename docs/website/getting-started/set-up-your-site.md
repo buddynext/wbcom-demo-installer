@@ -10,7 +10,8 @@ what your community will look like before your first real member joins.
 - Use a fresh site: a new install, a staging copy or a sandbox. The demo is made for showing and trying the
   products, not for a site people already use. If the site already has other members, blog posts or comments,
   the site check says so, and you have to confirm before the build starts.
-- Activate your theme (BuddyX, BuddyX Pro, Reign or any other theme) and the Wbcom products you want to try.
+- Activate your theme (BuddyX, BuddyX Pro, Reign or any other theme). The free Wbcom products can be installed from
+  the wizard itself; Pro add-ons are installed from your account as usual.
 - If a product shipped its own demo data earlier, remove it from that product first. The site check tells you.
 - You need to be a site administrator.
 
@@ -18,6 +19,10 @@ what your community will look like before your first real member joins.
 
 1. Go to **Appearance > Set up your site**.
 2. **Site check** shows your theme, the products that are ready, and your own users and posts, which are never changed.
+   Below it, **Wbcom products** lists every free product with its state. BuddyNext, WPMediaVerse and Jetonomy are the
+   community set every starting point uses, so they are ticked when one is missing. Tick any others you want and choose
+   **Install and activate**. When your theme is not a Wbcom theme, the free BuddyX theme is offered too (Finish demo
+   does not switch your theme back).
 3. **Starting point**: pick the closest match. Only starting points for products you have active are shown.
 4. **Products**: switch each product on or off. The bar at the bottom shows exactly what will be created.
 5. **Home page and menu**: use the community home page, menu and logo, or keep your own.

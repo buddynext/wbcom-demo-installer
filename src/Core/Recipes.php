@@ -20,6 +20,8 @@ final class Recipes {
 	 * @return array<string,array{name:string,desc:string,needs:string[],use:string[]}>
 	 */
 	public static function all(): array {
+		// BuddyNext, WPMediaVerse and Jetonomy are one set on every starting point (owner, 8 November 2026): a
+		// community without media and forums feels empty. Products that are not active are left out.
 		$recipes = array(
 			'community'  => array(
 				'name'  => __( 'Community', 'wbcom-demo-installer' ),
@@ -31,31 +33,31 @@ final class Recipes {
 				'name'  => __( 'Learning community', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Courses with a member community around them', 'wbcom-demo-installer' ),
 				'needs' => array( 'learnomy' ),
-				'use'   => array( 'buddynext', 'mediaverse', 'learnomy', 'mediashield', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'learnomy', 'mediashield', 'gamification' ),
 			),
 			'events'     => array(
 				'name'  => __( 'Events community', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Meetups, tickets and RSVPs for members', 'wbcom-demo-installer' ),
 				'needs' => array( 'eventonomy' ),
-				'use'   => array( 'buddynext', 'mediaverse', 'eventonomy', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'eventonomy', 'gamification' ),
 			),
 			'jobs'       => array(
 				'name'  => __( 'Job board community', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Employers, jobs and candidate profiles', 'wbcom-demo-installer' ),
 				'needs' => array( 'careerboard' ),
-				'use'   => array( 'buddynext', 'careerboard', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'careerboard', 'gamification' ),
 			),
 			'directory'  => array(
 				'name'  => __( 'Directory', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Listings with reviews, maps and favorites', 'wbcom-demo-installer' ),
 				'needs' => array( 'listora' ),
-				'use'   => array( 'buddynext', 'listora', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'listora', 'gamification' ),
 			),
 			'services'   => array(
 				'name'  => __( 'Services marketplace', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Freelancers selling services, with orders and reviews', 'wbcom-demo-installer' ),
 				'needs' => array( 'sellservices' ),
-				'use'   => array( 'buddynext', 'sellservices', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'sellservices', 'gamification' ),
 			),
 			'everything' => array(
 				'name'  => __( 'Everything I have', 'wbcom-demo-installer' ),

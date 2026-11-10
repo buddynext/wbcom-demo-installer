@@ -9,6 +9,7 @@ namespace WbcomDemo\Rest;
 
 use WbcomDemo\Core\Engine;
 use WbcomDemo\Core\Finisher;
+use WbcomDemo\Core\Installer;
 use WbcomDemo\Plugin;
 
 defined( 'ABSPATH' ) || exit;
@@ -118,6 +119,26 @@ final class Controller {
 				'methods'             => 'POST',
 				'permission_callback' => $auth,
 				'callback'            => static fn() => rest_ensure_response( Finisher::resume() ),
+			)
+		);
+		register_rest_route(
+			self::NS,
+			'/install',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'args'                => array(
+					'id' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_key',
+					),
+				),
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					// One product per request: its activation runs here, and it boots on the next request.
+					$done = Installer::install( (string) $r['id'] );
+					return is_wp_error( $done ) ? $done : rest_ensure_response( array( 'installed' => (string) $r['id'] ) );
+				},
 			)
 		);
 		register_rest_route(
