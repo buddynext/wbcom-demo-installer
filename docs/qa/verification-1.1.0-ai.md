@@ -24,3 +24,16 @@ Gates: PHPCS clean, PHPStan level 6 clean (the WordPress 7.0 AI client is newer 
 docs lint 0/0, POT regenerated.
 
 Not yet verified: browser check at 1440 and 390 in light and dark (Playwright browser held by another session).
+
+## Pages and blog (Wbcom Essential 4.7.0)
+
+| Case | Result |
+|---|---|
+| `wp wbcom-demo install pages` | PASS: Wbcom Essential 4.7.0 installed from the store with the preset key it ships, active |
+| Community build, curated text | PASS: 393 items; ledger equals plan (4 pages, 3 categories before the build, 4 posts, 5 images); pages are core blocks (image, paragraph, columns, quote, heading, details, buttons, latest posts) plus Wbcom Essential post carousel and category grid, all rendered; menu gains About, Blog, FAQ |
+| Remove everything | PASS: no pages, posts or categories of the demo left (Hello world and Uncategorized stay) |
+| AI build "Ledgerly" (customer community for an accounting app), REST path, one step per request | PASS: 58 steps in 4 min 15 s, no warnings; pages "About the Hub", "Join the Hub", Blog with release notes; posts and categories about Ledgerly |
+| Remove everything for that build | PASS: ledger 0, pages 0, posts 1 (Hello world), categories 1, hashtags 0, site name back |
+
+Static Wbcom Essential blocks (hero, feature grid, FAQ accordion) are not written: their saved HTML comes from the
+editor, and markup written on the server would be flagged as invalid when the owner opens the page.

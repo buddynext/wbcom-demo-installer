@@ -55,6 +55,8 @@ final class Installer {
 			'sellservices' => $store( 'WP Sell Services', 'wp-sell-services/wp-sell-services.php', 1660955, 'wbcomfree3c8a1f7e5d2b9a4c6e0f1d8b7a2c9e66', 'wp-sell-services-pro/wp-sell-services-pro.php' ),
 			'mediashield'  => $store( 'MediaShield', 'mediashield/mediashield.php', 1661218, 'mediasheild7c2a9e5d1f8b4c6a3e0d9b2f7c1a8e12', 'mediashield-pro/mediashield-pro.php' ),
 			'gamification' => $store( 'WB Gamification', 'wb-gamification/wb-gamification.php', 1662147, 'wbcomfree6e2a9c1d7b4f3c8a0e5d9b2f1a7c6e11' ),
+			// Free with Reign, BuddyX and BuddyX Pro; the preset key is the one it activates itself with.
+			'pages'        => $store( 'Wbcom Essential', 'wbcom-essential/loader.php', 1545975, '1cf3c1cf9ea987039b97194ae9c64755' ),
 			'roadmap'      => array(
 				'label'    => 'Product Roadmap',
 				'type'     => 'plugin',

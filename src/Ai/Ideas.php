@@ -76,7 +76,7 @@ final class Ideas {
 			. 'believable, specific site a real owner could launch: a clear audience, a name that sounds like a real '
 			. 'community or business (no "demo", "sample" or "test"), and highlights naming the actual spaces, courses, '
 			. 'events, listings, jobs or services it would have. BuddyNext, WPMediaVerse and Jetonomy are always part of '
-			. 'every idea. Make the three ideas clearly different from each other. No links, no prices unless asked, no '
+			. 'every idea, and Wbcom Essential adds its About, Join, FAQ and Blog pages and blog posts to every idea. Make the three ideas clearly different from each other. No links, no prices unless asked, no '
 			. 'emoji. Write every text value in the language given.';
 	}
 
@@ -210,8 +210,9 @@ final class Ideas {
 			if ( ! isset( $recipes[ $recipe ] ) || 'everything' === $recipe || '' === $name ) {
 				continue;
 			}
-			// The community set and the starting point's own product always come along.
-			$ids = array_merge( Installer::CORE, $recipes[ $recipe ]['needs'], array_map( 'strval', (array) ( $idea['products'] ?? array() ) ) );
+			// The community set, the pages and blog (a complete model site) and the starting point's own product
+			// always come along.
+			$ids = array_merge( Installer::CORE, array( 'pages' ), $recipes[ $recipe ]['needs'], array_map( 'strval', (array) ( $idea['products'] ?? array() ) ) );
 			$ids = array_values( array_unique( array_filter( $ids, static fn( $id ) => isset( $products[ $id ] ) ) ) );
 			if ( array_diff( $recipes[ $recipe ]['needs'], $ids ) ) {
 				continue; // Its main product can be neither found nor installed here.

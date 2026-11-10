@@ -39,11 +39,18 @@ tagline, starting point, the products it uses (missing free ones are installed f
 
 Pick one with **Use this idea**: the starting point, products, name and tagline are filled in, and the build writes
 the text of the demo for that site, in your site's language: people's bios, spaces, posts, discussions, courses,
-events, listings, jobs and services. Photos come from the installer's own library. A product whose text does not pass
+events, listings, jobs, services, and the About, Join, FAQ and Blog pages with their blog posts (Wbcom Essential). Photos come from the installer's own library. A product whose text does not pass
 the installer's checks uses the sample text instead, so a build never fails because of AI. The requests go through your
 connector and are billed to your account; Finish demo removes everything as usual.
 
 Without a connector, the site check shows a short card with a link to Settings > Connectors.
+
+## Pages and blog
+
+With Wbcom Essential active (it can be installed from the site check), the demo also adds About, Join, FAQ and Blog
+pages and four blog posts by the sample people, linked from the menu. The pages use standard WordPress blocks plus
+Wbcom Essential's post carousel and category grid, so you can edit them in the block editor like any other page. Keep
+my setup keeps the pages; the blog posts are sample content.
 
 ## What you get
 
