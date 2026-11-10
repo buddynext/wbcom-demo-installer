@@ -133,6 +133,26 @@ final class Controller {
 		);
 		register_rest_route(
 			self::NS,
+			'/ideas',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'args'                => array(
+					'description' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'maxLength'         => 600,
+						'sanitize_callback' => 'sanitize_textarea_field',
+					),
+				),
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					$ideas = \WbcomDemo\Ai\Ideas::suggest( (string) $r['description'] );
+					return is_wp_error( $ideas ) ? $ideas : rest_ensure_response( array( 'ideas' => $ideas ) );
+				},
+			)
+		);
+		register_rest_route(
+			self::NS,
 			'/install',
 			array(
 				'methods'             => 'POST',

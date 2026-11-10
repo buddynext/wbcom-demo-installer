@@ -122,6 +122,7 @@ final class Engine {
 			'people'    => count( People::roster() ),
 			'catalog'   => Installer::overview(),
 			'memory'    => self::memory(),
+			'ai'        => \WbcomDemo\Ai\Assistant::overview(),
 			'identity'  => array(
 				'name'    => (string) get_option( 'blogname' ),
 				'tagline' => (string) get_option( 'blogdescription' ),
