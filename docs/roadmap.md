@@ -53,7 +53,8 @@ Scope set by the owner on 10 November 2026: fix every confirmed bug, then make t
 customer needs with all its settings, from the wizard, WP-CLI or a described site (AI through WordPress core only).
 Replication evidence for every bug card: `docs/qa/replication-1.1.0.md`. Order below is by what a customer feels,
 not by where the code lives. Each group ships as one batch with its lab and browser checks.
-Implementation detail per item (cause, change, entry points, check): `docs/plans/1.1.0-plan.md`.
+Implementation detail per item (cause, change, entry points, check): `docs/plans/1.1.0-plan.md`. Current state and
+next steps: `docs/plans/1.1.0-handoff.md`.
 
 ### 1. Never hurt the owner's site (P1)
 

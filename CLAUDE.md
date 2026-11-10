@@ -33,7 +33,8 @@ same step engine.
 
 - `src/Core/` engine: `Engine` (build steps, status), `Finisher` (selection, removal order, verify),
   `Ledger`, `State`, `Context`, `Clock`, `QuietMode`, `Snapshot` (theme/options restore), `Registry`,
-  `Recipes`, `Provider` (contract).
+  `Recipes`, `Provider` (contract), `Installer` (free products and the BuddyX theme through the store's free-key
+  channel or WordPress.org).
 - `src/Providers/` one class per product, plus `People` (shared cast) and `Theme` (logo, front page,
   menu).
 - `src/Admin/` wizard page and notice; `src/Rest/Controller.php` routes under `wbcom-demo/v1`;
@@ -49,7 +50,7 @@ applied through `Snapshot` before its content so Remove everything restores them
 `wbcom_demo_register` action. Each step must finish well inside one request. Content lives in
 `content/<id>.php` and is read with `$this->content()` (filter `wbcom_demo_content`), never kept in the class.
 Third-party plugins are added the same way. Full guide: `docs/website/developer-guide/providers.md`; plan for
-Wave 2 and Wave 3: `docs/roadmap.md`.
+Wave 2 and Wave 3: `docs/roadmap.md`. Work in progress for 1.1.0: start at `docs/plans/1.1.0-handoff.md`.
 
 ## Checks before a release
 
