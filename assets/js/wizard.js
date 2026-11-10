@@ -147,11 +147,12 @@
 		];
 		const other = s.leftovers.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'Demo content from %s is still on this site. Remove it from that product first so the two demos do not mix.', 'wbcom-demo-installer' ), s.leftovers.join( ', ' ) ) ) }</div></div>` : '';
 		const live = s.live && s.live.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %s: what the site already has, e.g. "3 other members, 12 blog posts". */ __( 'This site already has %s.', 'wbcom-demo-installer' ), s.live.join( ', ' ) ) ) }</b> ${ esc( __( 'The demo is made for a fresh site you use to show or try the products. On a site people use, sample people appear next to your real members until you finish the demo. Use a staging copy or a fresh install.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
+		const mem = s.memory && s.memory.low ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %d: memory limit in MB. */ __( 'PHP memory is limited to %d MB.', 'wbcom-demo-installer' ), Math.round( s.memory.limit / 1048576 ) ) ) }</b> ${ esc( __( 'With all products active, WordPress needs about 165 MB before the demo adds anything, so a build step can stop. Ask your host to raise memory_limit to 256 MB, or add define( \'WP_MEMORY_LIMIT\', \'256M\' ); to wp-config.php.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( __( 'No supported Wbcom product is active yet. Install the community set below to start.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ live }${ other }${ none }${ installPanel() }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ installPanel() }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
@@ -204,6 +205,11 @@
 			__( 'Ready to build', 'wbcom-demo-installer' ),
 			__( 'This is what will be created.', 'wbcom-demo-installer' ),
 			`<div class="wdi-table-wrap"><table class="wdi-table"><thead><tr><th>${ esc( __( 'Product', 'wbcom-demo-installer' ) ) }</th><th>${ esc( __( 'Creates', 'wbcom-demo-installer' ) ) }</th></tr></thead><tbody>${ rows.join( '' ) }</tbody></table></div>
+			<div class="wdi-fields">
+				<label class="wdi-field"><span>${ esc( __( 'Site name', 'wbcom-demo-installer' ) ) }</span><input type="text" id="wdi-name" maxlength="80" value="${ esc( S.name ?? S.site.identity.name ) }"></label>
+				<label class="wdi-field"><span>${ esc( __( 'Tagline', 'wbcom-demo-installer' ) ) }</span><input type="text" id="wdi-tagline" maxlength="140" value="${ esc( S.tagline ?? S.site.identity.tagline ) }"></label>
+				<p class="wdi-muted wdi-small">${ esc( __( 'A new site name shows in the header in place of the sample logo. Remove everything puts your current name and tagline back.', 'wbcom-demo-installer' ) ) }</p>
+			</div>
 			<div class="wdi-assure"><div>${ ic( 'mail' ) }<span><b>${ esc( __( 'Nothing is emailed.', 'wbcom-demo-installer' ) ) }</b> ${ esc( __( 'Sample people never get mail, now or later.', 'wbcom-demo-installer' ) ) }</span></div><div>${ ic( 'shield' ) }<span><b>${ esc( __( 'Your own users and content', 'wbcom-demo-installer' ) ) }</b> ${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '(%1$s user, %2$s posts and pages) are not changed.', '(%1$s users, %2$s posts and pages) are not changed.', S.site.users, 'wbcom-demo-installer' ), fmt( S.site.users ), fmt( S.site.posts ) ) ) }</span></div><div>${ ic( 'clock' ) }<span><b>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( 'About %d minute.', 'About %d minutes.', Math.max( 1, Math.round( n / 300 ) ), 'wbcom-demo-installer' ), Math.max( 1, Math.round( n / 300 ) ) ) ) }</b> ${ esc( __( 'Dates are spread over the last two months.', 'wbcom-demo-installer' ) ) }</span></div></div>`,
 			( S.site.live && S.site.live.length ? `<label class="wdi-consent"><input type="checkbox" id="wdi-consent" ${ S.consent ? 'checked' : '' }> <span>${ esc( sprintf( /* translators: %s: what the site already has. */ __( 'This site already has %s. I understand the demo is made for a fresh site, and I want sample content added here.', 'wbcom-demo-installer' ), S.site.live.join( ', ' ) ) ) }</span></label>` : '' ) +
 			foot( 'look', 'build', { label: __( 'Build my demo', 'wbcom-demo-installer' ), disabled: S.site.live && S.site.live.length && ! S.consent } )
@@ -270,6 +276,15 @@
 			<details class="wdi-details"><summary>${ esc( __( 'What the demo added', 'wbcom-demo-installer' ) ) }</summary><ul>${ ledgerTiles() }</ul></details>
 			${ errors.length ? '' : problems }`,
 			`<div class="wdi-card__foot"><span class="wdi-spacer"></span><a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.home ) }">${ esc( __( 'Visit your site', 'wbcom-demo-installer' ) ) }${ ic( 'right' ) }</a></div>`
+		);
+	}
+
+	function viewNoData() {
+		return brand( __( 'Demo data', 'wbcom-demo-installer' ) ) + card(
+			__( 'No demo data on this site', 'wbcom-demo-installer' ),
+			__( 'The installer is not tracking any sample content or setup here. Your own users and content are never listed.', 'wbcom-demo-installer' ),
+			`<p class="wdi-muted">${ esc( __( 'When you build a demo, this screen lets you remove all of it or choose what to remove, at any time.', 'wbcom-demo-installer' ) ) }</p>`,
+			`<div class="wdi-card__foot"><a class="wdi-link wdi-small" href="${ esc( cfg.dashboard ) }">${ esc( __( 'Go to dashboard', 'wbcom-demo-installer' ) ) }</a><span class="wdi-spacer"></span><button type="button" class="wdi-btn wdi-btn--primary" data-go="check">${ esc( __( 'Set up a demo', 'wbcom-demo-installer' ) ) }${ ic( 'right' ) }</button></div>`
 		);
 	}
 
@@ -351,6 +366,7 @@
 			confirm: viewConfirm,
 			finishing: () => progressCard( __( 'Finish demo', 'wbcom-demo-installer' ), FINISH, 2, __( 'Removing sample content', 'wbcom-demo-installer' ) ),
 			report: viewReport,
+			nodata: viewNoData,
 		};
 		const focusKey = document.activeElement && ( document.activeElement.dataset.prod || document.activeElement.dataset.custom || ( document.activeElement.name && document.activeElement.name + ':' + document.activeElement.value ) );
 		app.innerHTML = ( S.error ? `<div class="wdi-callout wdi-callout--danger wdi-error" role="alert">${ ic( 'alert' ) }<div>${ esc( S.error ) }${ S.stalled ? ` <button type="button" class="wdi-btn" data-go="retry">${ esc( __( 'Try again', 'wbcom-demo-installer' ) ) }</button>` : '' }</div></div>` : '' ) + ( views[ S.view ] || viewCheck )();
@@ -442,7 +458,7 @@
 		} else if ( 'built' === st ) {
 			if ( 'finishing' === S.view && S.status.report && S.status.report.finished_at ) {
 				go( 'report' );
-			} else if ( 'finish' === cfg.view || [ 'finish', 'confirm' ].includes( S.view ) ) {
+			} else if ( [ 'finish', 'data' ].includes( cfg.view ) || [ 'finish', 'confirm' ].includes( S.view ) ) {
 				cfg.view = '';
 				openFinish();
 			} else {
@@ -454,6 +470,11 @@
 			if ( ! S.recipe ) {
 				S.recipe = S.site.recipes.community ? 'community' : Object.keys( S.site.recipes )[ 0 ] || '';
 				S.include = new Set( S.recipe ? S.site.recipes[ S.recipe ].use : [] );
+			}
+			if ( 'data' === cfg.view ) {
+				cfg.view = '';
+				go( 'nodata' ); // Tools > Demo data with nothing tracked.
+				return;
 			}
 			go( [ 'start', 'products', 'look', 'review' ].includes( S.view ) ? S.view : 'check' );
 		}
@@ -482,6 +503,14 @@
 		render();
 	}
 
+	app.addEventListener( 'input', ( e ) => {
+		if ( 'wdi-name' === e.target.id ) {
+			S.name = e.target.value;
+		} else if ( 'wdi-tagline' === e.target.id ) {
+			S.tagline = e.target.value;
+		}
+	} );
+
 	app.addEventListener( 'change', ( e ) => {
 		if ( 'wdi-consent' === e.target.id ) {
 			S.consent = e.target.checked;
@@ -509,7 +538,16 @@
 		if ( 'build' === to ) {
 			btn.disabled = true;
 			try {
-				S.status = await api( '/build', { recipe: S.recipe, include: [ ...S.include ], look: S.look, consent: !! S.consent } );
+				const id = S.site.identity;
+				S.status = await api( '/build', {
+					recipe: S.recipe,
+					include: [ ...S.include ],
+					look: S.look,
+					consent: !! S.consent,
+					// Only what the owner changed; the current name and tagline stay untouched.
+					name: undefined !== S.name && S.name.trim() !== id.name ? S.name.trim() : '',
+					tagline: undefined !== S.tagline && S.tagline.trim() !== id.tagline ? S.tagline.trim() : '',
+				} );
 				S.view = 'building';
 				render();
 				loop( [ 'building' ] );

@@ -26,7 +26,8 @@ what your community will look like before your first real member joins.
 3. **Starting point**: pick the closest match. Only starting points for products you have active are shown.
 4. **Products**: switch each product on or off. The bar at the bottom shows exactly what will be created.
 5. **Home page and menu**: use the community home page, menu and logo, or keep your own.
-6. **Review** the list and choose **Build my demo**.
+6. **Review** the list. You can type your own site name and tagline here: a new name shows in the header in place of
+   the sample logo, and Remove everything puts your current ones back. Then choose **Build my demo**.
 7. Wait for the progress bar. You can leave the page; the build continues where it stopped when you come back.
 
 ## What you get

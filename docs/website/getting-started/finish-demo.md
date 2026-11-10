@@ -4,7 +4,8 @@ title: Finish the demo
 
 When you are ready for real members, remove the sample content and keep everything you set up.
 
-1. Go to **Appearance > Set up your site** and choose **Finish demo**.
+1. Go to **Tools > Demo data** (or **Appearance > Set up your site** and choose **Finish demo**). The screen is
+   there whenever the demo left something on the site, also after an earlier finish.
 2. Choose what should stay:
    - **Keep my setup, remove sample content** (recommended): removes the sample people and everything they made, keeps settings, pages, menus, spaces, categories and plans.
    - **Let me choose**: tick what to remove for each product.

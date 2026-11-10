@@ -66,9 +66,19 @@ final class Controller {
 						'type'    => 'boolean',
 						'default' => false,
 					),
+					'name'    => array(
+						'type'              => 'string',
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'tagline' => array(
+						'type'              => 'string',
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 				),
 				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response(
-					Engine::start_build( (string) $r['recipe'], array_map( 'sanitize_key', (array) $r['include'] ), (string) $r['look'], (bool) $r['consent'] )
+					Engine::start_build( (string) $r['recipe'], array_map( 'sanitize_key', (array) $r['include'] ), (string) $r['look'], (bool) $r['consent'], (string) $r['name'], (string) $r['tagline'] )
 				),
 			)
 		);

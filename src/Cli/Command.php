@@ -80,6 +80,12 @@ final class Command {
 	 * [--yes]
 	 * : Build even though the site already has members or content (the demo is made for a fresh site).
 	 *
+	 * [--name=<name>]
+	 * : Site name to use (restored by Remove everything). The header shows it instead of the sample logo.
+	 *
+	 * [--tagline=<tagline>]
+	 * : Tagline to use (restored by Remove everything).
+	 *
 	 * [--install-missing]
 	 * : First install and activate the free Wbcom products the starting point uses that are not active yet.
 	 *
@@ -136,7 +142,11 @@ final class Command {
 			}
 			return;
 		}
-		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ) );
+		$memory = Engine::memory();
+		if ( $memory['low'] ) {
+			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. Run with WP_CLI_PHP_ARGS="-d memory_limit=512M" if a step stops.', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
+		}
+		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ), (string) ( $assoc['name'] ?? '' ), (string) ( $assoc['tagline'] ?? '' ) );
 		if ( is_wp_error( $status ) ) {
 			WP_CLI::error( $status->get_error_message() . ( 'wbcom_demo_live_site' === $status->get_error_code() ? ' Add --yes to build anyway.' : '' ) );
 		}

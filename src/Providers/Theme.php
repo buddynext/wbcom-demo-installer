@@ -113,7 +113,8 @@ final class Theme extends Provider {
 	 */
 	private function logo( Context $ctx ): void {
 		$admin = (int) get_current_user_id();
-		$logo  = $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
+		// The sample logo is a wordmark; an owner who typed their own site name sees that name in the header instead.
+		$logo = $ctx->state->get( 'own_name' ) ? 0 : $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
 		if ( $logo && current_theme_supports( 'custom-logo' ) ) {
 			Snapshot::write( 'theme_mod:custom_logo', $logo );
 			// The logo carries the name, so the site title beside it repeats it and crowds the menu. BuddyX shows

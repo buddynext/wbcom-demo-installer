@@ -7,7 +7,7 @@ Every wizard action is available from WP-CLI. Commands run as the first administ
 | Command | What it does |
 |---|---|
 | `wp wbcom-demo status` | Theme, supported products, starting points and the demo content on the site. |
-| `wp wbcom-demo build [--recipe=<id>] [--include=<ids>] [--keep-look] [--dry-run] [--install-missing]` | Build a demo. Recipes: community, learning, events, jobs, directory, services, everything. `--install-missing` first installs the free products the starting point uses, then builds. |
+| `wp wbcom-demo build [--recipe=<id>] [--include=<ids>] [--keep-look] [--dry-run] [--install-missing] [--name=<name>] [--tagline=<text>]` | Build a demo. Recipes: community, learning, events, jobs, directory, services, everything. `--install-missing` first installs the free products the starting point uses, then builds. `--name` and `--tagline` set the site name and tagline (restored by Remove everything). |
 | `wp wbcom-demo finish [--mode=keep\|all] [--keep=<provider:type,...>] [--dry-run]` | Finish the demo. `--keep` keeps the listed types (custom mode). |
 | `wp wbcom-demo install [<ids>...] [--all]` | Install and activate free Wbcom products (or `buddyx`, the free theme), the released versions from wbcomdesigns.com or WordPress.org. |
 | `wp wbcom-demo resume` | Continue a build or finish that stopped part way, or a finish that left items waiting for a product or failed. |

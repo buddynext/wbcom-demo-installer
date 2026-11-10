@@ -28,6 +28,7 @@ final class Page {
 		add_action( 'admin_menu', array( self::class, 'menu' ) );
 		add_action( 'admin_init', array( self::class, 'clear_redirects' ), 0 );
 		add_action( 'admin_init', array( self::class, 'takeover' ) );
+		add_action( 'admin_init', array( self::class, 'to_demo_data' ) );
 		add_action( 'admin_notices', array( self::class, 'notice' ) );
 		add_action( 'wp_ajax_wbcom_demo_dismiss', array( self::class, 'dismiss' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( WBCOM_DEMO_FILE ), array( self::class, 'links' ) );
@@ -57,6 +58,26 @@ final class Page {
 			self::SLUG,
 			'__return_null'
 		);
+		// A permanent way back to what the demo left, after the wizard is closed (card 10483387455).
+		add_management_page(
+			__( 'Demo data', 'wbcom-demo-installer' ),
+			__( 'Demo data', 'wbcom-demo-installer' ),
+			Plugin::CAP,
+			self::SLUG . '-data',
+			'__return_null'
+		);
+	}
+
+	/**
+	 * Tools > Demo data opens the wizard's Finish screen, where the owner chooses what to remove.
+	 */
+	public static function to_demo_data(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page routing.
+		if ( ! isset( $_GET['page'] ) || self::SLUG . '-data' !== $_GET['page'] || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
+			return;
+		}
+		wp_safe_redirect( self::url( 'data' ) );
+		exit;
 	}
 
 	/**
@@ -80,7 +101,7 @@ final class Page {
 	 */
 	public static function clear_redirects(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page routing.
-		if ( ! is_admin() || ! isset( $_GET['page'] ) || self::SLUG !== $_GET['page'] || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
+		if ( ! is_admin() || ! isset( $_GET['page'] ) || ! in_array( $_GET['page'], array( self::SLUG, self::SLUG . '-data' ), true ) || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
 			return;
 		}
 		$providers = did_action( 'admin_init' ) || doing_action( 'admin_init' ) ? \WbcomDemo\Core\Registry::all() : \WbcomDemo\Core\Registry::builtin_providers();

@@ -212,6 +212,11 @@ html, body { margin: 0; }
 	.wdi-opt:hover { border-color: var(--wdi-accent-line); }
 }
 
+.wdi-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--wdi-space-sm) var(--wdi-space-md); margin-block: var(--wdi-space-md); }
+.wdi-fields p { grid-column: 1 / -1; margin: 0; }
+.wdi-field { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--wdi-text-2); }
+.wdi-field input { min-height: 40px; padding: 0 10px; font: inherit; font-weight: 400; font-size: 14px; color: var(--wdi-text); background: var(--wdi-surface); border: 1px solid var(--wdi-border); border-radius: var(--wdi-r-md); }
+.wdi-field input:focus-visible { outline: 2px solid var(--wdi-accent); outline-offset: 1px; border-color: var(--wdi-accent); }
 .wdi-install { margin-block-start: var(--wdi-space-lg); }
 .wdi-install__title { font-size: 13px; font-weight: 600; color: var(--wdi-text-2); margin: var(--wdi-space-md) 0 var(--wdi-space-sm); }
 .wdi-install .wdi-checks__ic input { width: 18px; height: 18px; accent-color: var(--wdi-accent); margin: 0; }
@@ -232,4 +237,5 @@ html, body { margin: 0; }
 	.wdi-choice { grid-template-columns: 22px minmax(0, 1fr); }
 	.wdi-choice__ic { display: none; }
 	.wdi-install__foot .wdi-btn { flex: 1 1 100%; }
+	.wdi-fields { grid-template-columns: minmax(0, 1fr); }
 }

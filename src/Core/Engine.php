@@ -121,6 +121,27 @@ final class Engine {
 			'live'      => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
 			'people'    => count( People::roster() ),
 			'catalog'   => Installer::overview(),
+			'memory'    => self::memory(),
+			'identity'  => array(
+				'name'    => (string) get_option( 'blogname' ),
+				'tagline' => (string) get_option( 'blogdescription' ),
+			),
+		);
+	}
+
+	/**
+	 * PHP memory for the build. The wizard runs each step over REST, so this request's limit is the one the steps
+	 * get. With all products active WordPress itself needs about 165 MB before a step starts (card 10487106723),
+	 * so under 256 MB a step can stop the request.
+	 *
+	 * @return array{limit:int,used:int,low:bool}
+	 */
+	public static function memory(): array {
+		$limit = (int) wp_convert_hr_to_bytes( (string) ini_get( 'memory_limit' ) );
+		return array(
+			'limit' => $limit,
+			'used'  => (int) memory_get_peak_usage(),
+			'low'   => $limit > 0 && $limit < 256 * MB_IN_BYTES,
 		);
 	}
 
@@ -154,9 +175,11 @@ final class Engine {
 	 * @param string[] $products Provider ids.
 	 * @param string   $look    'demo' to set home page, menu and logo; 'keep' to leave them.
 	 * @param bool     $consent The admin confirmed a build on a site that already has members or content.
+	 * @param string   $name    Site name typed on Review; empty keeps the current one.
+	 * @param string   $tagline Tagline typed on Review; empty keeps the current one.
 	 * @return array<string,mixed>|\WP_Error Status.
 	 */
-	public static function start_build( string $recipe, array $products, string $look, bool $consent = false ) {
+	public static function start_build( string $recipe, array $products, string $look, bool $consent = false, string $name = '', string $tagline = '' ) {
 		$state = new State();
 		if ( State::IDLE !== $state->get( 'status' ) ) {
 			return new \WP_Error( 'wbcom_demo_exists', __( 'A demo is already on this site. Finish it before building another.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
@@ -191,6 +214,16 @@ final class Engine {
 			->set( 'people', array() )
 			->set( 'refs', array() );
 
+		// The owner's own name and tagline, through the snapshot so Remove everything puts the old ones back.
+		$name    = trim( sanitize_text_field( $name ) );
+		$tagline = trim( sanitize_text_field( $tagline ) );
+		if ( '' !== $name && get_option( 'blogname' ) !== $name ) {
+			Snapshot::write( 'blogname', $name );
+			$state->set( 'own_name', true ); // The theme shows this name instead of the sample logo.
+		}
+		if ( '' !== $tagline && get_option( 'blogdescription' ) !== $tagline ) {
+			Snapshot::write( 'blogdescription', $tagline );
+		}
 		$ctx   = new Context( $state );
 		$queue = array();
 		foreach ( Registry::all() as $id => $p ) {
