@@ -80,6 +80,13 @@ final class MediaVerse extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_skip_keys(): array {
+		return array( 'photos', 'tags' ); // Library photos: their titles describe the pictures.
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'MVS_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}

@@ -52,3 +52,9 @@ pages without sidebars.
 
 No. The site check lists the free Wbcom products and installs and activates the ones you tick, using the same
 releases you get as updates. Pro add-ons need your licence, so install them from your account.
+
+## Does it need an AI service?
+
+No. Without one everything works with the installer's sample content. With an AI connector set up in Settings >
+Connectors (WordPress 7.0 or later), you can describe your site and get three ideas; the one you pick is built with text
+written for it. The installer has no AI service or key of its own.

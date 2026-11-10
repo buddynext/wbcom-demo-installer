@@ -27,6 +27,32 @@ final class Engine {
 	private const LOCK = 'wbcom_demo_lock';
 
 	/**
+	 * Queue step prefix that writes one chunk of a provider's text with AI ("__ai:0").
+	 */
+	private const AI_STEP = '__ai:';
+
+	/**
+	 * The brief kept in the state, plain text only.
+	 *
+	 * @param array<string,mixed> $raw Idea and description from the wizard or WP-CLI.
+	 * @return array<string,mixed>
+	 */
+	private static function brief( array $raw ): array {
+		$text = static fn( $v, int $max ): string => mb_substr( trim( sanitize_text_field( is_scalar( $v ) ? (string) $v : '' ) ), 0, $max );
+		require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+		$all  = 'en_US' === get_locale() ? array() : wp_get_available_translations();
+		return array(
+			'description' => $text( $raw['description'] ?? '', 600 ),
+			'name'        => $text( $raw['name'] ?? '', 60 ),
+			'tagline'     => $text( $raw['tagline'] ?? '', 120 ),
+			'audience'    => $text( $raw['audience'] ?? '', 160 ),
+			'tone'        => $text( $raw['tone'] ?? '', 60 ),
+			'highlights'  => array_slice( array_filter( array_map( static fn( $h ) => $text( $h, 120 ), (array) ( $raw['highlights'] ?? array() ) ) ), 0, 6 ),
+			'language'    => (string) ( $all[ get_locale() ]['english_name'] ?? 'English' ),
+		);
+	}
+
+	/**
 	 * Signs that people already use this site: members other than the admin and sample people, blog posts
 	 * beyond "Hello world!", comments. The installer is made for a fresh demonstration site, so a build here
 	 * needs the admin's explicit consent.
@@ -107,23 +133,25 @@ final class Engine {
 			}
 		}
 		return array(
-			'links'     => $links,
-			'theme'     => array(
+			'links'       => $links,
+			'theme'       => array(
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
 				'adapter' => $theme_provider ? $theme_provider->label() : '',
 			),
-			'products'  => $products,
-			'recipes'   => Recipes::available(),
-			'users'     => (int) $users['total_users'] - count( (array) ( new State() )->get( 'people' ) ),
-			'posts'     => $posts,
-			'leftovers' => self::other_demos(),
-			'live'      => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
-			'people'    => count( People::roster() ),
-			'catalog'   => Installer::overview(),
-			'memory'    => self::memory(),
-			'ai'        => \WbcomDemo\Ai\Assistant::overview(),
-			'identity'  => array(
+			'products'    => $products,
+			'recipes'     => Recipes::available(),
+			'users'       => (int) $users['total_users'] - count( (array) ( new State() )->get( 'people' ) ),
+			'posts'       => $posts,
+			'leftovers'   => self::other_demos(),
+			'live'        => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
+			'people'      => count( People::roster() ),
+			'catalog'     => Installer::overview(),
+			'memory'      => self::memory(),
+			'ai'          => \WbcomDemo\Ai\Assistant::overview(),
+			// Names of every starting point, also those whose product is not installed yet (AI ideas name them).
+			'all_recipes' => array_map( static fn( array $r ): array => array( 'name' => $r['name'] ), Recipes::all() ),
+			'identity'    => array(
 				'name'    => (string) get_option( 'blogname' ),
 				'tagline' => (string) get_option( 'blogdescription' ),
 			),
@@ -172,15 +200,17 @@ final class Engine {
 	/**
 	 * Start a build.
 	 *
-	 * @param string   $recipe  Recipe id.
-	 * @param string[] $products Provider ids.
-	 * @param string   $look    'demo' to set home page, menu and logo; 'keep' to leave them.
-	 * @param bool     $consent The admin confirmed a build on a site that already has members or content.
-	 * @param string   $name    Site name typed on Review; empty keeps the current one.
-	 * @param string   $tagline Tagline typed on Review; empty keeps the current one.
+	 * @param string              $recipe  Recipe id.
+	 * @param string[]            $products Provider ids.
+	 * @param string              $look    'demo' to set home page, menu and logo; 'keep' to leave them.
+	 * @param bool                $consent The admin confirmed a build on a site that already has members or content.
+	 * @param string              $name    Site name typed on Review; empty keeps the current one.
+	 * @param string              $tagline Tagline typed on Review; empty keeps the current one.
+	 * @param array<string,mixed> $brief The AI idea the owner picked (description, name, tagline, audience,
+	 *                          tone, highlights); empty builds with the curated text.
 	 * @return array<string,mixed>|\WP_Error Status.
 	 */
-	public static function start_build( string $recipe, array $products, string $look, bool $consent = false, string $name = '', string $tagline = '' ) {
+	public static function start_build( string $recipe, array $products, string $look, bool $consent = false, string $name = '', string $tagline = '', array $brief = array() ) {
 		$state = new State();
 		if ( State::IDLE !== $state->get( 'status' ) ) {
 			return new \WP_Error( 'wbcom_demo_exists', __( 'A demo is already on this site. Finish it before building another.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
@@ -225,8 +255,20 @@ final class Engine {
 		if ( '' !== $tagline && get_option( 'blogdescription' ) !== $tagline ) {
 			Snapshot::write( 'blogdescription', $tagline );
 		}
+		$brief = $brief && \WbcomDemo\Ai\Assistant::available() ? self::brief( $brief ) : array();
+		$state->set( 'brief', $brief )->set( 'ai_maps', array() );
 		$ctx   = new Context( $state );
 		$queue = array();
+		if ( $brief ) {
+			// The text is written first, so every content step already reads it.
+			foreach ( Registry::all() as $id => $p ) {
+				if ( ( 'people' === $id || in_array( $id, $products, true ) ) && $p->available() ) {
+					for ( $n = 0, $chunks = \WbcomDemo\Ai\Pack::chunks( $id ); $n < $chunks; $n++ ) {
+						$queue[] = array( $id, self::AI_STEP . $n );
+					}
+				}
+			}
+		}
 		foreach ( Registry::all() as $id => $p ) {
 			if ( 'people' !== $id && 'theme' !== $id && ! in_array( $id, $products, true ) ) {
 				continue;
@@ -346,7 +388,15 @@ final class Engine {
 			)->save();
 			if ( $provider && ! in_array( $id, $failed, true ) ) {
 				try {
-					if ( self::SETTINGS_STEP === $step ) {
+					if ( str_starts_with( (string) $step, self::AI_STEP ) ) {
+						// AI never stops a build: a chunk that fails keeps the curated text and says so.
+						$why = \WbcomDemo\Ai\Pack::write( $provider, (int) substr( (string) $step, strlen( self::AI_STEP ) ), $state );
+						if ( '' !== $why ) {
+							$warnings   = (array) $state->get( 'warnings' );
+							$warnings[] = sprintf( '%s: %s', $provider->label(), $why );
+							$state->set( 'warnings', array_values( array_unique( $warnings ) ) );
+						}
+					} elseif ( self::SETTINGS_STEP === $step ) {
 						self::apply_settings( $provider );
 					} else {
 						$provider->run( $step, $ctx );
@@ -385,6 +435,10 @@ final class Engine {
 		if ( $next ) {
 			$p     = Registry::get( $next[0] );
 			$label = $p ? $p->label() : $next[0];
+			if ( str_starts_with( (string) $next[1], self::AI_STEP ) ) {
+				/* translators: %s: product name. */
+				$label = sprintf( __( 'the text for %s', 'wbcom-demo-installer' ), $label );
+			}
 		}
 		$counts = array();
 		foreach ( Ledger::counts() as $row ) {

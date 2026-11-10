@@ -71,6 +71,15 @@ final class CareerBoard extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_keep(): array {
+		// Job type and experience level: the provider branches on "Contract", and they read as fixed labels.
+		$jobs = (array) ( $this->content()['jobs'] ?? array() );
+		return array_values( array_unique( array_merge( array_column( $jobs, 3 ), array_column( $jobs, 5 ) ) ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'WCBP_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}

@@ -32,6 +32,10 @@
 		error: '',
 		running: false,
 		pick: null, // Catalog ids ticked to install; filled from the site check.
+		describe: '', // The owner's sentence for the AI.
+		ideas: null, // Ideas the AI suggested.
+		brief: null, // The idea the owner picked; the build writes its text from it.
+		thinking: false,
 		installing: {}, // id => 'busy' | 'done' | error message.
 	};
 
@@ -75,6 +79,59 @@
 	}
 
 	/* ---------- Set up ---------- */
+
+	const SPARK = '<svg class="wdi-i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+
+	// AI through WordPress core connectors: describe the site and get three ideas, or a pointer to Connectors.
+	function aiPanel() {
+		const ai = S.site.ai || {};
+		if ( ! ai.available ) {
+			return ai.url && ai.manage ? `<div class="wdi-ai wdi-ai--connect"><span class="wdi-ai__ic">${ SPARK }</span><div><b>${ esc( __( 'Describe your site in your own words', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'Connect Anthropic, Google or OpenAI in Settings > Connectors with your own key. Then write one sentence about your site and get three ready ideas to build from.', 'wbcom-demo-installer' ) ) }</span><a class="wdi-link" href="${ esc( ai.url ) }">${ esc( __( 'Open Settings > Connectors', 'wbcom-demo-installer' ) ) }</a></div></div>` : '';
+		}
+		const tries = [ __( 'A yoga studio with weekly classes, an online beginners course and a members forum', 'wbcom-demo-installer' ), __( 'A directory of local farmers and food stalls with reviews and weekend market days', 'wbcom-demo-installer' ), __( 'A customer community for our app with support forums, tutorials and a public roadmap', 'wbcom-demo-installer' ) ];
+		return `<div class="wdi-ai">
+			<div class="wdi-ai__head"><b>${ esc( __( 'Describe your site', 'wbcom-demo-installer' ) ) }</b></div>
+			<label for="wdi-describe" class="wdi-muted wdi-small">${ esc( __( 'Who is it for and what do people do there? One or two sentences is enough.', 'wbcom-demo-installer' ) ) }</label>
+			<textarea id="wdi-describe" class="wdi-ai__text" rows="3" maxlength="600">${ esc( S.describe ) }</textarea>
+			<div class="wdi-ai__tries"><span class="wdi-muted wdi-small">${ esc( __( 'Try:', 'wbcom-demo-installer' ) ) }</span>${ tries.map( ( t, i ) => `<button type="button" class="wdi-chip" data-try="${ i }">${ esc( t ) }</button>` ).join( '' ) }</div>
+			<div class="wdi-ai__foot"><span class="wdi-muted wdi-small">${ esc( sprintf( /* translators: %s: AI connector names, e.g. "Anthropic". */ __( 'Your description, your site language and the list of Wbcom products are sent through your AI connector (%s). Nothing is built yet.', 'wbcom-demo-installer' ), ( ai.connectors || [] ).join( ', ' ) ) ) }</span><button type="button" class="wdi-btn wdi-btn--primary" data-go="ideas" ${ S.thinking ? 'disabled' : '' }>${ S.thinking ? `<span class="wdi-spin" aria-hidden="true"></span>${ esc( __( 'Thinking of ideas…', 'wbcom-demo-installer' ) ) }` : SPARK + esc( __( 'Suggest 3 site ideas', 'wbcom-demo-installer' ) ) }</button></div>
+		</div>`;
+	}
+
+	function viewIdeas() {
+		const names = Object.fromEntries( ( S.site.catalog || [] ).map( ( c ) => [ c.id, c.label ] ) );
+		const recipes = S.site.all_recipes || S.site.recipes;
+		const label = ( id ) => names[ id ] || ( S.site.products.find( ( p ) => p.id === id ) || {} ).label || id;
+		const cards = ( S.ideas || [] ).map( ( idea, i ) => `<article class="wdi-idea">
+			<div class="wdi-idea__head"><div><h2>${ esc( idea.name ) }</h2><p class="wdi-muted">${ esc( idea.tagline ) }</p></div><span class="wdi-badge wdi-badge--accent">${ esc( ( recipes[ idea.recipe ] || {} ).name || idea.recipe ) }</span></div>
+			<div class="wdi-idea__prods">${ idea.products.map( ( id ) => `<span class="wdi-idea__p">${ esc( label( id ) ) }${ idea.missing.includes( id ) ? ` <i>${ esc( __( 'will install', 'wbcom-demo-installer' ) ) }</i>` : '' }</span>` ).join( '' ) }</div>
+			<div class="wdi-idea__cols"><div><h3>${ esc( __( 'Your site will have', 'wbcom-demo-installer' ) ) }</h3><ul>${ idea.highlights.map( ( h ) => `<li>${ esc( h ) }</li>` ).join( '' ) }</ul></div><div><h3>${ esc( __( 'Why these products', 'wbcom-demo-installer' ) ) }</h3><ul>${ Object.entries( idea.why ).map( ( [ id, w ] ) => `<li><b>${ esc( label( id ) ) }:</b> ${ esc( w ) }</li>` ).join( '' ) }</ul></div></div>
+			<div class="wdi-idea__foot"><span class="wdi-muted wdi-small">${ esc( idea.audience ) }</span><span class="wdi-spacer"></span><button type="button" class="wdi-btn ${ 0 === i ? 'wdi-btn--primary' : '' }" data-idea="${ i }">${ esc( __( 'Use this idea', 'wbcom-demo-installer' ) ) }</button></div>
+		</article>` ).join( '' );
+		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
+			__( 'Three sites you could launch', 'wbcom-demo-installer' ),
+			sprintf( /* translators: %s: the owner's description. */ __( 'For "%s"', 'wbcom-demo-installer' ), S.describe ),
+			`<div class="wdi-ideas">${ cards }</div>`,
+			`<div class="wdi-card__foot"><button type="button" class="wdi-link wdi-small" data-go="check">${ esc( __( 'Change the description', 'wbcom-demo-installer' ) ) }</button><button type="button" class="wdi-link wdi-small" data-go="ideas">${ esc( __( 'Suggest 3 more', 'wbcom-demo-installer' ) ) }</button><span class="wdi-spacer"></span><button type="button" class="wdi-btn" data-go="start">${ esc( __( 'Choose a starting point myself', 'wbcom-demo-installer' ) ) }</button></div>`
+		);
+	}
+
+	// The picked idea fills the wizard: starting point, products, name and tagline; missing products are ticked to install.
+	function applyIdea( idea ) {
+		S.brief = Object.assign( { description: S.describe }, idea );
+		S.name = idea.name;
+		S.tagline = idea.tagline;
+		const active = products().map( ( p ) => p.id );
+		S.include = new Set( idea.products.filter( ( id ) => active.includes( id ) ) );
+		S.recipe = S.site.recipes[ idea.recipe ] ? idea.recipe : S.recipe;
+		const missing = idea.products.filter( ( id ) => ! active.includes( id ) );
+		if ( missing.length ) {
+			S.pick = new Set( missing );
+			go( 'check' );
+			return;
+		}
+		go( 'start' );
+	}
 
 	// Wbcom products the wizard can install and activate (free only; Pro needs a licence and stays manual).
 	function installPanel() {
@@ -134,6 +191,18 @@
 		}
 		S.recipe = '';
 		route();
+		if ( S.brief ) {
+			applyIdea( S.brief ); // The idea's products are active now: fill the wizard from it again.
+		}
+	}
+
+	function ideaBanner() {
+		if ( ! S.brief ) {
+			return '';
+		}
+		const active = products().map( ( p ) => p.id );
+		const missing = S.brief.products.filter( ( id ) => ! active.includes( id ) );
+		return `<div class="wdi-callout wdi-callout--success">${ ic( 'check' ) }<div><b>${ esc( S.brief.name ) }</b>: ${ esc( missing.length ? sprintf( /* translators: %d: number of products. */ _n( 'this idea needs %d more product. It is ticked below: install it, then continue.', 'this idea needs %d more products. They are ticked below: install them, then continue.', missing.length, 'wbcom-demo-installer' ), missing.length ) : __( 'everything this idea needs is active. Continue to see the starting point, products and Review filled in.', 'wbcom-demo-installer' ) ) } <button type="button" class="wdi-link" data-go="forget-idea">${ esc( __( 'Use no idea', 'wbcom-demo-installer' ) ) }</button></div></div>`;
 	}
 
 	function viewCheck() {
@@ -152,7 +221,7 @@
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ installPanel() }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ ideaBanner() }${ S.brief ? '' : aiPanel() }${ installPanel() }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
@@ -210,6 +279,7 @@
 				<label class="wdi-field"><span>${ esc( __( 'Tagline', 'wbcom-demo-installer' ) ) }</span><input type="text" id="wdi-tagline" maxlength="140" value="${ esc( S.tagline ?? S.site.identity.tagline ) }"></label>
 				<p class="wdi-muted wdi-small">${ esc( __( 'A new site name shows in the header in place of the sample logo. Remove everything puts your current name and tagline back.', 'wbcom-demo-installer' ) ) }</p>
 			</div>
+			${ S.brief ? `<div class="wdi-callout wdi-callout--info">${ SPARK }<div>${ esc( sprintf( /* translators: 1: site name, 2: AI connector names. */ __( 'The text for %1$s (people, spaces, posts, discussions, courses, events and more) is written by your AI connector (%2$s), with one request per product or so, billed to your own account. A product whose text does not pass our check uses the sample text instead, and the build carries on. Photos come from the installer\'s library.', 'wbcom-demo-installer' ), S.brief.name, ( S.site.ai.connectors || [] ).join( ', ' ) ) ) }</div></div>` : '' }
 			<div class="wdi-assure"><div>${ ic( 'mail' ) }<span><b>${ esc( __( 'Nothing is emailed.', 'wbcom-demo-installer' ) ) }</b> ${ esc( __( 'Sample people never get mail, now or later.', 'wbcom-demo-installer' ) ) }</span></div><div>${ ic( 'shield' ) }<span><b>${ esc( __( 'Your own users and content', 'wbcom-demo-installer' ) ) }</b> ${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '(%1$s user, %2$s posts and pages) are not changed.', '(%1$s users, %2$s posts and pages) are not changed.', S.site.users, 'wbcom-demo-installer' ), fmt( S.site.users ), fmt( S.site.posts ) ) ) }</span></div><div>${ ic( 'clock' ) }<span><b>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( 'About %d minute.', 'About %d minutes.', Math.max( 1, Math.round( n / 300 ) ), 'wbcom-demo-installer' ), Math.max( 1, Math.round( n / 300 ) ) ) ) }</b> ${ esc( __( 'Dates are spread over the last two months.', 'wbcom-demo-installer' ) ) }</span></div></div>`,
 			( S.site.live && S.site.live.length ? `<label class="wdi-consent"><input type="checkbox" id="wdi-consent" ${ S.consent ? 'checked' : '' }> <span>${ esc( sprintf( /* translators: %s: what the site already has. */ __( 'This site already has %s. I understand the demo is made for a fresh site, and I want sample content added here.', 'wbcom-demo-installer' ), S.site.live.join( ', ' ) ) ) }</span></label>` : '' ) +
 			foot( 'look', 'build', { label: __( 'Build my demo', 'wbcom-demo-installer' ), disabled: S.site.live && S.site.live.length && ! S.consent } )
@@ -367,6 +437,7 @@
 			finishing: () => progressCard( __( 'Finish demo', 'wbcom-demo-installer' ), FINISH, 2, __( 'Removing sample content', 'wbcom-demo-installer' ) ),
 			report: viewReport,
 			nodata: viewNoData,
+			ideas: viewIdeas,
 		};
 		const focusKey = document.activeElement && ( document.activeElement.dataset.prod || document.activeElement.dataset.custom || ( document.activeElement.name && document.activeElement.name + ':' + document.activeElement.value ) );
 		app.innerHTML = ( S.error ? `<div class="wdi-callout wdi-callout--danger wdi-error" role="alert">${ ic( 'alert' ) }<div>${ esc( S.error ) }${ S.stalled ? ` <button type="button" class="wdi-btn" data-go="retry">${ esc( __( 'Try again', 'wbcom-demo-installer' ) ) }</button>` : '' }</div></div>` : '' ) + ( views[ S.view ] || viewCheck )();
@@ -504,7 +575,9 @@
 	}
 
 	app.addEventListener( 'input', ( e ) => {
-		if ( 'wdi-name' === e.target.id ) {
+		if ( 'wdi-describe' === e.target.id ) {
+			S.describe = e.target.value;
+		} else if ( 'wdi-name' === e.target.id ) {
 			S.name = e.target.value;
 		} else if ( 'wdi-tagline' === e.target.id ) {
 			S.tagline = e.target.value;
@@ -530,6 +603,18 @@
 			app.querySelector( `[data-recipe="${ S.recipe }"]` ).focus();
 			return;
 		}
+		const idea = e.target.closest( '[data-idea]' );
+		if ( idea ) {
+			applyIdea( S.ideas[ Number( idea.dataset.idea ) ] );
+			return;
+		}
+		const tryChip = e.target.closest( '[data-try]' );
+		if ( tryChip ) {
+			S.describe = tryChip.textContent;
+			render();
+			app.querySelector( '#wdi-describe' )?.focus();
+			return;
+		}
 		const btn = e.target.closest( '[data-go]' );
 		if ( ! btn || btn.disabled ) {
 			return;
@@ -547,6 +632,7 @@
 					// Only what the owner changed; the current name and tagline stay untouched.
 					name: undefined !== S.name && S.name.trim() !== id.name ? S.name.trim() : '',
 					tagline: undefined !== S.tagline && S.tagline.trim() !== id.tagline ? S.tagline.trim() : '',
+					brief: S.brief || {},
 				} );
 				S.view = 'building';
 				render();
@@ -555,6 +641,27 @@
 				S.error = err.message;
 				render();
 			}
+		} else if ( 'ideas' === to ) {
+			S.describe = ( app.querySelector( '#wdi-describe' ) || {} ).value ?? S.describe;
+			S.thinking = true;
+			S.error = '';
+			render();
+			try {
+				const res = await api( '/ideas', { description: S.describe } );
+				S.ideas = res.ideas;
+				S.thinking = false;
+				go( 'ideas' );
+			} catch ( err ) {
+				S.thinking = false;
+				S.error = err.message;
+				S.view = 'check';
+				render();
+			}
+		} else if ( 'forget-idea' === to ) {
+			S.brief = null;
+			S.name = undefined;
+			S.tagline = undefined;
+			render();
 		} else if ( 'install' === to ) {
 			installPicked();
 		} else if ( 'retry' === to ) {

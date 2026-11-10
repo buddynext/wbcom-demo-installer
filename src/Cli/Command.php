@@ -86,6 +86,19 @@ final class Command {
 	 * [--tagline=<tagline>]
 	 * : Tagline to use (restored by Remove everything).
 	 *
+	 * [--describe=<text>]
+	 * : Describe the site in a sentence: the AI connector set up in Settings > Connectors suggests ideas, the build
+	 * uses one (see --idea), installs what it needs and writes the text for it.
+	 *
+	 * [--idea=<n>]
+	 * : Which suggested idea to build with --describe (1 to 3).
+	 * ---
+	 * default: 1
+	 * ---
+	 *
+	 * [--brief=<json>]
+	 * : Internal: the picked idea as JSON, passed on by --describe.
+	 *
 	 * [--install-missing]
 	 * : First install and activate the free Wbcom products the starting point uses that are not active yet.
 	 *
@@ -99,6 +112,28 @@ final class Command {
 	 */
 	public function build( $args, $assoc ): void {
 		$this->as_admin();
+		if ( isset( $assoc['describe'] ) ) {
+			$ideas = \WbcomDemo\Ai\Ideas::suggest( (string) $assoc['describe'] );
+			if ( is_wp_error( $ideas ) ) {
+				WP_CLI::error( $ideas->get_error_message() );
+			}
+			$pick = $ideas[ max( 0, (int) ( $assoc['idea'] ?? 1 ) - 1 ) ] ?? $ideas[0];
+			WP_CLI::log( sprintf( 'Building "%s" (%s): %s', $pick['name'], $pick['recipe'], $pick['tagline'] ) );
+			$this->install_ids( $pick['products'] );
+			// New plugins boot on the next request, and the brief travels as JSON to the build in a fresh process.
+			$flags = sprintf( ' --recipe=%s --include=%s --name=%s --tagline=%s --brief=%s', $pick['recipe'], implode( ',', $pick['products'] ), escapeshellarg( $pick['name'] ), escapeshellarg( $pick['tagline'] ), escapeshellarg( (string) wp_json_encode( $pick + array( 'description' => (string) $assoc['describe'] ) ) ) );
+			foreach ( array( 'yes', 'keep-look' ) as $flag ) {
+				$flags .= isset( $assoc[ $flag ] ) ? ' --' . $flag : '';
+			}
+			WP_CLI::runcommand(
+				'wbcom-demo build' . $flags,
+				array(
+					'launch'     => true,
+					'exit_error' => true,
+				)
+			);
+			return;
+		}
 		if ( isset( $assoc['install-missing'] ) ) {
 			$recipe = (string) ( $assoc['recipe'] ?? 'community' );
 			$all    = \WbcomDemo\Core\Recipes::all();
@@ -146,7 +181,7 @@ final class Command {
 		if ( $memory['low'] ) {
 			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. Run with WP_CLI_PHP_ARGS="-d memory_limit=512M" if a step stops.', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
 		}
-		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ), (string) ( $assoc['name'] ?? '' ), (string) ( $assoc['tagline'] ?? '' ) );
+		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ), (string) ( $assoc['name'] ?? '' ), (string) ( $assoc['tagline'] ?? '' ), (array) json_decode( (string) ( $assoc['brief'] ?? '' ), true ) );
 		if ( is_wp_error( $status ) ) {
 			WP_CLI::error( $status->get_error_message() . ( 'wbcom_demo_live_site' === $status->get_error_code() ? ' Add --yes to build anyway.' : '' ) );
 		}
@@ -285,6 +320,47 @@ final class Command {
 			return;
 		}
 		WP_CLI::success( 'Nothing from the demo was left behind.' );
+	}
+
+	/**
+	 * Suggest three site ideas from a description, with the AI connector set up in Settings > Connectors.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <description>
+	 * : The site in a sentence or two: who it is for and what people do there.
+	 *
+	 * [--format=<format>]
+	 * : table or json.
+	 * ---
+	 * default: table
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wbcom-demo ideas "A yoga studio with weekly classes and a members forum"
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function ideas( $args, $assoc ): void {
+		$this->as_admin();
+		$ideas = \WbcomDemo\Ai\Ideas::suggest( (string) ( $args[0] ?? '' ) );
+		if ( is_wp_error( $ideas ) ) {
+			WP_CLI::error( $ideas->get_error_message() );
+		}
+		if ( 'json' === ( $assoc['format'] ?? '' ) ) {
+			WP_CLI::line( (string) wp_json_encode( $ideas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
+			return;
+		}
+		foreach ( $ideas as $n => $idea ) {
+			WP_CLI::line( sprintf( '%d. %s (%s): %s', $n + 1, $idea['name'], $idea['recipe'], $idea['tagline'] ) );
+			WP_CLI::line( '   Products: ' . implode( ', ', $idea['products'] ) . ( $idea['missing'] ? ' (installs ' . implode( ', ', $idea['missing'] ) . ')' : '' ) );
+			foreach ( $idea['highlights'] as $h ) {
+				WP_CLI::line( '   - ' . $h );
+			}
+		}
+		WP_CLI::line( 'Build one: wp wbcom-demo build --describe="..." --idea=<n> --yes' );
 	}
 
 	/**

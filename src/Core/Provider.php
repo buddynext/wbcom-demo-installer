@@ -46,6 +46,13 @@ abstract class Provider {
 		return $this->content;
 	}
 
+	/**
+	 * Read the content again on next use (a content pack was added during this request).
+	 */
+	public function forget_content(): void {
+		$this->content = null;
+	}
+
 	/** Bump when the contract changes; the registry skips providers on another version. */
 	public const CONTRACT = 1;
 
@@ -191,6 +198,26 @@ abstract class Provider {
 	 */
 	public function keeps_logs(): string {
 		return '';
+	}
+
+	/**
+	 * Content keys whose values the AI must not rewrite for this provider (on top of the shared list in
+	 * Ai\Pack: slugs, images, types and similar).
+	 *
+	 * @return string[]
+	 */
+	public function ai_skip_keys(): array {
+		return array();
+	}
+
+	/**
+	 * Exact content values the AI must not rewrite: enums the product or this provider branches on, and text
+	 * that must match fixed data (an address that matches map coordinates).
+	 *
+	 * @return string[]
+	 */
+	public function ai_keep(): array {
+		return array();
 	}
 
 	/**

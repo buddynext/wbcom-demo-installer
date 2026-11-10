@@ -70,6 +70,15 @@ final class Eventonomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_keep(): array {
+		// Address and city stay with their country code.
+		$rows = (array) $this->content();
+		return array_values( array_unique( array_merge( array_column( $rows, 3 ), array_column( $rows, 4 ) ) ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'EVENTONOMY_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}

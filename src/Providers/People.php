@@ -27,7 +27,15 @@ final class People extends Provider {
 	 * @return array<int,array<string,mixed>>
 	 */
 	public static function roster(): array {
-		return require WBCOM_DEMO_DIR . 'content/people.php';
+		/** This filter is documented in src/Core/Provider.php */
+		return (array) apply_filters( 'wbcom_demo_content', (array) require WBCOM_DEMO_DIR . 'content/people.php', 'people' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_skip_keys(): array {
+		return array( 'name', 'topics' ); // Names match the people's photos; topics are interest slugs.
 	}
 
 	/**

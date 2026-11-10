@@ -70,6 +70,13 @@ final class MediaShield extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_skip_keys(): array {
+		return array( 'videos' ); // Real open films: titles and descriptions describe them.
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'MEDIASHIELD_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}

@@ -30,6 +30,21 @@ what your community will look like before your first real member joins.
    the sample logo, and Remove everything puts your current ones back. Then choose **Build my demo**.
 7. Wait for the progress bar. You can leave the page; the build continues where it stopped when you come back.
 
+## Describe your site and let AI build it
+
+With an AI connector set up in **Settings > Connectors** (Anthropic, Google or OpenAI, with your own key), the site
+check shows **Describe your site**. Write one or two sentences, for example "a running club with weekend group runs,
+training plans and coaches who sell personal plans", and choose **Suggest 3 site ideas**. Each idea shows its name,
+tagline, starting point, the products it uses (missing free ones are installed for you) and what the site will have.
+
+Pick one with **Use this idea**: the starting point, products, name and tagline are filled in, and the build writes
+the text of the demo for that site, in your site's language: people's bios, spaces, posts, discussions, courses,
+events, listings, jobs and services. Photos come from the installer's own library. A product whose text does not pass
+the installer's checks uses the sample text instead, so a build never fails because of AI. The requests go through your
+connector and are billed to your account; Finish demo removes everything as usual.
+
+Without a connector, the site check shows a short card with a link to Settings > Connectors.
+
 ## What you get
 
 - 20 sample people shared by every product, with profiles and photos.

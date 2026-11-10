@@ -132,9 +132,6 @@ final class BuddyNext extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		// Decide which hashtags are new now, before any feed post exists: BuddyNext indexes posts in background
-		// jobs, so by the hashtags step the tags would already be on the site and look like the owner's.
-		$ctx->state->ref_set( $this->id(), 'new_tags', array_keys( array_filter( $this->hashtag_slugs() ) ) );
 		$steps = array( 'profiles:0', 'profiles:10', 'spaces' );
 		$n     = count( $this->content()['posts'] );
 		for ( $i = 0; $i < $n; $i += self::POSTS_PER_STEP ) {
@@ -181,6 +178,12 @@ final class BuddyNext extends Provider {
 	 */
 	public function run( string $step, Context $ctx ): void {
 		list( $name, $arg ) = array_pad( explode( ':', $step, 2 ), 2, '0' );
+		if ( null === $ctx->state->ref( $this->id(), 'new_tags' ) ) {
+			// Decide which hashtags are new at the first BuddyNext step, before any feed post exists (and after an AI
+			// pack rewrote the posts): BuddyNext indexes posts in background jobs, so by the hashtags step the tags would
+			// already be on the site and look like the owner's.
+			$ctx->state->ref_set( $this->id(), 'new_tags', array_keys( array_filter( $this->hashtag_slugs() ) ) );
+		}
 		match ( $name ) {
 			'profiles' => $this->profiles( (int) $arg, $ctx ),
 			'spaces'   => $this->spaces( $ctx ),
@@ -714,11 +717,19 @@ final class BuddyNext extends Provider {
 		}
 		$svc  = new \BuddyNext\Hashtags\HashtagService();
 		$tags = array();
-		foreach ( $this->content()['posts'] as $row ) {
-			foreach ( $svc->extract_from_text( $row[2] ) as $slug ) {
-				$tags[ $slug ] = null === $svc->get_by_slug( $slug );
+		// Every text this provider posts (feed posts, link and photo captions, comments, replies): any of them may
+		// carry a hashtag, also after an AI pack rewrote them.
+		$content = $this->content();
+		array_walk_recursive(
+			$content,
+			static function ( $text ) use ( $svc, &$tags ): void {
+				if ( is_string( $text ) && str_contains( $text, '#' ) ) {
+					foreach ( $svc->extract_from_text( $text ) as $slug ) {
+						$tags[ $slug ] = $tags[ $slug ] ?? null === $svc->get_by_slug( $slug );
+					}
+				}
 			}
-		}
+		);
 		return $tags;
 	}
 

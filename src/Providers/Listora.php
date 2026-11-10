@@ -71,6 +71,15 @@ final class Listora extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_keep(): array {
+		// Street, city and country match the fixed map coordinates.
+		$rows = (array) ( $this->content()['listings'] ?? array() );
+		return array_values( array_unique( array_merge( array_column( $rows, 3 ), array_column( $rows, 4 ), array_column( $rows, 5 ) ) ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'WB_LISTORA_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
