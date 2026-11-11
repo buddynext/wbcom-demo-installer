@@ -213,6 +213,17 @@ html, body { margin: 0; }
 	.wdi-opt:hover { border-color: var(--wdi-accent-line); }
 }
 
+.wdi-ideanote { display: flex; gap: 10px; align-items: flex-start; padding: var(--wdi-space-md) 14px; border-radius: var(--wdi-r-md); background: var(--wdi-accent-soft); font-size: 13.5px; }
+.wdi-ideanote .wdi-i { color: var(--wdi-accent); margin-top: 2px; }
+.wdi-prod__why { display: flex; gap: 6px; align-items: flex-start; margin-top: 4px; font-size: 12.5px; color: var(--wdi-accent); }
+.wdi-prod__why .wdi-i { width: 14px; height: 14px; margin-top: 2px; }
+.wdi-ideaplan { display: grid; gap: var(--wdi-space-sm); padding: var(--wdi-space-lg); border: 1px solid var(--wdi-accent-line); border-radius: var(--wdi-r-md); background: var(--wdi-surface); font-size: 13.5px; }
+.wdi-ideaplan__head { display: flex; gap: 10px; align-items: flex-start; }
+.wdi-ideaplan__head .wdi-i { color: var(--wdi-accent); margin-top: 3px; }
+.wdi-ideaplan__head b { display: block; font-size: 16px; }
+.wdi-ideaplan h3 { margin: 6px 0 0; font-size: 12px; font-weight: 600; color: var(--wdi-text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.wdi-ideaplan ul, .wdi-ideaplan ol { margin: 0; padding-inline-start: 20px; display: grid; gap: 3px; }
+
 .wdi-ai { display: grid; gap: var(--wdi-space-sm); padding: var(--wdi-space-lg); border: 1px solid var(--wdi-accent-line); border-radius: var(--wdi-r-md); background: var(--wdi-surface); }
 .wdi-ai--connect { grid-template-columns: 32px minmax(0, 1fr); align-items: start; border-style: dashed; background: var(--wdi-surface-2); }
 .wdi-ai--connect > div { display: grid; gap: 4px; font-size: 13.5px; }
