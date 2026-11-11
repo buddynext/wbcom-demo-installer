@@ -96,6 +96,8 @@ html, body { margin: 0; }
 .wdi-card__body { padding: var(--wdi-space-lg) 22px 4px; display: grid; gap: var(--wdi-space-md); }
 .wdi-card__foot { display: flex; align-items: center; gap: 10px; padding: 14px 22px 18px; border-top: 1px solid var(--wdi-border); margin-top: var(--wdi-space-md); flex-wrap: wrap; }
 .wdi-spacer { flex: 1; }
+/* The step's actions stay in view on long steps (Products, Review): pinned to the bottom of the window. */
+.wdi-card__foot { position: sticky; bottom: 0; z-index: 2; background: var(--wdi-surface); border-end-start-radius: var(--wdi-r-lg); border-end-end-radius: var(--wdi-r-lg); }
 
 .wdi-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--wdi-space-sm); min-height: 40px; padding: 0 var(--wdi-space-lg); border-radius: var(--wdi-r-md); border: 1px solid var(--wdi-border-strong); background: var(--wdi-surface); color: var(--wdi-text); font: 600 14px var(--wdi-font); cursor: pointer; text-decoration: none; }
 .wdi-btn--primary { background: var(--wdi-accent); border-color: var(--wdi-accent); color: var(--wdi-accent-ink); }
