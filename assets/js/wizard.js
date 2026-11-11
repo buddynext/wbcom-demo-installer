@@ -118,6 +118,7 @@
 
 	// The picked idea fills the wizard: starting point, products, name and tagline; missing products are ticked to install.
 	function applyIdea( idea ) {
+		S.showAllRecipes = false;
 		S.brief = Object.assign( { description: S.describe }, idea );
 		S.name = idea.name;
 		S.tagline = idea.tagline;
@@ -255,12 +256,15 @@
 	}
 
 	function viewStart() {
-		const recipes = S.site.recipes;
+		const all = S.site.recipes;
+		// With a picked idea the choice is made: show only that starting point, the full list on request.
+		const locked = S.brief && ! S.showAllRecipes && all[ S.recipe ];
+		const recipes = locked ? { [ S.recipe ]: all[ S.recipe ] } : all;
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
-			__( 'What kind of site are you building?', 'wbcom-demo-installer' ),
-			__( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ),
-			`${ ideaNote( 'start' ) }<div class="wdi-recipes" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
-			${ Object.keys( recipes ).length < 7 ? `<details class="wdi-details"><summary>${ esc( __( 'More starting points', 'wbcom-demo-installer' ) ) }</summary><p>${ esc( __( 'Starting points appear for each product you activate: Learning (Learnomy), Events (Eventonomy), Job board (WP Career Board), Directory (WB Listora) and Services marketplace (WP Sell Services).', 'wbcom-demo-installer' ) ) }</p></details>` : '' }`,
+			locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ),
+			locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ),
+			`${ ideaNote( 'start' ) }${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
+			${ ! locked && Object.keys( recipes ).length < 7 ? `<details class="wdi-details"><summary>${ esc( __( 'More starting points', 'wbcom-demo-installer' ) ) }</summary><p>${ esc( __( 'Starting points appear for each product you activate: Learning (Learnomy), Events (Eventonomy), Job board (WP Career Board), Directory (WB Listora) and Services marketplace (WP Sell Services).', 'wbcom-demo-installer' ) ) }</p></details>` : '' }`,
 			foot( 'check', 'products', { disabled: ! S.recipe } )
 		);
 	}
@@ -685,7 +689,11 @@
 				S.view = 'check';
 				render();
 			}
+		} else if ( 'all-recipes' === to ) {
+			S.showAllRecipes = true;
+			render();
 		} else if ( 'forget-idea' === to ) {
+			S.showAllRecipes = false;
 			S.brief = null;
 			S.name = undefined;
 			S.tagline = undefined;

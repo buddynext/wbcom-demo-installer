@@ -48,6 +48,17 @@ final class Page {
 	}
 
 	/**
+	 * Asset version: the plugin version plus the file's change time, so a browser never keeps a stale copy
+	 * after an update (or a hotfix that keeps the version).
+	 *
+	 * @param string $rel Path under the plugin folder.
+	 */
+	private static function ver( string $rel ): string {
+		$time = @filemtime( WBCOM_DEMO_DIR . $rel ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a missing file falls back to the version.
+		return WBCOM_DEMO_VERSION . ( $time ? '.' . $time : '' );
+	}
+
+	/**
 	 * Menu entry.
 	 */
 	public static function menu(): void {
@@ -121,9 +132,9 @@ final class Page {
 		if ( ! current_user_can( Plugin::CAP ) ) {
 			wp_die( esc_html__( 'Only site administrators can set up or remove demo content.', 'wbcom-demo-installer' ), 403 );
 		}
-		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), WBCOM_DEMO_VERSION );
+		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), self::ver( 'assets/css/wizard.css' ) );
 		wp_style_add_data( 'wbcom-demo', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array( 'wp-api-fetch', 'wp-i18n' ), WBCOM_DEMO_VERSION, true );
+		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array( 'wp-api-fetch', 'wp-i18n' ), self::ver( 'assets/js/wizard.js' ), true );
 		wp_set_script_translations( 'wbcom-demo', 'wbcom-demo-installer' );
 		wp_localize_script(
 			'wbcom-demo',
@@ -156,9 +167,9 @@ final class Page {
 		if ( State::IDLE !== ( new State() )->get( 'status' ) || ! Engine::site()['recipes'] ) {
 			return;
 		}
-		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), WBCOM_DEMO_VERSION );
+		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), self::ver( 'assets/css/notice.css' ) );
 		wp_style_add_data( 'wbcom-demo-notice', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/js/notice.js', array(), WBCOM_DEMO_VERSION, true );
+		wp_enqueue_script( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/js/notice.js', array(), self::ver( 'assets/js/notice.js' ), true );
 		wp_localize_script(
 			'wbcom-demo-notice',
 			'wbcomDemoNotice',
