@@ -52,3 +52,29 @@ no mail, no sample people left, Remove everything leaves nothing, footprint equa
 Note: with every Pro add-on active the lab web server's 128 MB PHP limit fails page loads during the settle step
 before a case starts (Jetonomy Pro and Learnomy Pro boot); that is card 10487106723's product-side boot memory, and the
 site check now warns about it.
+
+## Demo pages on three themes (11 November 2026)
+
+Owner rule: every demo page must be production ready. Community build with Wbcom Essential 4.7.0; logged-out
+screenshots at 1440 and 390 with the Playwright CLI on system Chrome (`--channel=chrome`, its own temporary profile).
+
+| Page | BuddyX 5.2.0 | BuddyX Pro 5.2.0 | Reign 8.0.9 branch (e89122c) |
+|---|---|---|---|
+| About: wide photo (21:9), intro, three values, member quote, three posts in one row | PASS | PASS | PASS (also 390) |
+| Join: photo of members, three steps, Create your account button | PASS | PASS | PASS (also 390) |
+| FAQ: six questions that open and close | PASS | PASS | PASS |
+| Blog: three category tiles with photos and post counts, six posts in two rows | PASS | PASS (also 390) | PASS |
+
+Fixed on the way: Hello world showed as an empty card in the About carousel (blocks limited to the demo's categories);
+the core latest-posts list stacked full-width images (now Wbcom Essential's post grid); category tiles showed letter
+placeholders (each demo category gets a photo); titles hard to read on bright photos (dark overlay, wide tiles); four
+posts left an orphan card (six posts); the About carousel's arrow covered a card badge (one-row grid); Join had no photo
+and no full-width layout (photo plus `Provider::layout_pages()`); images had no alt text (every installer image now gets
+one from its file name).
+
+Media: `photos/rooftop-bar.jpg` carried a burned-in "cc-nc-nd" licence mark and was removed (BuddyNext and WPMediaVerse
+content now use credited CC0 photos). 28 of the 43 library photos have no entry in `media/CREDITS.json`; they come from
+WPMediaVerse's own `assets/demo-images` without credits. The pages and blog use only credited CC0 photos.
+
+Product-side, not this plugin: logged out, WB Listora prints its "Log in to save listings" favourites dialog unstyled at
+the bottom of every page where its styles are not loaded (seen on BuddyX Pro and Reign).

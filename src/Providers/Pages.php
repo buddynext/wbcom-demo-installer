@@ -239,7 +239,7 @@ final class Pages extends Provider {
 				self::columns( $cols ),
 				self::quote( $about['quote'][0], $quoted ? $quoted->display_name : '' ),
 				self::heading( __( 'From the blog', 'wbcom-demo-installer' ) ),
-				self::posts_block( $cats, 'carousel', 3 ),
+				self::posts_block( $cats, 'grid', 3 ), // One row of three: no carousel arrows over the cards.
 			),
 			'join'  => array(
 				$join_image ? self::image( $join_image ) : '',

@@ -24,7 +24,7 @@ return array(
 	),
 	'join'       => array(
 		'title'  => 'Join the community',
-		'image'  => 'photos/tasting-plates.jpg',
+		'image'  => 'photos/cafe-friends.jpg',
 		'intro'  => 'Membership is free. Create an account, say hello, and find the spaces that match what you are working on.',
 		'steps'  => array(
 			array( 'Create your account', 'Pick a username and add a photo, so people know who they are talking to.' ),
@@ -60,7 +60,7 @@ return array(
 			'author'   => 10,
 			'category' => 'news',
 			'title'    => 'What we decided at the community call',
-			'image'    => 'photos/cafe-friends.jpg',
+			'image'    => 'photos/tasting-plates.jpg',
 			'excerpt'  => 'Monthly critique sessions, a mentoring pilot and a quiet hour on Fridays: here is what changes and when.',
 			'body'     => array(
 				array( '', 'Thanks to everyone who joined the call last week. Forty-two of you came, which is a record, and the chat was full of good ideas. Here is what we agreed to try.' ),
