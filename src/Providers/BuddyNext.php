@@ -85,9 +85,9 @@ final class BuddyNext extends Provider {
 		$c = $this->content();
 		return sprintf(
 			/* translators: 1: spaces, 2: posts */
-			__( 'Profiles for everyone, %1$d spaces, %2$d posts with comments and reactions, follows, a poll and direct messages', 'wbcom-demo-installer' ),
+			__( 'Profiles for everyone, %1$d spaces, %2$d posts with comments, replies, mentions and reactions, follows, polls and direct messages', 'wbcom-demo-installer' ),
 			count( $c['spaces'] ) + count( $c['subspaces'] ),
-			count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + 1
+			count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + count( $this->polls() )
 		);
 	}
 
@@ -117,8 +117,8 @@ final class BuddyNext extends Provider {
 		return array(
 			'space_category' => array( count( array_diff_key( $c['categories'], $this->existing_categories() ) ), 'setup', __( 'space categories', 'wbcom-demo-installer' ) ),
 			'space'          => array( count( $c['spaces'] ) + count( $c['subspaces'] ), 'setup', __( 'spaces', 'wbcom-demo-installer' ) ),
-			// Own posts, links, photo posts, the poll and three shares; other products add their own feed posts.
-			'post'           => array( count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + 4, 'sample', __( 'feed posts, plus posts other products share to the feed', 'wbcom-demo-installer' ) ),
+			// Own posts, links, photo posts, the polls and three shares; other products add their own feed posts.
+			'post'           => array( count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + count( $this->polls() ) + 3, 'sample', __( 'feed posts, plus posts other products share to the feed', 'wbcom-demo-installer' ) ),
 			'media'          => array( count( $c['photos'] ) + 6, 'sample', __( 'photos', 'wbcom-demo-installer' ) ),
 			'album'          => array( count( $c['albums'] ), 'sample', __( 'space albums', 'wbcom-demo-installer' ) ),
 			'profile_images' => array( 20, 'sample', __( 'profile pictures', 'wbcom-demo-installer' ) ),
@@ -178,6 +178,12 @@ final class BuddyNext extends Provider {
 	 */
 	public function run( string $step, Context $ctx ): void {
 		list( $name, $arg ) = array_pad( explode( ':', $step, 2 ), 2, '0' );
+		if ( null === $ctx->state->ref( $this->id(), 'new_tags' ) ) {
+			// Decide which hashtags are new at the first BuddyNext step, before any feed post exists (and after an AI
+			// pack rewrote the posts): BuddyNext indexes posts in background jobs, so by the hashtags step the tags would
+			// already be on the site and look like the owner's.
+			$ctx->state->ref_set( $this->id(), 'new_tags', array_keys( array_filter( $this->hashtag_slugs() ) ) );
+		}
 		match ( $name ) {
 			'profiles' => $this->profiles( (int) $arg, $ctx ),
 			'spaces'   => $this->spaces( $ctx ),
@@ -304,8 +310,10 @@ final class BuddyNext extends Provider {
 			$by[ $s['slug'] ] = $id;
 			$ctx->record( $this->id(), 'space', $id, 'setup', array( 'owner' => $owner ) );
 
-			$avatar = $storage->store( $ctx->media( sprintf( 'avatars/avatar-%02d.png', ( ( $i + 4 ) % 12 ) + 1 ) ), 'avatar', 'space', $id );
-			$cover  = $storage->store( $ctx->media( sprintf( 'covers/cover-%02d.png', ( ( $i + 3 ) % 8 ) + 1 ) ), 'cover', 'space', $id );
+			// A space shows its own photo (avatar and cover), never a sample person's face.
+			$image  = $s['image'] ?? sprintf( 'covers/cover-%02d.jpg', ( ( $i + 3 ) % 8 ) + 1 );
+			$avatar = $storage->store( $ctx->media( $image ), 'avatar', 'space', $id );
+			$cover  = $storage->store( $ctx->media( $image ), 'cover', 'space', $id );
 			$spaces->update(
 				$id,
 				$owner,
@@ -353,7 +361,7 @@ final class BuddyNext extends Provider {
 			$date                       = $ctx->date( $i, $total, 45 );
 			$data                       = array(
 				'type'       => 'text',
-				'content'    => $text,
+				'content'    => $this->mentions( $text, $ctx ),
 				'created_at' => $date,
 			);
 			if ( $space && ! empty( $spaces[ $space ] ) ) {
@@ -405,7 +413,16 @@ final class BuddyNext extends Provider {
 		$cn        = $quiet ? 0 : ( $busy ? 4 : 1 + $seq % 2 );
 		$rn        = $quiet ? 1 : ( $busy ? 9 : 2 + $seq % 4 );
 		for ( $k = 0; $k < $cn; $k++ ) {
-			$comments->create( $people[ ( $seq + $k + 1 ) % $n ], 'post', $post_id, $c['comments'][ ( $seq + $k ) % count( $c['comments'] ) ], null, $ctx->after( $date, $seq + $k ) );
+			$who = $people[ ( $seq + $k + 1 ) % $n ];
+			$cid = $comments->create( $who, 'post', $post_id, $this->mentions( $c['comments'][ ( $seq + $k ) % count( $c['comments'] ) ], $ctx ), null, $ctx->after( $date, $seq + $k ) );
+			// On busy posts the author answers the first comment, so threads read as a conversation.
+			if ( 0 === $k && $busy && ! is_wp_error( $cid ) && ! empty( $c['replies'] ) && class_exists( '\BuddyNext\Profile\Handle' ) ) {
+				$author = (int) ( ( new \BuddyNext\Feed\PostService() )->get( $post_id )['user_id'] ?? 0 );
+				if ( $author && $author !== $who ) {
+					$reply = sprintf( $c['replies'][ $seq % count( $c['replies'] ) ], '@' . \BuddyNext\Profile\Handle::current( $who ) );
+					$comments->create( $author, 'post', $post_id, $reply, (int) $cid, $ctx->after( $date, $seq + $cn + 2 ) );
+				}
+			}
 		}
 		for ( $k = 0; $k < $rn; $k++ ) {
 			$reactions->react( $people[ ( $seq + $k + 2 ) % $n ], 'post', $post_id, $emoji[ ( $seq + $k ) % count( $emoji ) ], $ctx->after( $date, $seq * 3 + $k ) );
@@ -422,27 +439,31 @@ final class BuddyNext extends Provider {
 		$svc    = new \BuddyNext\Feed\PostService();
 		$spaces = (array) $ctx->get( $this->id(), 'spaces', array() );
 
-		$author = $ctx->person( $c['poll']['author'] );
-		$date   = $ctx->date( 18, 20, 20 );
-		$id     = $svc->create(
-			$author,
-			array(
-				'type'       => 'poll',
-				'content'    => $c['poll']['question'],
-				'options'    => $c['poll']['options'],
-				'created_at' => $date,
-			)
-		);
-		if ( ! is_wp_error( $id ) ) {
+		foreach ( $this->polls() as $p => $poll ) {
+			$author = $ctx->person( $poll['author'] );
+			$date   = $ctx->date( 18 - $p * 6, 20, 20 );
+			$id     = $svc->create(
+				$author,
+				array(
+					'type'       => 'poll',
+					'content'    => $this->mentions( $poll['question'], $ctx ),
+					'options'    => $poll['options'],
+					'created_at' => $date,
+				)
+			);
+			if ( is_wp_error( $id ) ) {
+				$ctx->warn( $this->id(), 'poll ' . $p, $id );
+				continue;
+			}
 			$ctx->record( $this->id(), 'post', (int) $id, 'sample', array( 'author' => $author ) );
-			$this->engage( (int) $id, 8, $date, $ctx );
+			$this->engage( (int) $id, 8 + $p, $date, $ctx );
 			if ( class_exists( '\BuddyNext\Feed\PollService' ) ) {
 				$polls   = new \BuddyNext\Feed\PollService();
 				$options = array_column( $polls->results( (int) $id ), 'id' );
 				foreach ( $ctx->people() as $k => $voter ) {
 					// Uneven spread, a clear winner, a few people who did not vote.
-					if ( $options && 0 !== $k % 5 ) {
-						$polls->vote( $voter, (int) $id, (int) $options[ array( 0, 1, 0, 2, 0, 3, 1 )[ $k % 7 ] % count( $options ) ] );
+					if ( $options && 0 !== ( $k + $p ) % 5 ) {
+						$polls->vote( $voter, (int) $id, (int) $options[ array( 0, 1, 0, 2, 0, 3, 1 )[ ( $k + $p ) % 7 ] % count( $options ) ] );
 					}
 				}
 			}
@@ -672,14 +693,14 @@ final class BuddyNext extends Provider {
 			return;
 		}
 		$svc     = new \BuddyNext\Hashtags\HashtagService();
-		$tags    = $this->hashtag_slugs();
 		$indexer = new \BuddyNext\Hashtags\HashtagListener( $svc );
 		foreach ( Ledger::ids( $this->id(), 'post' ) as $pid ) {
 			$indexer->async_index_hashtags( 'post', (int) $pid, '' );
 		}
-		foreach ( $tags as $slug => $is_new ) {
-			$tag = $is_new ? $svc->get_by_slug( $slug ) : null;
-			if ( $tag && ! empty( $tag['id'] ) ) {
+		foreach ( (array) $ctx->state->ref( $this->id(), 'new_tags', array() ) as $slug ) {
+			$slug = (string) $slug;
+			$tag  = $svc->get_by_slug( $slug );
+			if ( $tag && ! empty( $tag['id'] ) && ! Ledger::has( $this->id(), 'hashtag', (int) $tag['id'] ) ) {
 				$ctx->record( $this->id(), 'hashtag', (int) $tag['id'], 'sample', array( 'slug' => $slug ) );
 			}
 		}
@@ -696,12 +717,50 @@ final class BuddyNext extends Provider {
 		}
 		$svc  = new \BuddyNext\Hashtags\HashtagService();
 		$tags = array();
-		foreach ( $this->content()['posts'] as $row ) {
-			foreach ( $svc->extract_from_text( $row[2] ) as $slug ) {
-				$tags[ $slug ] = null === $svc->get_by_slug( $slug );
+		// Every text this provider posts (feed posts, link and photo captions, comments, replies): any of them may
+		// carry a hashtag, also after an AI pack rewrote them.
+		$content = $this->content();
+		array_walk_recursive(
+			$content,
+			static function ( $text ) use ( $svc, &$tags ): void {
+				if ( is_string( $text ) && str_contains( $text, '#' ) ) {
+					foreach ( $svc->extract_from_text( $text ) as $slug ) {
+						$tags[ $slug ] = $tags[ $slug ] ?? null === $svc->get_by_slug( $slug );
+					}
+				}
 			}
-		}
+		);
 		return $tags;
+	}
+
+	/**
+	 * Polls from content; the 1.0 single 'poll' key is still read so a wbcom_demo_content filter written for it works.
+	 *
+	 * @return array<int,array{author:int,question:string,options:string[]}>
+	 */
+	private function polls(): array {
+		$c = $this->content();
+		return (array) ( $c['polls'] ?? ( isset( $c['poll'] ) ? array( $c['poll'] ) : array() ) );
+	}
+
+	/**
+	 * Turn {@N} into a mention of sample person N, using their BuddyNext handle so the mention links and notifies.
+	 *
+	 * @param string  $text Text.
+	 * @param Context $ctx  Context.
+	 */
+	private function mentions( string $text, Context $ctx ): string {
+		return (string) preg_replace_callback(
+			'/\{@(\d+)\}/',
+			static function ( $m ) use ( $ctx ) {
+				$uid = $ctx->person( (int) $m[1] );
+				if ( ! $uid ) {
+					return '';
+				}
+				return class_exists( '\BuddyNext\Profile\Handle' ) ? '@' . \BuddyNext\Profile\Handle::current( $uid ) : (string) get_the_author_meta( 'display_name', $uid );
+			},
+			$text
+		);
 	}
 
 	/**
@@ -737,15 +796,13 @@ final class BuddyNext extends Provider {
 				return ! is_wp_error( $result ) || ! $svc->get( $id );
 			case 'media':
 				$repo = \BuddyNext\Media\MediaClient::available() ? \BuddyNext\Media\MediaClient::repo() : null;
-				if ( is_object( $repo ) && method_exists( $repo, 'delete_cascade' ) ) {
-					$repo->delete_cascade( $id );
+				if ( ! is_object( $repo ) || ! method_exists( $repo, 'delete_cascade' ) ) {
+					return false; // WPMediaVerse is off: the media waits for it.
 				}
-				return true;
+				$repo->delete_cascade( $id );
+				return ! method_exists( $repo, 'exists' ) || ! $repo->exists( $id );
 			case 'album':
-				if ( 'mvs_album' === get_post_type( $id ) ) {
-					wp_delete_post( $id, true );
-				}
-				return true;
+				return 'mvs_album' !== get_post_type( $id ) || self::delete_post( $id );
 			case 'space':
 				$svc   = new \BuddyNext\Spaces\SpaceService();
 				$space = $svc->get( $id );

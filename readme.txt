@@ -22,7 +22,7 @@ Wbcom Demo Installer sets up a believable demo of every Wbcom product you have a
 * Works with any mix of free products and Pro add-ons.
 * Your own users and content are never changed. On a site that already has other members, blog posts or comments, the build waits for your explicit confirmation.
 
-When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report confirms nothing was left behind.
+When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report shows what was removed and what is still on the site.
 
 Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap and WB Gamification (with their Pro add-ons active), on BuddyX, BuddyX Pro, Reign or any theme.
 

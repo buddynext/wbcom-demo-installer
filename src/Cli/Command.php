@@ -9,6 +9,7 @@ namespace WbcomDemo\Cli;
 
 use WbcomDemo\Core\Engine;
 use WbcomDemo\Core\Finisher;
+use WbcomDemo\Core\Installer;
 use WbcomDemo\Core\Recipes;
 use WP_CLI;
 
@@ -79,16 +80,84 @@ final class Command {
 	 * [--yes]
 	 * : Build even though the site already has members or content (the demo is made for a fresh site).
 	 *
+	 * [--name=<name>]
+	 * : Site name to use (restored by Remove everything). The header shows it instead of the sample logo.
+	 *
+	 * [--tagline=<tagline>]
+	 * : Tagline to use (restored by Remove everything).
+	 *
+	 * [--describe=<text>]
+	 * : Describe the site in a sentence: the AI connector set up in Settings > Connectors suggests ideas, the build
+	 * uses one (see --idea), installs what it needs and writes the text for it.
+	 *
+	 * [--idea=<n>]
+	 * : Which suggested idea to build with --describe (1 to 3).
+	 * ---
+	 * default: 1
+	 * ---
+	 *
+	 * [--brief=<json>]
+	 * : Internal: the picked idea as JSON, passed on by --describe.
+	 *
+	 * [--install-missing]
+	 * : First install and activate the free Wbcom products the starting point uses that are not active yet.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp wbcom-demo build --recipe=community
 	 *     wp wbcom-demo build --include=buddynext,jetonomy --keep-look
 	 *
-	 * @param array<int,string>    $args  Args.
-	 * @param array<string,string> $assoc Assoc args.
+	 * @param array<int,string>         $args  Args.
+	 * @param array<string,string|bool> $assoc Assoc args.
 	 */
 	public function build( $args, $assoc ): void {
 		$this->as_admin();
+		if ( isset( $assoc['describe'] ) ) {
+			$ideas = \WbcomDemo\Ai\Ideas::suggest( (string) $assoc['describe'] );
+			if ( is_wp_error( $ideas ) ) {
+				WP_CLI::error( $ideas->get_error_message() );
+			}
+			$pick = $ideas[ max( 0, (int) ( $assoc['idea'] ?? 1 ) - 1 ) ] ?? $ideas[0];
+			WP_CLI::log( sprintf( 'Building "%s" (%s): %s', $pick['name'], $pick['recipe'], $pick['tagline'] ) );
+			$this->install_ids( $pick['products'] );
+			// New plugins boot on the next request, and the brief travels as JSON to the build in a fresh process.
+			$flags = sprintf( ' --recipe=%s --include=%s --name=%s --tagline=%s --brief=%s', $pick['recipe'], implode( ',', $pick['products'] ), escapeshellarg( $pick['name'] ), escapeshellarg( $pick['tagline'] ), escapeshellarg( (string) wp_json_encode( $pick + array( 'description' => (string) $assoc['describe'] ) ) ) );
+			foreach ( array( 'yes', 'keep-look' ) as $flag ) {
+				$flags .= isset( $assoc[ $flag ] ) ? ' --' . $flag : '';
+			}
+			WP_CLI::runcommand(
+				'wbcom-demo build' . $flags,
+				array(
+					'launch'     => true,
+					'exit_error' => true,
+				)
+			);
+			return;
+		}
+		if ( isset( $assoc['install-missing'] ) ) {
+			$recipe = (string) ( $assoc['recipe'] ?? 'community' );
+			$all    = \WbcomDemo\Core\Recipes::all();
+			if ( ! isset( $all[ $recipe ] ) ) {
+				WP_CLI::error( sprintf( 'Unknown starting point "%s". Starting points: %s', $recipe, implode( ', ', array_keys( $all ) ) ) );
+			}
+			$want = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : array_merge( Installer::CORE, $all[ $recipe ]['use'], $all[ $recipe ]['needs'] );
+			$this->install_ids( array_values( array_unique( $want ) ) );
+			// New plugins boot on the next request, so the build runs in a fresh process.
+			unset( $assoc['install-missing'] );
+			$flags = '';
+			foreach ( $assoc as $k => $v ) {
+				// WP-CLI passes a bare flag as true.
+				$flags .= ! is_string( $v ) || '' === $v ? " --$k" : ' --' . $k . '=' . escapeshellarg( $v );
+			}
+			WP_CLI::runcommand(
+				'wbcom-demo build' . $flags,
+				array(
+					'launch'     => true,
+					'exit_error' => true,
+				)
+			);
+			return;
+		}
 		$recipes = Recipes::available();
 		if ( ! $recipes ) {
 			WP_CLI::error( 'No supported products are active.' );
@@ -108,16 +177,29 @@ final class Command {
 			}
 			return;
 		}
-		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ) );
+		$memory = Engine::memory();
+		if ( $memory['low'] ) {
+			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. Run with WP_CLI_PHP_ARGS="-d memory_limit=512M" if a step stops.', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
+		}
+		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ), (string) ( $assoc['name'] ?? '' ), (string) ( $assoc['tagline'] ?? '' ), (array) json_decode( (string) ( $assoc['brief'] ?? '' ), true ) );
 		if ( is_wp_error( $status ) ) {
 			WP_CLI::error( $status->get_error_message() . ( 'wbcom_demo_live_site' === $status->get_error_code() ? ' Add --yes to build anyway.' : '' ) );
 		}
 		$this->run_steps( 'Building' );
-		$status = Engine::status();
-		foreach ( array_merge( (array) $status['errors'], (array) $status['warnings'] ) as $error ) {
-			WP_CLI::warning( $error );
+		$status   = Engine::status();
+		$problems = array_merge( (array) $status['errors'], (array) $status['warnings'] );
+		foreach ( $problems as $problem ) {
+			WP_CLI::warning( $problem );
 		}
-		WP_CLI::success( sprintf( 'Demo built: %d items.', array_sum( array_column( $status['ledger'], 'count' ) ) ) );
+		$items = array_sum( array_column( $status['ledger'], 'count' ) );
+		if ( $status['errors'] ) {
+			WP_CLI::error( sprintf( 'Demo built with problems: %d items, %d problems. Fix the cause, then run Finish and build again.', $items, count( $problems ) ) );
+		}
+		if ( $problems ) {
+			WP_CLI::success( sprintf( 'Demo built: %d items, %d could not be created (listed above).', $items, count( $problems ) ) );
+			return;
+		}
+		WP_CLI::success( sprintf( 'Demo built: %d items.', $items ) );
 	}
 
 	/**
@@ -179,6 +261,14 @@ final class Command {
 	public function resume( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- WP-CLI command signature.
 		$this->as_admin();
 		$status = Engine::status();
+		if ( 'built' === $status['status'] && ! empty( $status['report']['left'] ) ) {
+			// A finish ended with items waiting for a product or failed: try them again with the same choices.
+			$started = Finisher::resume();
+			if ( is_wp_error( $started ) ) {
+				WP_CLI::error( $started->get_error_message() );
+			}
+			$status = Engine::status();
+		}
 		if ( ! in_array( $status['status'], array( 'building', 'finishing' ), true ) ) {
 			WP_CLI::success( 'Nothing to resume.' );
 			return;
@@ -204,18 +294,147 @@ final class Command {
 			WP_CLI::line( 'No finish has run yet.' );
 			return;
 		}
-		WP_CLI::line( sprintf( 'Removed: %d  Left: %d  Waiting: %d  Failed: %d  Sample people left: %d', $report['removed'], $report['left'], $report['waiting'], $report['failed'], $report['people_left'] ) );
+		WP_CLI::line( sprintf( 'Removed: %d  Not removed yet: %d  Waiting: %d  Failed: %d  Sample people left: %d', $report['removed'], $report['left'], $report['waiting'], $report['failed'], $report['people_left'] ) );
+		if ( ! empty( $report['waiting_for'] ) ) {
+			WP_CLI::line( 'Waiting for: ' . implode( ', ', (array) $report['waiting_for'] ) . ' (activate, then run: wp wbcom-demo resume)' );
+		}
+		$kept = (int) ( $report['kept_sample'] ?? 0 ) + (int) ( $report['kept_setup'] ?? 0 );
+		if ( $kept ) {
+			WP_CLI::line( sprintf( 'Kept by your choice: %d sample items, %d setup items. Remove them later with wp wbcom-demo finish, or keep them as yours with wp wbcom-demo adopt.', $report['kept_sample'] ?? 0, $report['kept_setup'] ?? 0 ) );
+		}
 		foreach ( (array) $report['issues'] as $issue ) {
 			WP_CLI::warning( $issue );
+		}
+		foreach ( (array) ( $report['leftovers'] ?? array() ) as $note ) {
+			WP_CLI::line( $note );
 		}
 		foreach ( (array) $report['kept_options'] as $name ) {
 			WP_CLI::line( "Kept your change to: $name" );
 		}
 		if ( $report['left'] || $report['failed'] || $report['issues'] ) {
-			WP_CLI::error( 'Verify found leftovers.', false );
+			WP_CLI::error( 'Not everything you chose was removed.', false );
+			WP_CLI::halt( 1 );
+		}
+		if ( $kept ) {
+			WP_CLI::success( 'Everything you chose was removed. The items you kept are still tracked.' );
 			return;
 		}
 		WP_CLI::success( 'Nothing from the demo was left behind.' );
+	}
+
+	/**
+	 * Suggest three site ideas from a description, with the AI connector set up in Settings > Connectors.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <description>
+	 * : The site in a sentence or two: who it is for and what people do there.
+	 *
+	 * [--format=<format>]
+	 * : table or json.
+	 * ---
+	 * default: table
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wbcom-demo ideas "A yoga studio with weekly classes and a members forum"
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function ideas( $args, $assoc ): void {
+		$this->as_admin();
+		$ideas = \WbcomDemo\Ai\Ideas::suggest( (string) ( $args[0] ?? '' ) );
+		if ( is_wp_error( $ideas ) ) {
+			WP_CLI::error( $ideas->get_error_message() );
+		}
+		if ( 'json' === ( $assoc['format'] ?? '' ) ) {
+			WP_CLI::line( (string) wp_json_encode( $ideas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
+			return;
+		}
+		foreach ( $ideas as $n => $idea ) {
+			WP_CLI::line( sprintf( '%d. %s (%s): %s', $n + 1, $idea['name'], $idea['recipe'], $idea['tagline'] ) );
+			WP_CLI::line( '   Products: ' . implode( ', ', $idea['products'] ) . ( $idea['missing'] ? ' (installs ' . implode( ', ', $idea['missing'] ) . ')' : '' ) );
+			foreach ( $idea['highlights'] as $h ) {
+				WP_CLI::line( '   - ' . $h );
+			}
+		}
+		WP_CLI::line( 'Build one: wp wbcom-demo build --describe="..." --idea=<n> --yes' );
+	}
+
+	/**
+	 * Install and activate free Wbcom products (and the free BuddyX theme) the same way the wizard does.
+	 *
+	 * Released versions only, from wbcomdesigns.com (the channel each plugin uses for its updates) or
+	 * WordPress.org. Pro add-ons need a licence and are not installed here.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [<ids>...]
+	 * : Product ids: buddynext, mediaverse, jetonomy, learnomy, eventonomy, careerboard, listora, sellservices,
+	 * mediashield, roadmap, gamification, or buddyx for the theme.
+	 *
+	 * [--all]
+	 * : Every free product in the list.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wbcom-demo install buddynext mediaverse jetonomy
+	 *     wp wbcom-demo install --all
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function install( $args, $assoc ): void {
+		$this->as_admin();
+		$ids = isset( $assoc['all'] ) ? array_values( array_diff( array_keys( Installer::catalog() ), array( 'buddyx' ) ) ) : array_map( 'sanitize_key', $args );
+		if ( ! $ids ) {
+			WP_CLI::error( 'Name the products to install, or pass --all.' );
+		}
+		$this->install_ids( $ids );
+	}
+
+	/**
+	 * Install and activate each id that is not active yet; stop on the first failure.
+	 *
+	 * @param string[] $ids Catalog ids.
+	 */
+	private function install_ids( array $ids ): void {
+		$states = array_column( Installer::overview(), 'state', 'id' );
+		foreach ( $ids as $id ) {
+			if ( ! isset( $states[ $id ] ) ) {
+				WP_CLI::error( sprintf( '"%s" is not a product this installer can add. Products: %s', $id, implode( ', ', array_keys( Installer::catalog() ) ) ) );
+			}
+			if ( 'active' === $states[ $id ] ) {
+				continue;
+			}
+			WP_CLI::log( sprintf( '%s %s...', 'inactive' === $states[ $id ] ? 'Activating' : 'Installing', $id ) );
+			$done = Installer::install( $id );
+			if ( is_wp_error( $done ) ) {
+				WP_CLI::error( sprintf( '%s: %s', $id, $done->get_error_message() ) );
+			}
+			WP_CLI::log( sprintf( '%s is active.', $id ) );
+		}
+		WP_CLI::success( 'Products are ready.' );
+	}
+
+	/**
+	 * Keep what the demo left (settings, pages, menus, categories) as your own and end the demo.
+	 *
+	 * Only after the sample content is removed. The installer stops tracking these items, so it can be
+	 * deleted afterwards.
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function adopt( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- WP-CLI command signature.
+		$this->as_admin();
+		$status = Finisher::adopt();
+		if ( is_wp_error( $status ) ) {
+			WP_CLI::error( $status->get_error_message() );
+		}
+		WP_CLI::success( 'The demo is finished. What it set up is yours now.' );
 	}
 
 	/**

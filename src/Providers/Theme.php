@@ -73,8 +73,10 @@ final class Theme extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
+		// BuddyX and BuddyX Pro also get the light-text logo for dark mode.
+		$dark = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
 		return array(
-			'attachment' => array( 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
+			'attachment' => array( $dark ? 3 : 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
 			'menu'       => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
 		);
 	}
@@ -111,13 +113,24 @@ final class Theme extends Provider {
 	 */
 	private function logo( Context $ctx ): void {
 		$admin = (int) get_current_user_id();
-		$logo  = $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
+		// The sample logo is a wordmark; an owner who typed their own site name sees that name in the header instead.
+		$logo = $ctx->state->get( 'own_name' ) ? 0 : $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
 		if ( $logo && current_theme_supports( 'custom-logo' ) ) {
 			Snapshot::write( 'theme_mod:custom_logo', $logo );
 			// The logo carries the name, so the site title beside it repeats it and crowds the menu. BuddyX shows
-			// both unless its "Display Site Title and Tagline" setting is off; BuddyX Pro and Reign already hide it.
+			// both unless "Display Site Title and Tagline" is off; BuddyX Pro and Reign already hide it. That core
+			// checkbox stores header_textcolor 'blank' (BuddyX then hides the text visually, still read by screen
+			// readers), so write that: the owner sees the box unticked and can tick it to bring the title back.
 			if ( 'BuddyX' === self::theme_family() ) {
-				Snapshot::write( 'theme_mod:display_header_text', false );
+				Snapshot::write( 'theme_mod:header_textcolor', 'blank' );
+			}
+			// Both BuddyX themes swap to dark_mode_logo (a URL) in dark mode; without it an owner's old dark logo, or the
+			// navy wordmark on a near-black header, would show there.
+			if ( in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true ) ) {
+				$dark = $ctx->attachment( 'brand/site-logo-dark.png', $admin, $this->id(), 'setup' );
+				if ( $dark ) {
+					Snapshot::write( 'theme_mod:dark_mode_logo', (string) wp_get_attachment_url( $dark ) );
+				}
 			}
 		}
 		$icon = $ctx->attachment( 'brand/site-icon.png', $admin, $this->id(), 'setup' );
@@ -152,11 +165,11 @@ final class Theme extends Provider {
 		if ( ! $locations ) {
 			return;
 		}
-		$name = __( 'Community menu', 'wbcom-demo-installer' );
+		$name = __( 'Demo menu', 'wbcom-demo-installer' );
 		$i    = 2;
 		while ( wp_get_nav_menu_object( $name ) ) {
 			/* translators: %d: number */
-			$name = sprintf( __( 'Community menu %d', 'wbcom-demo-installer' ), $i++ );
+			$name = sprintf( __( 'Demo menu %d', 'wbcom-demo-installer' ), $i++ );
 		}
 		$menu_id = wp_create_nav_menu( $name );
 		if ( is_wp_error( $menu_id ) ) {
@@ -209,8 +222,11 @@ final class Theme extends Provider {
 			Snapshot::write( 'buddyx_demo_setup_state', 'dismissed' );
 		}
 		foreach ( $this->included( $ctx ) as $p ) {
+			$ids = $p->layout_pages();
 			foreach ( $p->menu_items() as $item ) {
-				$id = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );
+				$ids[] = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );
+			}
+			foreach ( array_unique( array_map( 'intval', $ids ) ) as $id ) {
 				if ( $id && 'page' === get_post_type( $id ) ) {
 					self::no_sidebar( $id );
 				}
@@ -288,22 +304,16 @@ final class Theme extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
 		if ( 'menu' === $row->object_type ) {
 			if ( wp_get_nav_menu_object( $id ) ) {
 				wp_delete_nav_menu( $id );
 			}
-			return true;
+			return ! wp_get_nav_menu_object( $id );
 		}
 		if ( 'page' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_post( $id, true );
-			}
-			return true;
+			return self::delete_post( $id );
 		}
 		return true;
 	}

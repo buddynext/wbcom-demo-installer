@@ -10,7 +10,8 @@ what your community will look like before your first real member joins.
 - Use a fresh site: a new install, a staging copy or a sandbox. The demo is made for showing and trying the
   products, not for a site people already use. If the site already has other members, blog posts or comments,
   the site check says so, and you have to confirm before the build starts.
-- Activate your theme (BuddyX, BuddyX Pro, Reign or any other theme) and the Wbcom products you want to try.
+- Activate your theme (BuddyX, BuddyX Pro, Reign or any other theme). The free Wbcom products can be installed from
+  the wizard itself; Pro add-ons are installed from your account as usual.
 - If a product shipped its own demo data earlier, remove it from that product first. The site check tells you.
 - You need to be a site administrator.
 
@@ -18,11 +19,62 @@ what your community will look like before your first real member joins.
 
 1. Go to **Appearance > Set up your site**.
 2. **Site check** shows your theme, the products that are ready, and your own users and posts, which are never changed.
+   Below it, **Wbcom products** lists every free product with its state. BuddyNext, WPMediaVerse and Jetonomy are the
+   community set every starting point uses, so they are ticked when one is missing. Tick any others you want and choose
+   **Install and activate**. When your theme is not a Wbcom theme, the free BuddyX theme is offered too (Finish demo
+   does not switch your theme back).
 3. **Starting point**: pick the closest match. Only starting points for products you have active are shown.
 4. **Products**: switch each product on or off. The bar at the bottom shows exactly what will be created.
 5. **Home page and menu**: use the community home page, menu and logo, or keep your own.
-6. **Review** the list and choose **Build my demo**.
+6. **Review** the list. You can type your own site name and tagline here: a new name shows in the header in place of
+   the sample logo, and Remove everything puts your current ones back. Then choose **Build my demo**.
 7. Wait for the progress bar. You can leave the page; the build continues where it stopped when you come back.
+
+## Describe your site and let AI build it
+
+This is optional: the wizard works the same without it. With an AI connector set up in **Settings > Connectors**
+(Anthropic, Google or OpenAI, with your own key), the **Starting point** step shows "Have a site in mind?" above the
+starting points. Choose **Describe my site**, write one or two sentences, for example "a running club with weekend group runs,
+training plans and coaches who sell personal plans", and choose **Suggest 3 site ideas**. Each idea shows its name,
+tagline, starting point, the products it uses (missing free ones are installed for you) and what the site will have.
+
+Pick one with **Use this idea**: the next steps open with the idea's choices preselected and say what came from the
+idea (its starting point, the reason for each product, the name in the header). **Use no idea** on any step returns to
+the normal choices. The build writes
+the text of the demo for that site, in your site's language: people's bios, spaces, posts, discussions, courses,
+events, listings, jobs, services, and the About, Join, FAQ and Blog pages with their blog posts (Wbcom Essential). Photos come from the installer's own library. A product whose text does not pass
+the installer's checks uses the sample text instead, so a build never fails because of AI. The requests go through your
+connector and are billed to your account; Finish demo removes everything as usual.
+
+Without a connector, administrators see one short tip on the Starting point step with a link to Settings > Connectors;
+nothing else changes.
+
+## Pages and blog
+
+With Wbcom Essential active (it can be installed from the site check), the demo also adds About, Join, FAQ and Blog
+pages and four blog posts by the sample people, linked from the menu. Keep my setup keeps the pages; the blog posts are
+sample content.
+
+The pages are made to fit your theme without any setup:
+
+- **About**: a photo, an introduction, three values in columns, a quote from a member and a "From the blog" carousel.
+- **Join**: three steps and a button to the registration page.
+- **FAQ**: questions that open and close (the Details block).
+- **Blog**: a grid of the blog categories, then the latest posts as cards with photo, category, title, excerpt, date
+  and author.
+
+Headings, text, quotes and buttons are standard WordPress blocks, so they take your theme's fonts and colours. The
+blog sections are Wbcom Essential's **Post Carousel** and **Category Grid** blocks, which follow the theme's colours.
+
+To edit them, open the page in the block editor:
+
+- Change any text in place, swap the About photo, or add your own blocks.
+- **Show your own posts**: the Post Carousel and Category Grid blocks show only the demo's blog categories. Select the
+  block and change **Categories** in the block settings (or clear it to show every post), then save.
+- **Carousel or grid**: in the Post Carousel block settings, **Display mode** switches between a carousel, a slider and
+  a grid, and sets how many posts show.
+- Write new posts as usual under **Posts > Add New**; give them a category and a featured image so they look like the
+  demo cards.
 
 ## What you get
 

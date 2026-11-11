@@ -27,7 +27,15 @@ final class People extends Provider {
 	 * @return array<int,array<string,mixed>>
 	 */
 	public static function roster(): array {
-		return require WBCOM_DEMO_DIR . 'content/people.php';
+		/** This filter is documented in src/Core/Provider.php */
+		return (array) apply_filters( 'wbcom_demo_content', (array) require WBCOM_DEMO_DIR . 'content/people.php', 'people' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_skip_keys(): array {
+		return array( 'name', 'topics' ); // Names match the people's photos; topics are interest slugs.
 	}
 
 	/**
@@ -118,6 +126,8 @@ final class People extends Provider {
 					'user_login'      => $login,
 					'user_email'      => $person['login'] . '@' . QuietMode::DOMAIN,
 					'user_pass'       => wp_generate_password( 32, true, true ),
+					// Profile URLs and @handles read the nicename: show "@lucia-ferrari", not the "demo." login prefix. Core adds -2 on a clash.
+					'user_nicename'   => sanitize_title( str_replace( '.', '-', $person['login'] ) ),
 					'display_name'    => $person['name'],
 					'first_name'      => strtok( $person['name'], ' ' ),
 					'last_name'       => trim( (string) strstr( $person['name'], ' ' ) ),
@@ -147,8 +157,9 @@ final class People extends Provider {
 				'field'    => $person['field'] ?? '',
 				'topics'   => $person['topics'] ?? array(),
 				'roles'    => array_merge( array( 'member' ), $person['roles'] ),
-				'avatar'   => sprintf( 'avatars/avatar-%02d.png', ( $i % 12 ) + 1 ),
-				'cover'    => sprintf( 'covers/cover-%02d.png', ( $i % 8 ) + 1 ),
+				// One photo per person, named by login, so no two people share a face.
+				'avatar'   => 'avatars/' . $person['login'] . '.jpg',
+				'cover'    => sprintf( 'covers/cover-%02d.jpg', ( $i % 8 ) + 1 ),
 			);
 		}
 		$ctx->state->set( 'people', $people );
@@ -169,11 +180,20 @@ final class People extends Provider {
 		if ( ! get_user_meta( $user_id, self::FLAG, true ) ) {
 			return true;
 		}
-		if ( function_exists( 'buddynext_remove_member' ) ) {
-			return (bool) buddynext_remove_member( $user_id );
-		}
 		require_once ABSPATH . 'wp-admin/includes/user.php';
-		return wp_delete_user( $user_id );
+		// Anything still credited to the person after their sample content is gone is the owner's
+		// (written by the owner as them, or kept): give it to the admin running Finish, never delete it.
+		$owner = (int) get_current_user_id();
+		if ( ! is_multisite() ) {
+			// deleted_user still fires, so BuddyNext and the other products purge their own rows.
+			wp_delete_user( $user_id, $owner && $owner !== $user_id ? $owner : null );
+		} elseif ( function_exists( 'buddynext_remove_member' ) ) {
+			buddynext_remove_member( $user_id );
+		} else {
+			wp_delete_user( $user_id, $owner && $owner !== $user_id ? $owner : null );
+		}
+		clean_user_cache( $user_id );
+		return ! get_userdata( $user_id ) || ! is_user_member_of_blog( $user_id );
 	}
 
 	/**

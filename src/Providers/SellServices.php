@@ -158,8 +158,8 @@ final class SellServices extends Provider {
 		$services = new \WPSellServices\Services\ServiceManager();
 		$done     = array();
 		foreach ( $this->content()['services'] as $i => $s ) {
-			list( $who, $title, $cat, $base, $desc ) = $s;
-			$vendor                                  = $ctx->person( $who );
+			list( $who, $title, $cat, $base, $desc, $image ) = $s;
+			$vendor = $ctx->person( $who );
 			if ( ! isset( $done[ $vendor ] ) ) {
 				$vendors->register( $vendor, array( 'status' => 'active' ) );
 				$p = $ctx->profile( $vendor );
@@ -177,7 +177,7 @@ final class SellServices extends Provider {
 			}
 			$term = $this->ensure_term( $cat, 'wpss_service_category', $ctx );
 			// Sell Services publishes only marketplace-ready services, and that includes an image.
-			$thumb = $ctx->attachment( 'photos/' . array( 'tech-workspace.jpg', 'art-gallery.jpg', 'developer-desk.jpg', 'creative-studio-portrait.jpg', 'neon-light.jpg', 'festival-friends.jpg' )[ $i % 6 ], $vendor, $this->id() );
+			$thumb = $ctx->attachment( $image, $vendor, $this->id() );
 			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( $this->content()['services'] ), 70 ) );
 			$id = $services->create(
 				array(
@@ -310,15 +310,9 @@ final class SellServices extends Provider {
 			case 'term':
 				return self::remove_unused_term( $id, 'wpss_service_category' );
 			case 'attachment':
-				if ( get_post( $id ) ) {
-					wp_delete_attachment( $id, true );
-				}
-				return true;
+				return self::delete_post( $id, true );
 			case 'service':
-				if ( get_post( $id ) ) {
-					wp_delete_post( $id, true );
-				}
-				return true;
+				return self::delete_post( $id );
 			case 'order':
 				// Orders are removed with the buyer (Sell Services cascades orders, reviews and wallet rows on user delete).
 				return true;

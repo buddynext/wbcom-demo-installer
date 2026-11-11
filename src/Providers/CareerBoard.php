@@ -71,6 +71,15 @@ final class CareerBoard extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_keep(): array {
+		// Job type and experience level: the provider branches on "Contract", and they read as fixed labels.
+		$jobs = (array) ( $this->content()['jobs'] ?? array() );
+		return array_values( array_unique( array_merge( array_column( $jobs, 3 ), array_column( $jobs, 5 ) ) ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'WCBP_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -326,18 +335,14 @@ final class CareerBoard extends Provider {
 			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
 		if ( get_post( $id ) ) {
 			// Career Board links a company to its HQ location term outside the post type's
 			// registered taxonomies, so wp_delete_post() leaves that link behind.
 			wp_delete_object_term_relationships( $id, array( 'wcb_location' ) );
-			wp_delete_post( $id, true );
 		}
-		return true;
+		return self::delete_post( $id );
 	}
 
 	/**

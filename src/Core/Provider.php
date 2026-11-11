@@ -46,6 +46,23 @@ abstract class Provider {
 		return $this->content;
 	}
 
+	/**
+	 * Pages besides the menu items that get the theme's full-width, no-sidebar layout (the Theme provider applies
+	 * it), for example content pages that are not in the menu.
+	 *
+	 * @return int[] Page ids.
+	 */
+	public function layout_pages(): array {
+		return array();
+	}
+
+	/**
+	 * Read the content again on next use (a content pack was added during this request).
+	 */
+	public function forget_content(): void {
+		$this->content = null;
+	}
+
 	/** Bump when the contract changes; the registry skips providers on another version. */
 	public const CONTRACT = 1;
 
@@ -185,6 +202,35 @@ abstract class Provider {
 	public function handover( array $kept, int $owner_id ): void {}
 
 	/**
+	 * Records the product keeps on purpose after the demo is removed (an accounting ledger, a security
+	 * audit log), named in the finish report so the owner is not surprised. The installer never deletes
+	 * product rows directly; empty when the product keeps none.
+	 */
+	public function keeps_logs(): string {
+		return '';
+	}
+
+	/**
+	 * Content keys whose values the AI must not rewrite for this provider (on top of the shared list in
+	 * Ai\Pack: slugs, images, types and similar).
+	 *
+	 * @return string[]
+	 */
+	public function ai_skip_keys(): array {
+		return array();
+	}
+
+	/**
+	 * Exact content values the AI must not rewrite: enums the product or this provider branches on, and text
+	 * that must match fixed data (an address that matches map coordinates).
+	 *
+	 * @return string[]
+	 */
+	public function ai_keep(): array {
+		return array();
+	}
+
+	/**
 	 * Settings that present this product at its best in a demo, applied before its content.
 	 * Option name => value; an array value is merged into an array option; "transient:<name>" => null
 	 * clears a one-time activation redirect. "Keep my setup" keeps
@@ -253,8 +299,26 @@ abstract class Provider {
 		$term = '' !== $taxonomy ? get_term( $id, $taxonomy ) : null;
 		if ( $term instanceof \WP_Term && 0 === (int) $term->count ) {
 			wp_delete_term( $id, $taxonomy );
+			clean_term_cache( $id, $taxonomy );
+			return ! term_exists( $id, $taxonomy );
 		}
+		// Gone already, or in use by the owner's content since the build: either way not ours to delete.
 		return true;
+	}
+
+	/**
+	 * Delete a post or attachment the demo made; true only when it is gone afterwards.
+	 *
+	 * @param int  $id         Post id.
+	 * @param bool $attachment Delete as an attachment (files too).
+	 */
+	protected static function delete_post( int $id, bool $attachment = false ): bool {
+		if ( ! get_post( $id ) ) {
+			return true;
+		}
+		$attachment ? wp_delete_attachment( $id, true ) : wp_delete_post( $id, true );
+		clean_post_cache( $id );
+		return false === get_post_status( $id ); // Read again after the delete.
 	}
 
 	/**

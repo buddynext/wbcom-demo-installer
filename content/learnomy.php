@@ -17,6 +17,7 @@ return array(
 	'courses'    => array(
 		array(
 			'title'      => 'Design Systems from Scratch',
+			'image'      => 'photos/wireframe-sketches.jpg',
 			'category'   => 'design',
 			'instructor' => 0,
 			'difficulty' => 'intermediate',
@@ -43,6 +44,7 @@ return array(
 		),
 		array(
 			'title'      => 'Accessible Web Pages in a Weekend',
+			'image'      => 'photos/developer-workspace.jpg',
 			'category'   => 'development',
 			'instructor' => 1,
 			'difficulty' => 'beginner',
@@ -68,6 +70,7 @@ return array(
 		),
 		array(
 			'title'      => 'Running a Community People Come Back To',
+			'image'      => 'photos/cafe-friends.jpg',
 			'category'   => 'community',
 			'instructor' => 10,
 			'difficulty' => 'beginner',
@@ -93,6 +96,7 @@ return array(
 		),
 		array(
 			'title'      => 'Data Visualisation for Busy People',
+			'image'      => 'photos/developer-desk.jpg',
 			'category'   => 'development',
 			'instructor' => 4,
 			'difficulty' => 'intermediate',
@@ -111,6 +115,7 @@ return array(
 		),
 		array(
 			'title'      => 'Calm Focus: Ten Minutes a Day',
+			'image'      => 'photos/misty-forest-path.jpg',
 			'category'   => 'wellbeing',
 			'instructor' => 14,
 			'difficulty' => 'beginner',

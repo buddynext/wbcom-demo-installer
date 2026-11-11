@@ -71,6 +71,15 @@ final class Listora extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_keep(): array {
+		// Street, city and country match the fixed map coordinates.
+		$rows = (array) ( $this->content()['listings'] ?? array() );
+		return array_values( array_unique( array_merge( array_column( $rows, 3 ), array_column( $rows, 4 ), array_column( $rows, 5 ) ) ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'WB_LISTORA_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -98,11 +107,22 @@ final class Listora extends Provider {
 	 */
 	public function settings(): array {
 		// Same two flags as the plugin's own mark_setup_complete(), which it calls once a directory has listings.
-		return array(
+		$settings = array(
 			'wb_listora_setup_complete'                 => '1',
 			'wb_listora_settings'                       => array( 'setup_complete' => true ),
 			'transient:wb_listora_pages_review_pending' => null,
 		);
+		// Listora ships with no map tile source, so its maps draw nothing until the owner picks one. The demo sets
+		// OpenStreetMap's standard tiles with their required credit so the Directory and listing maps show; Remove
+		// everything puts the owner's blank values back. A live site should move to its own or a paid tile provider.
+		if ( function_exists( 'wb_listora_get_setting' ) && '' === trim( (string) wb_listora_get_setting( 'map_tile_url', '' ) ) ) {
+			$settings['wb_listora_settings'] += array(
+				'map_provider'         => 'osm',
+				'map_tile_url'         => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+				'map_tile_attribution' => '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			);
+		}
+		return $settings;
 	}
 
 	/**
@@ -263,6 +283,20 @@ final class Listora extends Provider {
 				$res = rest_do_request( $req );
 				if ( $res->is_error() ) {
 					$ctx->warn( $this->id(), 'review', $res->as_error() );
+					continue;
+				}
+				$data = (array) $res->get_data();
+				if ( 'pending' === ( $data['status'] ?? '' ) && ! empty( $data['id'] ) ) {
+					// Listora holds new reviews for moderation by default, which is right for real reviews. A demo
+					// listing with only pending reviews reads "No reviews yet", so the admin approves our own sample
+					// reviews through Listora's moderator route; the owner's moderation setting is not changed.
+					wp_set_current_user( $was );
+					$approve = new \WP_REST_Request( 'PUT', '/listora/v1/reviews/' . (int) $data['id'] );
+					$approve->set_param( 'status', 'approved' );
+					$done = rest_do_request( $approve );
+					if ( $done->is_error() ) {
+						$ctx->warn( $this->id(), 'review', $done->as_error() );
+					}
 				}
 			}
 		}
@@ -281,15 +315,9 @@ final class Listora extends Provider {
 			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
-		if ( get_post( $id ) ) {
-			wp_delete_post( $id, true );
-		}
-		return true;
+		return self::delete_post( $id );
 	}
 
 	/**

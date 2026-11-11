@@ -70,6 +70,13 @@ final class MediaShield extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function ai_skip_keys(): array {
+		return array( 'videos' ); // Real open films: titles and descriptions describe them.
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'MEDIASHIELD_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -188,9 +195,6 @@ final class MediaShield extends Provider {
 	 * @param object $row Ledger row.
 	 */
 	public function remove( object $row ): bool {
-		if ( get_post( (int) $row->object_id ) ) {
-			wp_delete_post( (int) $row->object_id, true );
-		}
-		return true;
+		return self::delete_post( (int) $row->object_id );
 	}
 }

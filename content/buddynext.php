@@ -22,6 +22,7 @@ return array(
 	'spaces'     => array(
 		array(
 			'slug'     => 'say-hello',
+			'image'    => 'photos/coffee-cheers.jpg',
 			'name'     => 'Say Hello',
 			'type'     => 'open',
 			'category' => 'introductions',
@@ -31,6 +32,7 @@ return array(
 		),
 		array(
 			'slug'     => 'design-critique',
+			'image'    => 'photos/wireframe-sketches.jpg',
 			'name'     => 'Design Critique',
 			'type'     => 'open',
 			'category' => 'design',
@@ -40,6 +42,7 @@ return array(
 		),
 		array(
 			'slug'     => 'frontend-guild',
+			'image'    => 'photos/developer-desk.jpg',
 			'name'     => 'Frontend Guild',
 			'type'     => 'open',
 			'category' => 'web-development',
@@ -49,6 +52,7 @@ return array(
 		),
 		array(
 			'slug'     => 'book-club',
+			'image'    => 'photos/open-books.jpg',
 			'name'     => 'Book Club',
 			'type'     => 'private',
 			'category' => 'books',
@@ -58,6 +62,7 @@ return array(
 		),
 		array(
 			'slug'     => 'trail-runners',
+			'image'    => 'photos/sunlit-forest-trail.jpg',
 			'name'     => 'Trail Runners',
 			'type'     => 'open',
 			'category' => 'running',
@@ -67,6 +72,7 @@ return array(
 		),
 		array(
 			'slug'     => 'founders-lounge',
+			'image'    => 'photos/abstract-light.jpg',
 			'name'     => 'Founders Lounge',
 			'type'     => 'secret',
 			'category' => 'startups',
@@ -76,6 +82,7 @@ return array(
 		),
 		array(
 			'slug'     => 'photo-walks',
+			'image'    => 'photos/vintage-camera.jpg',
 			'name'     => 'Photo Walks',
 			'type'     => 'private',
 			'category' => 'photography',
@@ -85,6 +92,7 @@ return array(
 		),
 		array(
 			'slug'     => 'community-news',
+			'image'    => 'photos/city-skyline-dusk.jpg',
 			'name'     => 'Community News',
 			'type'     => 'open',
 			'category' => 'announcements',
@@ -94,6 +102,7 @@ return array(
 		),
 		array(
 			'slug'     => 'the-lounge',
+			'image'    => 'photos/cafe-friends.jpg',
 			'name'     => 'The Lounge',
 			'type'     => 'open',
 			'category' => 'general',
@@ -106,6 +115,7 @@ return array(
 		array(
 			'parent' => 'design-critique',
 			'slug'   => 'ui-patterns',
+			'image'  => 'photos/tech-workspace.jpg',
 			'name'   => 'UI Patterns',
 			'type'   => 'open',
 			'desc'   => 'A shared library of interface patterns and when to reach for each.',
@@ -113,6 +123,7 @@ return array(
 		array(
 			'parent' => 'design-critique',
 			'slug'   => 'accessibility-lab',
+			'image'  => 'photos/developer-workspace.jpg',
 			'name'   => 'Accessibility Lab',
 			'type'   => 'open',
 			'desc'   => 'Audits, fixes and WCAG questions pulled from real project work.',
@@ -120,6 +131,7 @@ return array(
 		array(
 			'parent' => 'frontend-guild',
 			'slug'   => 'css-architecture',
+			'image'  => 'photos/angular-glass-facade.jpg',
 			'name'   => 'CSS Architecture',
 			'type'   => 'open',
 			'desc'   => 'Cascade layers, container queries and CSS that scales.',
@@ -127,6 +139,7 @@ return array(
 		array(
 			'parent' => 'frontend-guild',
 			'slug'   => 'web-performance',
+			'image'  => 'photos/server-room.jpg',
 			'name'   => 'Web Performance',
 			'type'   => 'open',
 			'desc'   => 'Core Web Vitals, bundle budgets and real-device profiling.',
@@ -134,10 +147,10 @@ return array(
 	),
 	// [ author index, space slug or '', text ].
 	'posts'      => array(
-		array( 2, 'say-hello', 'Welcome, everyone! Drop a hello below: who you are, what you are working on, and one thing you would like to learn here.' ),
+		array( 2, 'say-hello', 'Welcome, everyone! Drop a hello below: who you are, what you are working on, and one thing you would like to learn here. {@10} and I are around all week to answer questions.' ),
 		array( 0, 'design-critique', 'Shipped a new prototype today. Spent way too long on the empty states but it was worth it. #design #ux' ),
 		array( 16, 'say-hello', 'Hi all, Chloe here. Junior dev in Lyon, six months into my first job. Mostly here to learn and ask the questions I am too shy to ask at work.' ),
-		array( 1, 'frontend-guild', 'Finally got dark mode pixel-perfect across the whole app. The trick was moving every colour to tokens first. #frontend #css #accessibility' ),
+		array( 1, 'frontend-guild', 'Finally got dark mode pixel-perfect across the whole app. The trick was moving every colour to tokens first, thanks to {@0} for the review. #frontend #css #accessibility' ),
 		array( 4, 'trail-runners', 'Weekend trail was brutal: 1,200m of climbing in the fog. Legs gone, soul restored. #running #outdoors' ),
 		array( 13, '', 'Packaging project wrapped. The client wanted gold foil on everything. We met in the middle: gold foil on one thing. #branding' ),
 		array( 2, 'book-club', 'This month we are reading Thinking in Systems. Chapter 4 is the one everyone argues about, so start there if you are short on time. #bookclub' ),
@@ -149,10 +162,10 @@ return array(
 		array( 3, 'design-critique', 'New illustration set is up. Soft gradients and rounded everything. Too soft? Honest opinions please. #illustration #design' ),
 		array( 6, '', 'Climate model run finished after 9 hours. The ocean is telling us things, and not all of them are good. #climate #science' ),
 		array( 14, '', 'Reminder that a course people finish beats a course people buy. Cut your lessons to the one thing each one teaches. #learningdesign' ),
-		array( 5, '', 'Game jam this weekend: 48 hours, theme announced Friday. Anyone want to team up on the art side? #gamedev #pixelart' ),
+		array( 5, '', 'Game jam this weekend: 48 hours, theme announced Friday. {@3}, want to team up on the art side? #gamedev #pixelart' ),
 		array( 12, '', 'We are hiring two developers this quarter. Remote, async, four-day weeks. Details coming to the job board soon.' ),
 		array( 15, 'founders-lounge', 'Month 18 of the bakery SaaS: 140 paying bakeries, 2 people, 0 investors. Ask me anything.' ),
-		array( 1, 'accessibility-lab', 'Ran a screen reader through our checkout. Three buttons announced as "button". Fixed in ten minutes, should have checked a year ago. #a11y' ),
+		array( 1, 'accessibility-lab', 'Ran a screen reader through our checkout. Three buttons announced as "button". Fixed in ten minutes, should have checked a year ago. {@16} this is the ARIA thing we talked about. #a11y' ),
 		array( 17, 'say-hello', 'Hello from Amman. I run meetups and do live sound. If you ever need a mic that works, I am your person.' ),
 		array( 18, '', 'Our roadmap now has a "not doing" column. It is the most useful column we have. #product' ),
 		array( 19, 'frontend-guild', 'Offline-first is not a feature, it is a respect thing. Half our users ride trains with no signal. #mobile' ),
@@ -166,11 +179,11 @@ return array(
 		array( 9, '', 'Street food tour of Seoul on Sunday. Eleven stalls, four hours, zero regrets. #food #travel' ),
 		array( 3, '', 'Printed the first run of my new typeface specimen. There is nothing like seeing letters on paper. #typography' ),
 		array( 14, '', 'Sketchnotes from yesterday\'s talk on spaced repetition. Short version: review on day 1, 3, 7 and 21. #learning' ),
-		array( 5, 'the-lounge', 'Our team made it to the finals of the game jam. Pixel ducks for the win. #gamedev' ),
+		array( 5, 'the-lounge', 'Our team made it to the finals of the game jam. Pixel ducks for the win, and {@3} drew every one of them. #gamedev' ),
 		array( 12, '', 'Remote team ritual that actually works for us: a 15 minute Friday call with no agenda, cameras optional. #remotework' ),
 		array( 6, 'trail-runners', 'Sailing this weekend instead of running. Does a regatta count as cardio? #sailing' ),
-		array( 17, '', 'Ran the sound for a 300-person meetup last night. One feedback squeal, at the exact moment the speaker said "no surprises". #events' ),
-		array( 18, 'book-club', 'Halfway through the book. The part about leverage points is going straight into our next planning doc. #bookclub' ),
+		array( 17, '', 'Ran the sound for a 300-person meetup last night. One feedback squeal, at the exact moment {@12} said "no surprises". #events' ),
+		array( 18, 'book-club', 'Halfway through the book. The part about leverage points is going straight into our next planning doc. {@2} you were right about chapter 4. #bookclub' ),
 		array( 19, '', 'Shipped an app update that works on a 5-year-old phone. Smaller bundle, fewer complaints. #mobile #performance' ),
 		array( 11, '', 'Rode 90km along the coast today. Saw two dolphins and one very confused kangaroo. #cycling' ),
 		array( 15, '', 'Pricing lesson from bakeries: nobody reads the plans page, they ask their friend at the next bakery. #startups' ),
@@ -186,15 +199,38 @@ return array(
 		'Welcome! Glad you found us.',
 		'Same here, took me ages to figure that out.',
 		'Counting me in for the next one.',
+		'{@9} you have to see this.',
+		'Tagging {@14}, this is right up your street.',
 		'Can you share the before and after?',
 		'This made my morning, thank you.',
 		'Bookmarking this for our team meeting.',
 		'Totally agree, small change, big difference.',
 	),
-	'poll'       => array(
-		'author'   => 2,
-		'question' => 'What should we focus on at the next community call?',
-		'options'  => array( 'Design critique session', 'Live coding hour', 'Career AMA', 'Show and tell' ),
+	// Each poll: author index, question, options. {@N} in any text becomes a mention of sample person N.
+	'polls'      => array(
+		array(
+			'author'   => 2,
+			'question' => 'What should we focus on at the next community call?',
+			'options'  => array( 'Design critique session', 'Live coding hour', 'Career AMA', 'Show and tell' ),
+		),
+		array(
+			'author'   => 4,
+			'question' => 'Saturday trail run: which route? {@6} has offered to sweep at the back.',
+			'options'  => array( 'River loop, 8 km', 'Ridge climb, 14 km', 'Coffee shop and back' ),
+		),
+		array(
+			'author'   => 1,
+			'question' => 'How do you test colour contrast before a release?',
+			'options'  => array( 'Browser dev tools', 'A contrast plugin in the design tool', 'Real devices outdoors', 'We do not, yet' ),
+		),
+	),
+	// Replies the post author leaves under the first comment on busy posts; %s is the commenter's @handle.
+	'replies'    => array(
+		'%s thank you, that means a lot.',
+		'%s good question. Short answer: we tested on three real phones before anything else.',
+		'%s yes! Bringing it to the next call.',
+		'%s ha, same. Want to compare notes on Thursday?',
+		'%s I will write it up properly this week.',
 	),
 	'links'      => array(
 		array( 0, '', 'Great primer on modern CSS layout, sharing it with the guild. #css #frontend', 'https://web.dev/learn/css/' ),

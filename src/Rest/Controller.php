@@ -9,6 +9,7 @@ namespace WbcomDemo\Rest;
 
 use WbcomDemo\Core\Engine;
 use WbcomDemo\Core\Finisher;
+use WbcomDemo\Core\Installer;
 use WbcomDemo\Plugin;
 
 defined( 'ABSPATH' ) || exit;
@@ -65,9 +66,23 @@ final class Controller {
 						'type'    => 'boolean',
 						'default' => false,
 					),
+					'name'    => array(
+						'type'              => 'string',
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'tagline' => array(
+						'type'              => 'string',
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'brief'   => array(
+						'type'    => 'object',
+						'default' => array(),
+					),
 				),
 				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response(
-					Engine::start_build( (string) $r['recipe'], array_map( 'sanitize_key', (array) $r['include'] ), (string) $r['look'], (bool) $r['consent'] )
+					Engine::start_build( (string) $r['recipe'], array_map( 'sanitize_key', (array) $r['include'] ), (string) $r['look'], (bool) $r['consent'], (string) $r['name'], (string) $r['tagline'], (array) $r['brief'] )
 				),
 			)
 		);
@@ -109,6 +124,64 @@ final class Controller {
 				'permission_callback' => $auth,
 				'args'                => $finish_args,
 				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response( Finisher::start( (string) $r['mode'], self::custom( $r ) ) ),
+			)
+		);
+		register_rest_route(
+			self::NS,
+			'/finish/resume',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'callback'            => static fn() => rest_ensure_response( Finisher::resume() ),
+			)
+		);
+		register_rest_route(
+			self::NS,
+			'/ideas',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'args'                => array(
+					'description' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'maxLength'         => 600,
+						'sanitize_callback' => 'sanitize_textarea_field',
+					),
+				),
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					$ideas = \WbcomDemo\Ai\Ideas::suggest( (string) $r['description'] );
+					return is_wp_error( $ideas ) ? $ideas : rest_ensure_response( array( 'ideas' => $ideas ) );
+				},
+			)
+		);
+		register_rest_route(
+			self::NS,
+			'/install',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'args'                => array(
+					'id' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_key',
+					),
+				),
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					// One product per request: its activation runs here, and it boots on the next request.
+					$done = Installer::install( (string) $r['id'] );
+					return is_wp_error( $done ) ? $done : rest_ensure_response( array( 'installed' => (string) $r['id'] ) );
+				},
+			)
+		);
+		register_rest_route(
+			self::NS,
+			'/adopt',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'callback'            => static fn() => rest_ensure_response( Finisher::adopt() ),
 			)
 		);
 	}

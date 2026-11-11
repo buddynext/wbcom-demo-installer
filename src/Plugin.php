@@ -24,6 +24,7 @@ final class Plugin {
 		load_plugin_textdomain( 'wbcom-demo-installer', false, dirname( plugin_basename( WBCOM_DEMO_FILE ) ) . '/languages' );
 		Core\Ledger::maybe_upgrade();
 		Core\QuietMode::init();
+		Ai\Pack::init();
 
 		if ( is_admin() ) {
 			Admin\Page::init();

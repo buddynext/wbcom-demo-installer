@@ -243,8 +243,8 @@ final class Roadmap extends Provider {
 		if ( 'term' === $row->object_type ) {
 			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
-		if ( get_post( $id ) ) {
-			wp_delete_post( $id, true );
+		if ( ! self::delete_post( $id ) ) {
+			return false;
 		}
 		// Product Roadmap keeps votes when an item is deleted (card filed). Remove only this item's votes.
 		global $wpdb;

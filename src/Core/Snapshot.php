@@ -23,7 +23,7 @@ final class Snapshot {
 	 * @param mixed  $value New value.
 	 */
 	public static function write( string $name, $value ): void {
-		$snap = get_option( self::OPTION, array() );
+		$snap = self::load();
 		if ( ! array_key_exists( $name, $snap ) ) {
 			$snap[ $name ] = array( 'before' => self::read( $name ) );
 		}
@@ -39,15 +39,48 @@ final class Snapshot {
 	 */
 	public static function restore(): array {
 		$kept = array();
-		foreach ( get_option( self::OPTION, array() ) as $name => $entry ) {
-			if ( self::read( $name ) == $entry['written'] ) { // phpcs:ignore Universal.Operators.StrictComparisons -- options round-trip as strings.
-				self::put( $name, $entry['before'] );
+		foreach ( self::load() as $name => $entry ) {
+			if ( ! is_array( $entry ) || ! array_key_exists( 'written', $entry ) ) {
+				continue;
+			}
+			if ( self::normalise( self::read( (string) $name ) ) === self::normalise( $entry['written'] ) ) {
+				self::put( (string) $name, $entry['before'] ?? null );
 			} else {
 				$kept[] = $name;
 			}
 		}
 		delete_option( self::OPTION );
 		return $kept;
+	}
+
+	/**
+	 * The stored snapshot, or an empty one when the option was damaged (a string, an object).
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function load(): array {
+		$snap = get_option( self::OPTION, array() );
+		return is_array( $snap ) ? $snap : array();
+	}
+
+	/**
+	 * A value as the options table gives it back: true is "1", false is "", numbers are strings.
+	 * Strict comparison of these keeps an owner's change ("yes" is not the demo's true).
+	 *
+	 * @param mixed $value Value.
+	 * @return mixed
+	 */
+	private static function normalise( $value ) {
+		if ( is_array( $value ) ) {
+			return array_map( array( self::class, 'normalise' ), $value );
+		}
+		if ( is_bool( $value ) ) {
+			return $value ? '1' : '';
+		}
+		if ( is_int( $value ) || is_float( $value ) ) {
+			return (string) $value;
+		}
+		return is_object( $value ) ? self::normalise( get_object_vars( $value ) ) : $value;
 	}
 
 	/**

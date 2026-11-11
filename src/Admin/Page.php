@@ -28,6 +28,7 @@ final class Page {
 		add_action( 'admin_menu', array( self::class, 'menu' ) );
 		add_action( 'admin_init', array( self::class, 'clear_redirects' ), 0 );
 		add_action( 'admin_init', array( self::class, 'takeover' ) );
+		add_action( 'admin_init', array( self::class, 'to_demo_data' ) );
 		add_action( 'admin_notices', array( self::class, 'notice' ) );
 		add_action( 'wp_ajax_wbcom_demo_dismiss', array( self::class, 'dismiss' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( WBCOM_DEMO_FILE ), array( self::class, 'links' ) );
@@ -47,6 +48,17 @@ final class Page {
 	}
 
 	/**
+	 * Asset version: the plugin version plus the file's change time, so a browser never keeps a stale copy
+	 * after an update (or a hotfix that keeps the version).
+	 *
+	 * @param string $rel Path under the plugin folder.
+	 */
+	private static function ver( string $rel ): string {
+		$time = @filemtime( WBCOM_DEMO_DIR . $rel ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a missing file falls back to the version.
+		return WBCOM_DEMO_VERSION . ( $time ? '.' . $time : '' );
+	}
+
+	/**
 	 * Menu entry.
 	 */
 	public static function menu(): void {
@@ -57,6 +69,26 @@ final class Page {
 			self::SLUG,
 			'__return_null'
 		);
+		// A permanent way back to what the demo left, after the wizard is closed (card 10483387455).
+		add_management_page(
+			__( 'Demo data', 'wbcom-demo-installer' ),
+			__( 'Demo data', 'wbcom-demo-installer' ),
+			Plugin::CAP,
+			self::SLUG . '-data',
+			'__return_null'
+		);
+	}
+
+	/**
+	 * Tools > Demo data opens the wizard's Finish screen, where the owner chooses what to remove.
+	 */
+	public static function to_demo_data(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page routing.
+		if ( ! isset( $_GET['page'] ) || self::SLUG . '-data' !== $_GET['page'] || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
+			return;
+		}
+		wp_safe_redirect( self::url( 'data' ) );
+		exit;
 	}
 
 	/**
@@ -80,7 +112,7 @@ final class Page {
 	 */
 	public static function clear_redirects(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page routing.
-		if ( ! is_admin() || ! isset( $_GET['page'] ) || self::SLUG !== $_GET['page'] || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
+		if ( ! is_admin() || ! isset( $_GET['page'] ) || ! in_array( $_GET['page'], array( self::SLUG, self::SLUG . '-data' ), true ) || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
 			return;
 		}
 		$providers = did_action( 'admin_init' ) || doing_action( 'admin_init' ) ? \WbcomDemo\Core\Registry::all() : \WbcomDemo\Core\Registry::builtin_providers();
@@ -100,9 +132,9 @@ final class Page {
 		if ( ! current_user_can( Plugin::CAP ) ) {
 			wp_die( esc_html__( 'Only site administrators can set up or remove demo content.', 'wbcom-demo-installer' ), 403 );
 		}
-		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), WBCOM_DEMO_VERSION );
+		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), self::ver( 'assets/css/wizard.css' ) );
 		wp_style_add_data( 'wbcom-demo', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array( 'wp-api-fetch', 'wp-i18n' ), WBCOM_DEMO_VERSION, true );
+		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array( 'wp-api-fetch', 'wp-i18n' ), self::ver( 'assets/js/wizard.js' ), true );
 		wp_set_script_translations( 'wbcom-demo', 'wbcom-demo-installer' );
 		wp_localize_script(
 			'wbcom-demo',
@@ -135,9 +167,9 @@ final class Page {
 		if ( State::IDLE !== ( new State() )->get( 'status' ) || ! Engine::site()['recipes'] ) {
 			return;
 		}
-		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), WBCOM_DEMO_VERSION );
+		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), self::ver( 'assets/css/notice.css' ) );
 		wp_style_add_data( 'wbcom-demo-notice', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/js/notice.js', array(), WBCOM_DEMO_VERSION, true );
+		wp_enqueue_script( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/js/notice.js', array(), self::ver( 'assets/js/notice.js' ), true );
 		wp_localize_script(
 			'wbcom-demo-notice',
 			'wbcomDemoNotice',

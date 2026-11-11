@@ -73,6 +73,20 @@ final class MediaVerse extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function keeps_logs(): string {
+		return __( 'WPMediaVerse keeps its usage ledger as an accounting record, with the sample people removed from it.', 'wbcom-demo-installer' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_skip_keys(): array {
+		return array( 'photos', 'tags' ); // Library photos: their titles describe the pictures.
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'MVS_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -302,17 +316,18 @@ final class MediaVerse extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'album' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_post( $id, true );
-			}
-			return true;
+			return self::delete_post( $id );
 		}
 		if ( 'media' === $row->object_type ) {
 			$repo = $this->service( 'media_repository' );
-			if ( $repo && method_exists( $repo, 'delete_cascade' ) ) {
-				$repo->delete_cascade( $id );
+			if ( ! $repo || ! method_exists( $repo, 'delete_cascade' ) ) {
+				return false;
 			}
-			return true;
+			if ( method_exists( $repo, 'exists' ) && ! $repo->exists( $id ) ) {
+				return true;
+			}
+			$repo->delete_cascade( $id );
+			return ! method_exists( $repo, 'exists' ) || ! $repo->exists( $id );
 		}
 		return true;
 	}
