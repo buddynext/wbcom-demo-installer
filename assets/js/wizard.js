@@ -82,6 +82,12 @@
 
 	const SPARK = '<svg class="wdi-i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"></path><circle cx="12" cy="12" r="3"></circle></svg>';
 
+	// The one-line AI entry: on the site check (connector set up) it leads to Starting point with the box open.
+	function aiBar( where ) {
+		const lead = 'check' === where ? __( 'Describe it and get three ready ideas, or continue and pick a starting point.', 'wbcom-demo-installer' ) : __( 'Describe it and get three ready ideas, or pick a starting point below.', 'wbcom-demo-installer' );
+		return `<div class="wdi-ai-bar">${ SPARK }<span><b>${ esc( __( 'Have a site in mind?', 'wbcom-demo-installer' ) ) }</b> ${ esc( lead ) }</span><button type="button" class="wdi-btn" data-go="ai-open">${ esc( __( 'Describe my site', 'wbcom-demo-installer' ) ) }</button></div>`;
+	}
+
 	// AI through WordPress core connectors: describe the site and get three ideas, or a pointer to Connectors.
 	function aiPanel() {
 		const ai = S.site.ai || {};
@@ -90,7 +96,7 @@
 			return ai.url && ai.manage ? `<p class="wdi-ai-tip wdi-muted wdi-small">${ SPARK }<span>${ esc( __( 'Tip: connect Anthropic, Google or OpenAI in Settings > Connectors to describe your site in your own words and get three ready ideas.', 'wbcom-demo-installer' ) ) } <a class="wdi-link" href="${ esc( ai.url ) }">${ esc( __( 'Open Connectors', 'wbcom-demo-installer' ) ) }</a></span></p>` : '';
 		}
 		if ( ! S.aiOpen ) {
-			return `<div class="wdi-ai-bar">${ SPARK }<span><b>${ esc( __( 'Have a site in mind?', 'wbcom-demo-installer' ) ) }</b> ${ esc( __( 'Describe it and get three ready ideas, or pick a starting point below.', 'wbcom-demo-installer' ) ) }</span><button type="button" class="wdi-btn" data-go="ai-open">${ esc( __( 'Describe my site', 'wbcom-demo-installer' ) ) }</button></div>`;
+			return aiBar( 'start' );
 		}
 		const tries = [ __( 'A yoga studio with weekly classes, an online beginners course and a members forum', 'wbcom-demo-installer' ), __( 'A directory of local farmers and food stalls with reviews and weekend market days', 'wbcom-demo-installer' ), __( 'A customer community for our app with support forums, tutorials and a public roadmap', 'wbcom-demo-installer' ) ];
 		return `<div class="wdi-ai">
@@ -254,7 +260,7 @@
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ ideaBanner() }${ installPanel() }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ installPanel() }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
