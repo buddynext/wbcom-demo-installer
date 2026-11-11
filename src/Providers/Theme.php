@@ -222,8 +222,11 @@ final class Theme extends Provider {
 			Snapshot::write( 'buddyx_demo_setup_state', 'dismissed' );
 		}
 		foreach ( $this->included( $ctx ) as $p ) {
+			$ids = $p->layout_pages();
 			foreach ( $p->menu_items() as $item ) {
-				$id = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );
+				$ids[] = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );
+			}
+			foreach ( array_unique( array_map( 'intval', $ids ) ) as $id ) {
 				if ( $id && 'page' === get_post_type( $id ) ) {
 					self::no_sidebar( $id );
 				}

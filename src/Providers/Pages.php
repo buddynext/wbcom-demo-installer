@@ -88,12 +88,14 @@ final class Pages extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
-		$c = $this->content();
+		$c        = $this->content();
+		$new_cats = self::missing_terms( array( 'category' => array_column( $c['categories'], 0 ) ) );
 		return array(
 			'page'       => array( count( self::PAGES ), 'setup', __( 'pages', 'wbcom-demo-installer' ) ),
-			'category'   => array( self::missing_terms( array( 'category' => array_values( $c['categories'] ) ) ), 'setup', __( 'blog categories', 'wbcom-demo-installer' ) ),
+			'category'   => array( $new_cats, 'setup', __( 'blog categories', 'wbcom-demo-installer' ) ),
 			'post'       => array( count( $c['posts'] ), 'sample', __( 'blog posts', 'wbcom-demo-installer' ) ),
-			'attachment' => array( count( $c['posts'] ) + 1, 'sample', __( 'page and post images', 'wbcom-demo-installer' ) ),
+			// One per post, About and Join, and one per new category (an owner's existing category is not touched).
+			'attachment' => array( count( $c['posts'] ) + 2 + $new_cats, 'sample', __( 'page, post and category images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -105,7 +107,7 @@ final class Pages extends Provider {
 			'page'       => __( 'pages', 'wbcom-demo-installer' ),
 			'category'   => __( 'blog categories', 'wbcom-demo-installer' ),
 			'post'       => __( 'blog posts', 'wbcom-demo-installer' ),
-			'attachment' => __( 'page and post images', 'wbcom-demo-installer' ),
+			'attachment' => __( 'page, post and category images', 'wbcom-demo-installer' ),
 		);
 	}
 
@@ -149,6 +151,13 @@ final class Pages extends Provider {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function layout_pages(): array {
+		return Ledger::ids( $this->id(), 'page' );
+	}
+
+	/**
 	 * Blog posts by the sample people.
 	 *
 	 * @param Context $ctx Context.
@@ -156,8 +165,16 @@ final class Pages extends Provider {
 	private function posts( Context $ctx ): void {
 		$c     = $this->content();
 		$terms = array();
-		foreach ( $c['categories'] as $key => $name ) {
-			$terms[ $key ] = $this->ensure_term( $name, 'category', $ctx, '', 'category' );
+		foreach ( $c['categories'] as $key => $cat ) {
+			list( $name, $photo ) = $cat;
+			$terms[ $key ]        = $this->ensure_term( $name, 'category', $ctx, '', 'category' );
+			// A photo only on a category the demo made, so the category grid shows pictures, not placeholders.
+			if ( $terms[ $key ] && Ledger::has( $this->id(), 'category', $terms[ $key ] ) && ! get_term_meta( $terms[ $key ], 'thumbnail_id', true ) ) {
+				$image = $ctx->attachment( $photo, (int) get_current_user_id(), $this->id() );
+				if ( $image ) {
+					update_term_meta( $terms[ $key ], 'thumbnail_id', $image );
+				}
+			}
 		}
 		// The blog blocks on the pages show only these categories, so the owner's own posts (and Hello world!) stay out.
 		$ctx->state->ref_set( $this->id(), 'categories', array_values( array_filter( array_map( 'intval', $terms ) ) ) );
@@ -204,12 +221,13 @@ final class Pages extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function pages( Context $ctx ): void {
-		$c     = $this->content();
-		$admin = (int) get_current_user_id();
-		$about = $c['about'];
-		$cats  = array_map( 'intval', (array) $ctx->state->ref( $this->id(), 'categories', array() ) );
-		$image = $ctx->attachment( $about['image'], $admin, $this->id() );
-		$cols  = array();
+		$c          = $this->content();
+		$admin      = (int) get_current_user_id();
+		$about      = $c['about'];
+		$cats       = array_map( 'intval', (array) $ctx->state->ref( $this->id(), 'categories', array() ) );
+		$image      = $ctx->attachment( $about['image'], $admin, $this->id() );
+		$join_image = $ctx->attachment( $c['join']['image'], $admin, $this->id() );
+		$cols       = array();
 		foreach ( $about['values'] as $value ) {
 			$cols[] = self::heading( $value[0], 3 ) . "\n" . self::paragraph( $value[1] );
 		}
@@ -224,6 +242,7 @@ final class Pages extends Provider {
 				self::posts_block( $cats, 'carousel', 3 ),
 			),
 			'join'  => array(
+				$join_image ? self::image( $join_image ) : '',
 				self::paragraph( $c['join']['intro'] ),
 				self::columns(
 					array_map(
@@ -247,6 +266,8 @@ final class Pages extends Provider {
 						'columns'            => max( 1, min( 4, count( $cats ) ) ),
 						'showPostCount'      => true,
 						'useThemeColors'     => true,
+						'imageRatio'         => '0.5', // Wide, short tiles: the categories lead into the posts, not over them.
+						'overlayColor'       => '#111111', // Titles stay readable on bright photos.
 					)
 				) . ' /-->',
 				self::heading( __( 'Latest posts', 'wbcom-demo-installer' ) ),
@@ -319,9 +340,10 @@ final class Pages extends Provider {
 	 */
 	private static function image( int $id ): string {
 		return sprintf(
-			'<!-- wp:image {"id":%1$d,"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="%2$s" alt="%3$s" class="wp-image-%1$d"/></figure><!-- /wp:image -->',
+			// A wide crop (21:9) keeps the page photo a banner, not a screenful, on any theme width.
+			'<!-- wp:image {"id":%1$d,"aspectRatio":"21/9","scale":"cover","sizeSlug":"full","linkDestination":"none"} --><figure class="wp-block-image size-full"><img src="%2$s" alt="%3$s" class="wp-image-%1$d" style="aspect-ratio:21/9;object-fit:cover"/></figure><!-- /wp:image -->',
 			$id,
-			esc_url( (string) wp_get_attachment_image_url( $id, 'large' ) ),
+			esc_url( (string) wp_get_attachment_image_url( $id, 'full' ) ),
 			esc_attr( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) )
 		);
 	}

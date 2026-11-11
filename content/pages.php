@@ -1,7 +1,9 @@
 <?php
 /**
  * Pages and blog sample content (built with core blocks plus Wbcom Essential's dynamic blocks). Authors and quote
- * givers are roster indices (content/people.php); photos come from media/photos.
+ * givers are roster indices (content/people.php); photos come from media/photos. Each blog category has a photo (shown
+ * by Wbcom Essential's category grid), so no card falls back to a placeholder. Only photos with a CC0 entry in
+ * media/CREDITS.json are used here.
  *
  * @package WbcomDemo
  */
@@ -11,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 return array(
 	'about'      => array(
 		'title'  => 'About us',
-		'image'  => 'photos/cafe-friends.jpg',
+		'image'  => 'photos/creative-studio-portrait.jpg',
 		'intro'  => 'We are a community of designers, developers, writers and curious people who learn faster together. Members share work in progress, ask the questions they would not ask at work, and meet up when they can.',
 		'values' => array(
 			array( 'Kind, specific feedback', 'Critique the work, not the person. Say what works, what does not, and one thing to try next.' ),
@@ -22,6 +24,7 @@ return array(
 	),
 	'join'       => array(
 		'title'  => 'Join the community',
+		'image'  => 'photos/tasting-plates.jpg',
 		'intro'  => 'Membership is free. Create an account, say hello, and find the spaces that match what you are working on.',
 		'steps'  => array(
 			array( 'Create your account', 'Pick a username and add a photo, so people know who they are talking to.' ),
@@ -48,16 +51,16 @@ return array(
 		'intro' => 'Stories from members, guides from the team and news about what is coming next.',
 	),
 	'categories' => array(
-		'news'    => 'Community news',
-		'guides'  => 'Guides',
-		'stories' => 'Member stories',
+		'news'    => array( 'Community news', 'photos/abstract-light.jpg' ),
+		'guides'  => array( 'Guides', 'photos/open-books.jpg' ),
+		'stories' => array( 'Member stories', 'photos/matcha-latte.jpg' ),
 	),
 	'posts'      => array(
 		array(
 			'author'   => 10,
 			'category' => 'news',
 			'title'    => 'What we decided at the community call',
-			'image'    => 'photos/coffee-cheers.jpg',
+			'image'    => 'photos/cafe-friends.jpg',
 			'excerpt'  => 'Monthly critique sessions, a mentoring pilot and a quiet hour on Fridays: here is what changes and when.',
 			'body'     => array(
 				array( '', 'Thanks to everyone who joined the call last week. Forty-two of you came, which is a record, and the chat was full of good ideas. Here is what we agreed to try.' ),
@@ -83,7 +86,7 @@ return array(
 			'author'   => 16,
 			'category' => 'stories',
 			'title'    => 'Six months into my first developer job',
-			'image'    => 'photos/developer-desk.jpg',
+			'image'    => 'photos/neon-grid.jpg',
 			'excerpt'  => 'What I wish someone had told me on day one, and the three people here who helped me most.',
 			'body'     => array(
 				array( '', 'Six months ago I started my first developer job and I was sure everyone could tell I did not know what I was doing. Here is what helped.' ),
@@ -96,13 +99,39 @@ return array(
 			'author'   => 4,
 			'category' => 'guides',
 			'title'    => 'A beginner\'s guide to our photo walks',
-			'image'    => 'photos/urban-street-night.jpg',
+			'image'    => 'photos/vintage-camera.jpg',
 			'excerpt'  => 'Any camera works, phones included. Here is how a walk runs and how to share your best frames afterwards.',
 			'body'     => array(
 				array( '', 'Our photo walks are the easiest way to meet members in person. You do not need a fancy camera or any experience.' ),
 				array( 'How a walk runs', 'We meet at a cafe, pick a theme for the day, walk for two hours and finish with coffee and a look at what everyone shot.' ),
 				array( 'What to bring', 'A camera or a phone, comfortable shoes and something warm. That is it.' ),
 				array( 'Sharing afterwards', 'Post your three best frames in the photography space. Everyone picks a favourite from someone else\'s set.' ),
+			),
+		),
+		array(
+			'author'   => 6,
+			'category' => 'stories',
+			'title'    => 'From a sketchbook to my first client',
+			'image'    => 'photos/art-gallery.jpg',
+			'excerpt'  => 'I posted one illustration for feedback. A member asked if I took commissions. Here is what happened next.',
+			'body'     => array(
+				array( '', 'A year ago I drew only for myself. I posted one piece in the illustration space because I was stuck on the colours.' ),
+				array( 'The feedback', 'Three people answered within a day. One suggested a warmer palette, one asked about my process, and one asked if I took commissions.' ),
+				array( 'The first job', 'It was a set of six drawings for a bakery menu. I priced it too low, and the members who freelance told me so, kindly.' ),
+				array( 'What I would tell you', 'Post the work before you think it is ready. The people here are generous, and the right reply can change your year.' ),
+			),
+		),
+		array(
+			'author'   => 12,
+			'category' => 'news',
+			'title'    => 'New spaces for remote workers and founders',
+			'image'    => 'photos/sunlit-forest-trail.jpg',
+			'excerpt'  => 'Two new spaces open this month, chosen by your votes on the roadmap. Here is what each one is for.',
+			'body'     => array(
+				array( '', 'You voted, and two new spaces open this month. Both were among the top ideas on the community roadmap.' ),
+				array( 'Remote work', 'For everyone who works away from an office: routines, tools, and finding people in your time zone to co-work with.' ),
+				array( 'Founders', 'For people building a business: early customers, pricing, hiring the first person and the hard weeks in between.' ),
+				array( 'How to join', 'Open the Spaces page, pick the space and choose Join. Say hello in the welcome thread so the hosts know you are there.' ),
 			),
 		),
 	),

@@ -47,6 +47,16 @@ abstract class Provider {
 	}
 
 	/**
+	 * Pages besides the menu items that get the theme's full-width, no-sidebar layout (the Theme provider applies
+	 * it), for example content pages that are not in the menu.
+	 *
+	 * @return int[] Page ids.
+	 */
+	public function layout_pages(): array {
+		return array();
+	}
+
+	/**
 	 * Read the content again on next use (a content pack was added during this request).
 	 */
 	public function forget_content(): void {

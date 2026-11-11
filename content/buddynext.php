@@ -72,7 +72,7 @@ return array(
 		),
 		array(
 			'slug'     => 'founders-lounge',
-			'image'    => 'photos/rooftop-bar.jpg',
+			'image'    => 'photos/abstract-light.jpg',
 			'name'     => 'Founders Lounge',
 			'type'     => 'secret',
 			'category' => 'startups',
