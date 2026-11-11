@@ -224,10 +224,12 @@ html, body { margin: 0; }
 .wdi-ideaplan h3 { margin: 6px 0 0; font-size: 12px; font-weight: 600; color: var(--wdi-text-2); text-transform: uppercase; letter-spacing: 0.04em; }
 .wdi-ideaplan ul, .wdi-ideaplan ol { margin: 0; padding-inline-start: 20px; display: grid; gap: 3px; }
 
+.wdi-ai-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; border: 1px dashed var(--wdi-accent-line); border-radius: var(--wdi-r-md); background: var(--wdi-surface-2); font-size: 13.5px; }
+.wdi-ai-bar > span { flex: 1 1 260px; }
+.wdi-ai-bar .wdi-i, .wdi-ai-tip .wdi-i { color: var(--wdi-accent); flex: none; }
+.wdi-ai-tip { display: flex; gap: 8px; align-items: flex-start; margin: 0; }
+.wdi-ai__head { display: flex; align-items: center; }
 .wdi-ai { display: grid; gap: var(--wdi-space-sm); padding: var(--wdi-space-lg); border: 1px solid var(--wdi-accent-line); border-radius: var(--wdi-r-md); background: var(--wdi-surface); }
-.wdi-ai--connect { grid-template-columns: 32px minmax(0, 1fr); align-items: start; border-style: dashed; background: var(--wdi-surface-2); }
-.wdi-ai--connect > div { display: grid; gap: 4px; font-size: 13.5px; }
-.wdi-ai__ic { width: 32px; height: 32px; border-radius: var(--wdi-r-md); background: var(--wdi-accent-soft); color: var(--wdi-accent); display: grid; place-items: center; }
 .wdi-ai__head b { font-size: 15px; }
 .wdi-ai__text { width: 100%; min-height: 84px; padding: 10px 12px; font: inherit; color: var(--wdi-text); background: var(--wdi-surface); border: 1px solid var(--wdi-border-strong); border-radius: var(--wdi-r-md); resize: vertical; }
 .wdi-ai__text:focus-visible { outline: 2px solid var(--wdi-accent); outline-offset: 1px; border-color: var(--wdi-accent); }

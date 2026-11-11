@@ -86,11 +86,15 @@
 	function aiPanel() {
 		const ai = S.site.ai || {};
 		if ( ! ai.available ) {
-			return ai.url && ai.manage ? `<div class="wdi-ai wdi-ai--connect"><span class="wdi-ai__ic">${ SPARK }</span><div><b>${ esc( __( 'Describe your site in your own words', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'Connect Anthropic, Google or OpenAI in Settings > Connectors with your own key. Then write one sentence about your site and get three ready ideas to build from.', 'wbcom-demo-installer' ) ) }</span><a class="wdi-link" href="${ esc( ai.url ) }">${ esc( __( 'Open Settings > Connectors', 'wbcom-demo-installer' ) ) }</a></div></div>` : '';
+			// Optional extra: one quiet line for admins, nothing for everyone else.
+			return ai.url && ai.manage ? `<p class="wdi-ai-tip wdi-muted wdi-small">${ SPARK }<span>${ esc( __( 'Tip: connect Anthropic, Google or OpenAI in Settings > Connectors to describe your site in your own words and get three ready ideas.', 'wbcom-demo-installer' ) ) } <a class="wdi-link" href="${ esc( ai.url ) }">${ esc( __( 'Open Connectors', 'wbcom-demo-installer' ) ) }</a></span></p>` : '';
+		}
+		if ( ! S.aiOpen ) {
+			return `<div class="wdi-ai-bar">${ SPARK }<span><b>${ esc( __( 'Have a site in mind?', 'wbcom-demo-installer' ) ) }</b> ${ esc( __( 'Describe it and get three ready ideas, or pick a starting point below.', 'wbcom-demo-installer' ) ) }</span><button type="button" class="wdi-btn" data-go="ai-open">${ esc( __( 'Describe my site', 'wbcom-demo-installer' ) ) }</button></div>`;
 		}
 		const tries = [ __( 'A yoga studio with weekly classes, an online beginners course and a members forum', 'wbcom-demo-installer' ), __( 'A directory of local farmers and food stalls with reviews and weekend market days', 'wbcom-demo-installer' ), __( 'A customer community for our app with support forums, tutorials and a public roadmap', 'wbcom-demo-installer' ) ];
 		return `<div class="wdi-ai">
-			<div class="wdi-ai__head"><b>${ esc( __( 'Describe your site', 'wbcom-demo-installer' ) ) }</b></div>
+			<div class="wdi-ai__head"><b>${ esc( __( 'Describe your site', 'wbcom-demo-installer' ) ) }</b><span class="wdi-spacer"></span><button type="button" class="wdi-link wdi-small" data-go="ai-close">${ esc( __( 'Close', 'wbcom-demo-installer' ) ) }</button></div>
 			<label for="wdi-describe" class="wdi-muted wdi-small">${ esc( __( 'Who is it for and what do people do there? One or two sentences is enough.', 'wbcom-demo-installer' ) ) }</label>
 			<textarea id="wdi-describe" class="wdi-ai__text" rows="3" maxlength="600">${ esc( S.describe ) }</textarea>
 			<div class="wdi-ai__tries"><span class="wdi-muted wdi-small">${ esc( __( 'Try:', 'wbcom-demo-installer' ) ) }</span>${ tries.map( ( t, i ) => `<button type="button" class="wdi-chip" data-try="${ i }">${ esc( t ) }</button>` ).join( '' ) }</div>
@@ -112,7 +116,7 @@
 			__( 'Three sites you could launch', 'wbcom-demo-installer' ),
 			sprintf( /* translators: %s: the owner's description. */ __( 'For "%s"', 'wbcom-demo-installer' ), S.describe ),
 			`<div class="wdi-ideas">${ cards }</div>`,
-			`<div class="wdi-card__foot"><button type="button" class="wdi-link wdi-small" data-go="check">${ esc( __( 'Change the description', 'wbcom-demo-installer' ) ) }</button><button type="button" class="wdi-link wdi-small" data-go="ideas">${ esc( __( 'Suggest 3 more', 'wbcom-demo-installer' ) ) }</button><span class="wdi-spacer"></span><button type="button" class="wdi-btn" data-go="start">${ esc( __( 'Choose a starting point myself', 'wbcom-demo-installer' ) ) }</button></div>`
+			`<div class="wdi-card__foot"><button type="button" class="wdi-link wdi-small" data-go="ai-open">${ esc( __( 'Change the description', 'wbcom-demo-installer' ) ) }</button><button type="button" class="wdi-link wdi-small" data-go="ideas">${ esc( __( 'Suggest 3 more', 'wbcom-demo-installer' ) ) }</button><span class="wdi-spacer"></span><button type="button" class="wdi-btn" data-go="start">${ esc( __( 'Choose a starting point myself', 'wbcom-demo-installer' ) ) }</button></div>`
 		);
 	}
 
@@ -250,7 +254,7 @@
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ ideaBanner() }${ S.brief ? '' : aiPanel() }${ installPanel() }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ ideaBanner() }${ installPanel() }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
@@ -263,7 +267,7 @@
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
 			locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ),
 			locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ),
-			`${ ideaNote( 'start' ) }${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
+			`${ S.brief ? '' : aiPanel() }${ ideaNote( 'start' ) }${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
 			${ ! locked && Object.keys( recipes ).length < 7 ? `<details class="wdi-details"><summary>${ esc( __( 'More starting points', 'wbcom-demo-installer' ) ) }</summary><p>${ esc( __( 'Starting points appear for each product you activate: Learning (Learnomy), Events (Eventonomy), Job board (WP Career Board), Directory (WB Listora) and Services marketplace (WP Sell Services).', 'wbcom-demo-installer' ) ) }</p></details>` : '' }`,
 			foot( 'check', 'products', { disabled: ! S.recipe } )
 		);
@@ -686,8 +690,14 @@
 			} catch ( err ) {
 				S.thinking = false;
 				S.error = err.message;
-				S.view = 'check';
+				S.view = 'start';
 				render();
+			}
+		} else if ( 'ai-open' === to || 'ai-close' === to ) {
+			S.aiOpen = 'ai-open' === to;
+			go( 'start' );
+			if ( S.aiOpen ) {
+				app.querySelector( '#wdi-describe' )?.focus();
 			}
 		} else if ( 'all-recipes' === to ) {
 			S.showAllRecipes = true;
