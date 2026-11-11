@@ -37,3 +37,18 @@ Not yet verified: browser check at 1440 and 390 in light and dark (Playwright br
 
 Static Wbcom Essential blocks (hero, feature grid, FAQ accordion) are not written: their saved HTML comes from the
 editor, and markup written on the server would be flagged as invalid when the owner opens the page.
+
+## Regression matrix (11 November 2026)
+
+`matrix.sh`, 23 cases (BuddyX, BuddyX Pro, Reign 8.0.9 branch and Twenty Twenty-Five; every starting point; each
+product alone; Free and Pro together), with this 1.1.0 code. Each case: fresh install, build, checks, Keep my setup,
+checks, Keep them as mine, then Remove everything from the built snapshot and a footprint compare.
+
+First run: every case failed only the keep check, which still expected the 1.0 handover message. The check now
+expects the 1.1.0 behaviour (owner, 10 November: kept setup stays tracked, "The items you kept are still tracked"),
+then runs `adopt` and requires status idle with an empty ledger. Second run: **23 of 23 PASS** (build with no warnings,
+no mail, no sample people left, Remove everything leaves nothing, footprint equal to before the build, no PHP errors).
+
+Note: with every Pro add-on active the lab web server's 128 MB PHP limit fails page loads during the settle step
+before a case starts (Jetonomy Pro and Learnomy Pro boot); that is card 10487106723's product-side boot memory, and the
+site check now warns about it.
