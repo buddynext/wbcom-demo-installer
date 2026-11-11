@@ -165,11 +165,15 @@
 			const box = 'active' === c.state
 				? `<span class="wdi-checks__ic">${ ic( 'check' ) }</span>`
 				: `<span class="wdi-checks__ic"><input type="checkbox" data-pick="${ esc( c.id ) }" ${ S.pick.has( c.id ) ? 'checked' : '' } ${ c.can && ! busy ? '' : 'disabled' } aria-label="${ esc( sprintf( /* translators: %s: product name. */ __( 'Install %s', 'wbcom-demo-installer' ), c.label ) ) }"></span>`;
-			const note = [ 'theme' === c.type ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro ? pro[ c.pro ] : '', ! c.can && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
+			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro ? pro[ c.pro ] : '', ! c.can && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
 			return `<li>${ box }<div>${ esc( c.label ) }${ note.map( ( n ) => `<small${ n === st ? ' class="wdi-install__error" role="alert"' : '' }>${ esc( n ) }</small>` ).join( '' ) }</div>${ badge }</li>`;
 		};
-		const group = ( title, rows ) => rows.length ? `<h2 class="wdi-install__title">${ esc( title ) }</h2><ul class="wdi-checks">${ rows.map( row ).join( '' ) }</ul>` : '';
+		const group = ( title, rows ) => rows.length ? `${ title ? `<h2 class="wdi-install__title">${ esc( title ) }</h2>` : '' }<ul class="wdi-checks">${ rows.map( row ).join( '' ) }</ul>` : '';
 		const todo = cat.filter( ( c ) => S.pick.has( c.id ) && 'active' !== c.state );
+		if ( cat.every( ( c ) => 'active' === c.state ) && ! busy ) {
+			// Nothing to install: one line, the list on request.
+			return `<details class="wdi-details wdi-install"><summary>${ ic( 'check' ) }${ esc( sprintf( /* translators: %d: number of products. */ _n( 'All %d Wbcom product is active', 'All %d Wbcom products are active', cat.length, 'wbcom-demo-installer' ), cat.length ) ) }</summary>${ group( '', cat ) }</details>`;
+		}
 		return `<div class="wdi-install">
 			${ group( __( 'Community set, used by every starting point', 'wbcom-demo-installer' ), cat.filter( ( c ) => c.core ) ) }
 			${ group( __( 'Add more products', 'wbcom-demo-installer' ), cat.filter( ( c ) => ! c.core && 'plugin' === c.type ) ) }
