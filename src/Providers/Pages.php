@@ -159,6 +159,8 @@ final class Pages extends Provider {
 		foreach ( $c['categories'] as $key => $name ) {
 			$terms[ $key ] = $this->ensure_term( $name, 'category', $ctx, '', 'category' );
 		}
+		// The blog blocks on the pages show only these categories, so the owner's own posts (and Hello world!) stay out.
+		$ctx->state->ref_set( $this->id(), 'categories', array_values( array_filter( array_map( 'intval', $terms ) ) ) );
 		$n = count( $c['posts'] );
 		foreach ( $c['posts'] as $i => $post ) {
 			$author = $ctx->person( (int) $post['author'] );
@@ -205,6 +207,7 @@ final class Pages extends Provider {
 		$c     = $this->content();
 		$admin = (int) get_current_user_id();
 		$about = $c['about'];
+		$cats  = array_map( 'intval', (array) $ctx->state->ref( $this->id(), 'categories', array() ) );
 		$image = $ctx->attachment( $about['image'], $admin, $this->id() );
 		$cols  = array();
 		foreach ( $about['values'] as $value ) {
@@ -218,7 +221,7 @@ final class Pages extends Provider {
 				self::columns( $cols ),
 				self::quote( $about['quote'][0], $quoted ? $quoted->display_name : '' ),
 				self::heading( __( 'From the blog', 'wbcom-demo-installer' ) ),
-				self::latest_posts( 3 ),
+				self::posts_block( $cats, 'carousel', 3 ),
 			),
 			'join'  => array(
 				self::paragraph( $c['join']['intro'] ),
@@ -236,10 +239,18 @@ final class Pages extends Provider {
 			),
 			'blog'  => array(
 				self::paragraph( $c['blog']['intro'] ),
-				// Wbcom Essential's category grid is rendered on the server, so it never goes stale in the editor.
-				'<!-- wp:wbcom-essential/category-grid {"maxCategories":6,"showPostCount":true} /-->',
+				// Wbcom Essential's blocks are rendered on the server, so they never go stale in the editor; theme colours
+				// keep them matched to BuddyX, BuddyX Pro, Reign or any theme with a palette.
+				'<!-- wp:wbcom-essential/category-grid ' . wp_json_encode(
+					array(
+						'selectedCategories' => $cats,
+						'columns'            => max( 1, min( 4, count( $cats ) ) ),
+						'showPostCount'      => true,
+						'useThemeColors'     => true,
+					)
+				) . ' /-->',
 				self::heading( __( 'Latest posts', 'wbcom-demo-installer' ) ),
-				'<!-- wp:latest-posts {"postsToShow":10,"displayPostContent":true,"excerptLength":30,"displayPostDate":true,"displayFeaturedImage":true,"featuredImageSizeSlug":"large"} /-->',
+				self::posts_block( $cats, 'grid', 9 ),
 			),
 		);
 		$titles = array(
@@ -356,11 +367,24 @@ final class Pages extends Provider {
 	}
 
 	/**
-	 * Recent posts as Wbcom Essential's post carousel (server-rendered).
+	 * The demo's posts through Wbcom Essential's post block (server-rendered), as a carousel or a grid.
 	 *
-	 * @param int $n Posts.
+	 * @param int[]  $cats Category ids the block shows.
+	 * @param string $mode 'carousel' or 'grid'.
+	 * @param int    $n    Posts.
 	 */
-	private static function latest_posts( int $n ): string {
-		return '<!-- wp:wbcom-essential/post-carousel {"postsPerPage":' . $n . ',"slidesPerView":3,"showImage":true,"showExcerpt":true} /-->';
+	private static function posts_block( array $cats, string $mode, int $n ): string {
+		return '<!-- wp:wbcom-essential/post-carousel ' . wp_json_encode(
+			array(
+				'postsPerPage'  => $n,
+				'categories'    => $cats,
+				'displayMode'   => $mode,
+				'slidesPerView' => 3,
+				'showImage'     => true,
+				'showExcerpt'   => true,
+				'showCategory'  => true,
+				'showAuthor'    => true,
+			)
+		) . ' /-->';
 	}
 }

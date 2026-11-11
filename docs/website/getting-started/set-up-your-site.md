@@ -52,9 +52,29 @@ nothing else changes.
 ## Pages and blog
 
 With Wbcom Essential active (it can be installed from the site check), the demo also adds About, Join, FAQ and Blog
-pages and four blog posts by the sample people, linked from the menu. The pages use standard WordPress blocks plus
-Wbcom Essential's post carousel and category grid, so you can edit them in the block editor like any other page. Keep
-my setup keeps the pages; the blog posts are sample content.
+pages and four blog posts by the sample people, linked from the menu. Keep my setup keeps the pages; the blog posts are
+sample content.
+
+The pages are made to fit your theme without any setup:
+
+- **About**: a photo, an introduction, three values in columns, a quote from a member and a "From the blog" carousel.
+- **Join**: three steps and a button to the registration page.
+- **FAQ**: questions that open and close (the Details block).
+- **Blog**: a grid of the blog categories, then the latest posts as cards with photo, category, title, excerpt, date
+  and author.
+
+Headings, text, quotes and buttons are standard WordPress blocks, so they take your theme's fonts and colours. The
+blog sections are Wbcom Essential's **Post Carousel** and **Category Grid** blocks, which follow the theme's colours.
+
+To edit them, open the page in the block editor:
+
+- Change any text in place, swap the About photo, or add your own blocks.
+- **Show your own posts**: the Post Carousel and Category Grid blocks show only the demo's blog categories. Select the
+  block and change **Categories** in the block settings (or clear it to show every post), then save.
+- **Carousel or grid**: in the Post Carousel block settings, **Display mode** switches between a carousel, a slider and
+  a grid, and sets how many posts show.
+- Write new posts as usual under **Posts > Add New**; give them a category and a featured image so they look like the
+  demo cards.
 
 ## What you get
 
