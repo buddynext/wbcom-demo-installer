@@ -30,6 +30,8 @@ final class Plugin {
 			Admin\Page::init();
 		}
 		add_action( 'rest_api_init', array( Rest\Controller::class, 'register' ) );
+		// Sample people's photos on sites without BuddyNext (issue #2). Late, so a product's own avatar wins.
+		add_filter( 'pre_get_avatar_data', array( Providers\People::class, 'avatar_data' ), 20, 2 );
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'wbcom-demo', Cli\Command::class );

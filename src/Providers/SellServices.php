@@ -149,11 +149,32 @@ final class SellServices extends Provider {
 	}
 
 	/**
+	 * WP Sell Services keeps its own copy of the site title (general > platform name, set on activation) and shows it
+	 * on marketplace screens. When the build gave the site the owner's own name and that copy still holds the old
+	 * title, follow the new name; a platform name the owner chose stays untouched (issue #4).
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function platform_name( Context $ctx ): void {
+		$old = \WbcomDemo\Core\Snapshot::before( 'blogname' );
+		if ( ! $ctx->state->get( 'own_name' ) || ! is_string( $old ) ) {
+			return;
+		}
+		$general = get_option( 'wpss_general' );
+		if ( ! is_array( $general ) || ( $general['platform_name'] ?? '' ) !== $old ) {
+			return;
+		}
+		$general['platform_name'] = (string) get_option( 'blogname' );
+		\WbcomDemo\Core\Snapshot::write( 'wpss_general', $general );
+	}
+
+	/**
 	 * Vendors and their services.
 	 *
 	 * @param Context $ctx Context.
 	 */
 	private function vendors( Context $ctx ): void {
+		$this->platform_name( $ctx );
 		$vendors  = new \WPSellServices\Services\VendorService();
 		$services = new \WPSellServices\Services\ServiceManager();
 		$done     = array();

@@ -33,6 +33,17 @@ final class Snapshot {
 	}
 
 	/**
+	 * The value a setting had before the demo first wrote it, or null when the demo has not written it.
+	 *
+	 * @param string $name Setting name, as passed to write().
+	 * @return mixed
+	 */
+	public static function before( string $name ) {
+		$snap = self::load();
+		return isset( $snap[ $name ] ) && is_array( $snap[ $name ] ) ? ( $snap[ $name ]['before'] ?? null ) : null;
+	}
+
+	/**
 	 * Restore every value the owner has not changed since; report the ones they did.
 	 *
 	 * @return string[] Names kept because the owner changed them.

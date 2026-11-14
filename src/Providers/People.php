@@ -21,6 +21,9 @@ final class People extends Provider {
 	/** User meta flag holding the build id. */
 	public const FLAG = 'wbcom_demo_user';
 
+	/** User meta holding the profile photo's attachment ID on sites without BuddyNext (issue #2). */
+	public const AVATAR = 'wbcom_demo_avatar';
+
 	/**
 	 * Roster.
 	 *
@@ -94,7 +97,12 @@ final class People extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
-		return array( 'user' => array( count( self::roster() ), 'sample', __( 'sample people', 'wbcom-demo-installer' ) ) );
+		$plan = array( 'user' => array( count( self::roster() ), 'sample', __( 'sample people', 'wbcom-demo-installer' ) ) );
+		if ( ! self::buddynext_active() ) {
+			// BuddyNext stores the photos itself; elsewhere the installer adds them to the media library.
+			$plan['attachment'] = array( count( self::roster() ), 'sample', __( 'profile photos', 'wbcom-demo-installer' ) );
+		}
+		return $plan;
 	}
 
 	/**
@@ -142,6 +150,13 @@ final class People extends Provider {
 			}
 			update_user_meta( $user_id, self::FLAG, $ctx->build_id() );
 			$ctx->record( $this->id(), 'user', (int) $user_id );
+			// BuddyNext saves the photos when it is part of this build; otherwise core avatars need them.
+			if ( ! ( $ctx->includes( 'buddynext' ) && self::buddynext_active() ) ) {
+				$photo = $ctx->attachment( 'avatars/' . $person['login'] . '.jpg', (int) $user_id, $this->id() );
+				if ( $photo ) {
+					update_user_meta( $user_id, self::AVATAR, $photo );
+				}
+			}
 			$people[] = array(
 				'id'       => (int) $user_id,
 				'index'    => $i,
@@ -171,6 +186,9 @@ final class People extends Provider {
 	 * @param object $row Ledger row.
 	 */
 	public function remove( object $row ): bool {
+		if ( 'attachment' === $row->object_type ) {
+			return self::delete_post( (int) $row->object_id, true );
+		}
 		$user_id = (int) $row->object_id;
 		$user    = get_userdata( $user_id );
 		if ( ! $user ) {
@@ -210,5 +228,49 @@ final class People extends Provider {
 			)
 		);
 		return $left ? array( __( 'Sample people are still on the site.', 'wbcom-demo-installer' ) ) : array();
+	}
+
+	/**
+	 * Whether BuddyNext will store the photos (it has its own avatar service).
+	 */
+	private static function buddynext_active(): bool {
+		return defined( 'BUDDYNEXT_VERSION' ) && class_exists( '\BuddyNext\Profile\AvatarService' );
+	}
+
+	/**
+	 * Serve a sample person's profile photo through core avatars when no other plugin already set one.
+	 *
+	 * @param array<string, mixed> $args        Avatar data.
+	 * @param mixed                $id_or_email User ID, email, WP_User, WP_Post or WP_Comment.
+	 * @return array<string, mixed>
+	 */
+	public static function avatar_data( array $args, $id_or_email ): array {
+		if ( ! empty( $args['url'] ) ) {
+			return $args;
+		}
+		$user_id = 0;
+		if ( is_numeric( $id_or_email ) ) {
+			$user_id = (int) $id_or_email;
+		} elseif ( $id_or_email instanceof \WP_User ) {
+			$user_id = (int) $id_or_email->ID;
+		} elseif ( $id_or_email instanceof \WP_Post ) {
+			$user_id = (int) $id_or_email->post_author;
+		} elseif ( $id_or_email instanceof \WP_Comment ) {
+			$user_id = (int) $id_or_email->user_id;
+		} elseif ( is_string( $id_or_email ) && is_email( $id_or_email ) ) {
+			$user    = get_user_by( 'email', $id_or_email );
+			$user_id = $user ? (int) $user->ID : 0;
+		}
+		$photo = $user_id ? (int) get_user_meta( $user_id, self::AVATAR, true ) : 0;
+		if ( ! $photo ) {
+			return $args;
+		}
+		$size = max( 1, (int) ( $args['size'] ?? 96 ) );
+		$url  = wp_get_attachment_image_url( $photo, array( $size, $size ) );
+		if ( $url ) {
+			$args['url']          = $url;
+			$args['found_avatar'] = true;
+		}
+		return $args;
 	}
 }

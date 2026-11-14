@@ -28,6 +28,15 @@ final class Gamification extends Provider {
 	);
 
 	/**
+	 * Core WordPress actions WB Gamification registers on every site. They keep the history varied where BuddyNext is
+	 * not active; without them every person ended on the same registration and kudos points (issue #3).
+	 */
+	private const WP_ACTIONS = array(
+		'wp_leave_comment'         => 6,
+		'wp_post_receives_comment' => 4,
+	);
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function id(): string {
@@ -132,6 +141,23 @@ final class Gamification extends Provider {
 	}
 
 	/**
+	 * Weighted list of the actions to draw the history from: only actions WB Gamification has registered on this site,
+	 * so every event awards points.
+	 *
+	 * @return string[]
+	 */
+	private static function pool(): array {
+		$pool = array();
+		foreach ( self::ACTIONS + self::WP_ACTIONS as $action => $weight ) {
+			if ( null === \WBGam\Engine\Registry::get_action( $action ) ) {
+				continue;
+			}
+			$pool = array_merge( $pool, array_fill( 0, $weight, $action ) );
+		}
+		return $pool;
+	}
+
+	/**
 	 * Ten people's history per step. Busier people get more events.
 	 *
 	 * @param string  $step Step.
@@ -143,9 +169,9 @@ final class Gamification extends Provider {
 			return;
 		}
 		$offset  = (int) substr( $step, 7 );
-		$actions = array();
-		foreach ( self::ACTIONS as $action => $weight ) {
-			$actions = array_merge( $actions, array_fill( 0, $weight, $action ) );
+		$actions = self::pool();
+		if ( ! $actions ) {
+			return;
 		}
 		foreach ( array_slice( $ctx->people(), $offset, 10, true ) as $i => $uid ) {
 			$events = 8 + ( ( $i * 37 ) % 53 );
