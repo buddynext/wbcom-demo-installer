@@ -9,8 +9,12 @@ namespace WbcomDemo\Cli;
 
 use WbcomDemo\Core\Engine;
 use WbcomDemo\Core\Finisher;
+use WbcomDemo\Core\Guide;
 use WbcomDemo\Core\Installer;
+use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Recipes;
+use WbcomDemo\Providers\People;
+use WbcomDemo\Providers\Theme;
 use WP_CLI;
 
 defined( 'ABSPATH' ) || exit;
@@ -435,6 +439,103 @@ final class Command {
 			WP_CLI::error( $status->get_error_message() );
 		}
 		WP_CLI::success( 'The demo is finished. What it set up is yours now.' );
+	}
+
+	/**
+	 * Add the "Try the demo" page to a site whose demo was built before the page existed.
+	 *
+	 * Lists how to try each product as a member and as the site owner, with one-click account switching
+	 * (User Switching). Safe to run again: it reuses the page it made.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--menu=<menu>]
+	 * : Menu (id, slug or name) to add the page to, as the first item. Skipped when it is already there.
+	 *
+	 * [--products=<ids>]
+	 * : For a demo whose content was not built by the installer: provider ids to show, comma separated.
+	 *
+	 * [--accounts=<list>]
+	 * : Accounts for the switch cards on such a demo, as provider:login pairs, comma separated.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wbcom-demo guide --menu=primary
+	 *     wp wbcom-demo guide --products=listora --accounts=listora:priya_nair --menu=primary-menu
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function guide( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- WP-CLI command signature.
+		$this->as_admin();
+		if ( isset( $assoc['products'] ) || isset( $assoc['accounts'] ) ) {
+			$extra = array(
+				'products' => array_filter( array_map( 'trim', explode( ',', (string) ( $assoc['products'] ?? '' ) ) ) ),
+				'accounts' => array(),
+			);
+			foreach ( array_filter( array_map( 'trim', explode( ',', (string) ( $assoc['accounts'] ?? '' ) ) ) ) as $pair ) {
+				list( $provider, $login ) = array_pad( explode( ':', $pair, 2 ), 2, '' );
+				$user                     = get_user_by( 'login', $login );
+				if ( ! $user ) {
+					WP_CLI::error( sprintf( 'No user "%s".', $login ) );
+				}
+				$extra['accounts'][ $provider ][] = (int) $user->ID;
+			}
+			update_option( Guide::OPTION, $extra, false );
+		}
+		if ( ! Guide::products() ) {
+			WP_CLI::error( 'No product in this demo offers a guide yet.' );
+		}
+		$id = Theme::guide_page();
+		if ( ! $id ) {
+			WP_CLI::error( 'The page could not be made.' );
+		}
+		Ledger::add( 'guide', 'theme', 'page', $id, 'setup' );
+		// Sample people made before 1.1.0 have no billing details (a checkout tried as them would ask for an address)
+		// and see the WordPress toolbar on the site.
+		foreach ( People::roster() as $person ) {
+			$user = get_user_by( 'login', 'demo.' . $person['login'] );
+			if ( ! $user ) {
+				continue;
+			}
+			if ( ! get_user_meta( $user->ID, 'billing_email', true ) ) {
+				People::billing( (int) $user->ID, $person );
+			}
+			update_user_meta( $user->ID, 'show_admin_bar_front', 'false' );
+		}
+		if ( ! empty( $assoc['menu'] ) ) {
+			$menu = wp_get_nav_menu_object( $assoc['menu'] );
+			if ( ! $menu ) {
+				WP_CLI::error( sprintf( 'No menu "%s".', $assoc['menu'] ) );
+			}
+			$items = (array) wp_get_nav_menu_items( $menu->term_id );
+			if ( ! in_array( $id, array_map( static fn( $i ) => (int) $i->object_id, $items ), true ) ) {
+				// Shift the others down one place so the guide is first.
+				foreach ( $items as $item ) {
+					if ( ! (int) $item->menu_item_parent ) {
+						wp_update_post(
+							array(
+								'ID'         => (int) $item->ID,
+								'menu_order' => (int) $item->menu_order + 1,
+							)
+						);
+					}
+				}
+				wp_update_nav_menu_item(
+					(int) $menu->term_id,
+					0,
+					array(
+						'menu-item-title'     => get_the_title( $id ),
+						'menu-item-status'    => 'publish',
+						'menu-item-position'  => 1,
+						'menu-item-object'    => 'page',
+						'menu-item-object-id' => $id,
+						'menu-item-type'      => 'post_type',
+					)
+				);
+			}
+		}
+		WP_CLI::success( (string) get_permalink( $id ) );
 	}
 
 	/**

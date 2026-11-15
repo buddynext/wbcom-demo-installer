@@ -23,4 +23,21 @@ return array(
 		array( 4, 'Great for small groups', 'Booked it for our team meetup, everything was easy.' ),
 		array( 5, 'A real gem', 'The kind of place you want to keep secret and tell everyone about.' ),
 	),
+	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	'guide'    => array(
+		'member'   => array(
+			'browse' => 'Browse the directory and filter places by type, location and rating.',
+			'open'   => 'Open a listing, save it to your favourites and write a review.',
+			'submit' => 'Add a listing of your own with photos, hours and a map pin.',
+			'manage' => 'Manage your listings and favourites from your dashboard.',
+		),
+		'owner'    => array(
+			'listings' => 'Review, edit and approve every listing.',
+			'plans'    => 'Set up pricing plans for paid or featured listings.',
+			'badges'   => 'Award badges such as Verified or Top rated.',
+		),
+		'accounts' => array(
+			'member' => 'A member with favourites and reviews who can add listings.',
+		),
+	),
 );

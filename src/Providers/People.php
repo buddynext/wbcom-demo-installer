@@ -52,6 +52,48 @@ final class People extends Provider {
 	}
 
 	/**
+	 * Billing name, email and country (from "City, CC" in the roster) on a sample person, so a visitor who tries
+	 * a checkout as them is not asked to type an address first. The standard billing_* user meta, which store
+	 * plugins pre-fill from; removed with the user.
+	 *
+	 * @param int                 $user_id User id.
+	 * @param array<string,mixed> $person  Roster entry.
+	 */
+	public static function billing( int $user_id, array $person ): void {
+		$country = strtoupper( trim( (string) substr( (string) strrchr( (string) ( $person['location'] ?? '' ), ',' ), 1 ) ) );
+		$meta    = array(
+			'billing_first_name' => (string) strtok( (string) $person['name'], ' ' ),
+			'billing_last_name'  => trim( (string) strstr( (string) $person['name'], ' ' ) ),
+			'billing_email'      => $person['login'] . '@' . QuietMode::DOMAIN,
+			'billing_country'    => 2 === strlen( $country ) ? $country : '',
+		);
+		foreach ( array_filter( $meta ) as $key => $value ) {
+			update_user_meta( $user_id, $key, $value );
+		}
+	}
+
+	/**
+	 * User id of the first sample person with a role who exists on this site, 0 when none does.
+	 *
+	 * @param string $role  Role tag.
+	 * @param int    $index Roster index to prefer (for example the seller of a product's first item).
+	 */
+	public static function user_id( string $role, int $index = -1 ): int {
+		$roster = self::roster();
+		$order  = self::indexes( $role );
+		if ( $index >= 0 ) {
+			array_unshift( $order, $index );
+		}
+		foreach ( $order as $i ) {
+			$user = isset( $roster[ $i ]['login'] ) ? get_user_by( 'login', 'demo.' . $roster[ $i ]['login'] ) : false;
+			if ( $user ) {
+				return (int) $user->ID;
+			}
+		}
+		return 0;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function id(): string {
@@ -131,24 +173,27 @@ final class People extends Provider {
 			}
 			$user_id = wp_insert_user(
 				array(
-					'user_login'      => $login,
-					'user_email'      => $person['login'] . '@' . QuietMode::DOMAIN,
-					'user_pass'       => wp_generate_password( 32, true, true ),
+					'user_login'           => $login,
+					'user_email'           => $person['login'] . '@' . QuietMode::DOMAIN,
+					'user_pass'            => wp_generate_password( 32, true, true ),
 					// Profile URLs and @handles read the nicename: show "@lucia-ferrari", not the "demo." login prefix. Core adds -2 on a clash.
-					'user_nicename'   => sanitize_title( str_replace( '.', '-', $person['login'] ) ),
-					'display_name'    => $person['name'],
-					'first_name'      => strtok( $person['name'], ' ' ),
-					'last_name'       => trim( (string) strstr( $person['name'], ' ' ) ),
-					'nickname'        => $person['name'],
-					'description'     => sprintf( '%s based in %s. Into %s.', $person['job'], $person['location'], $person['note'] ),
-					'role'            => 'subscriber',
-					'user_registered' => $ctx->date( $i, 20, 120 ),
+					'user_nicename'        => sanitize_title( str_replace( '.', '-', $person['login'] ) ),
+					'display_name'         => $person['name'],
+					'first_name'           => strtok( $person['name'], ' ' ),
+					'last_name'            => trim( (string) strstr( $person['name'], ' ' ) ),
+					'nickname'             => $person['name'],
+					'description'          => sprintf( '%s based in %s. Into %s.', $person['job'], $person['location'], $person['note'] ),
+					'role'                 => 'subscriber',
+					// Members see the site, not the WordPress toolbar, as on member sign-up in our products.
+					'show_admin_bar_front' => 'false',
+					'user_registered'      => $ctx->date( $i, 20, 120 ),
 				)
 			);
 			if ( is_wp_error( $user_id ) ) {
 				continue;
 			}
 			update_user_meta( $user_id, self::FLAG, $ctx->build_id() );
+			self::billing( (int) $user_id, $person );
 			$ctx->record( $this->id(), 'user', (int) $user_id );
 			// BuddyNext saves the photos when it is part of this build; otherwise core avatars need them.
 			if ( ! ( $ctx->includes( 'buddynext' ) && self::buddynext_active() ) ) {

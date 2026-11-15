@@ -177,6 +177,17 @@ abstract class Provider {
 	}
 
 	/**
+	 * How a visitor tries this product on the "Try the demo" page (Theme provider). Steps are
+	 * [ text, url ]: "member" for the front end as a sample person, "owner" for the site owner in wp-admin.
+	 * "accounts" are [ user id, what that account shows ] for the one-click switch cards. Empty: no guide.
+	 *
+	 * @return array{member?:array<int,array{0:string,1:string}>,owner?:array<int,array{0:string,1:string}>,accounts?:array<int,array{0:int,1:string}>}
+	 */
+	public function guide(): array {
+		return array();
+	}
+
+	/**
 	 * Page id this product would make a good front page, 0 for none.
 	 */
 	public function front_page(): int {

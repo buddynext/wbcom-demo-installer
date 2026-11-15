@@ -31,6 +31,7 @@ Registering a provider with the id of a built-in one replaces it.
 | `settings()` | no | The product's best demo settings and its setup-complete flag (see below). |
 | `activation_redirects()` | no | The one-time "go to my setup wizard" redirects the product sets on activation; cleared when the owner opens this wizard and on build. |
 | `menu_items()`, `front_page()` | no | Pages for the demo menu and the home page; menu pages get the theme's no-sidebar layout. |
+| `guide()` | no | Steps for the "Try the demo" page: `member` and `owner` lists of `[ text, url ]` (empty url for a step without a link) and `accounts` as `[ user id, what this account shows ]` for the one-click switch cards. Step text lives in `content/<id>.php` under `guide`; use `People::user_id( $role )` for the accounts. |
 | `handover()`, `late_types()`, `verify()` | no | Kept items handed to the owner, removal order, extra checks after Finish. |
 | `order()` | no | Build order; a provider that needs another product's content runs after it. |
 

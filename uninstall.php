@@ -28,4 +28,5 @@ delete_option( 'wbcom_demo_state' );
 delete_option( 'wbcom_demo_snapshot' );
 delete_option( 'wbcom_demo_db_version' );
 delete_option( 'wbcom_demo_lock' );
+delete_option( 'wbcom_demo_guide' );
 delete_metadata( 'user', 0, 'wbcom_demo_notice_dismissed', '', true );

@@ -8,6 +8,8 @@
 namespace WbcomDemo\Providers;
 
 use WbcomDemo\Core\Context;
+use WbcomDemo\Core\Guide;
+use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
 use WbcomDemo\Core\Registry;
 use WbcomDemo\Core\Snapshot;
@@ -78,6 +80,7 @@ final class Theme extends Provider {
 		return array(
 			'attachment' => array( $dark ? 3 : 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
 			'menu'       => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
+			'page'       => array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -87,7 +90,7 @@ final class Theme extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		return array( 'logo', 'home', 'menu' );
+		return array( 'logo', 'home', 'guide', 'menu' );
 	}
 
 	/**
@@ -100,6 +103,7 @@ final class Theme extends Provider {
 		match ( $step ) {
 			'logo'  => $this->logo( $ctx ),
 			'home'  => $this->home( $ctx ),
+			'guide' => $this->guide_step( $ctx ),
 			'menu'  => $this->menu( $ctx ),
 			'pages' => $this->pages( $ctx ),
 			default => null,
@@ -156,6 +160,58 @@ final class Theme extends Provider {
 	}
 
 	/**
+	 * The "Try the demo" page (Core\Guide): member and site-owner steps for every product in the demo, with
+	 * one-click account switching. Made whenever an included product offers a guide.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function guide_step( Context $ctx ): void {
+		$offers = array_filter( $this->included( $ctx ), static fn( Provider $p ) => (bool) $p->guide() );
+		if ( ! $offers ) {
+			return;
+		}
+		$id = self::guide_page();
+		if ( $id ) {
+			$ctx->record( $this->id(), 'page', $id, 'setup' );
+		}
+	}
+
+	/**
+	 * Id of the guide page, made when missing (also used by `wp wbcom-demo guide` on a site built earlier).
+	 */
+	public static function guide_page(): int {
+		$found = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => '_wbcom_demo_guide', // phpcs:ignore WordPress.DB.SlowDBQuery -- one page, read once per build.
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		if ( $found ) {
+			return (int) $found[0];
+		}
+		$id = wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => __( 'Try the demo', 'wbcom-demo-installer' ),
+				'post_name'    => 'try-the-demo',
+				'post_content' => Guide::page_content(),
+				'post_author'  => (int) get_current_user_id(),
+				'meta_input'   => array( '_wbcom_demo_guide' => 1 ),
+			),
+			true
+		);
+		if ( is_wp_error( $id ) ) {
+			return 0;
+		}
+		self::no_sidebar( (int) $id );
+		return (int) $id;
+	}
+
+	/**
 	 * One menu with every included product's pages, assigned to the theme's primary and mobile locations.
 	 *
 	 * @param Context $ctx Context.
@@ -180,7 +236,23 @@ final class Theme extends Provider {
 		// icons, card 10480406536), which is undefined in a REST request. Loading the screen API makes it return null.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 		require_once ABSPATH . 'wp-admin/includes/screen.php';
-		$pos = 1;
+		$pos   = 1;
+		$guide = array_map( 'intval', Ledger::ids( $this->id(), 'page' ) );
+		if ( $guide ) {
+			// First, so a visitor sees how to try the demo before anything else.
+			wp_update_nav_menu_item(
+				(int) $menu_id,
+				0,
+				array(
+					'menu-item-title'     => __( 'Try the demo', 'wbcom-demo-installer' ),
+					'menu-item-status'    => 'publish',
+					'menu-item-position'  => $pos++,
+					'menu-item-object'    => 'page',
+					'menu-item-object-id' => max( $guide ),
+					'menu-item-type'      => 'post_type',
+				)
+			);
+		}
 		foreach ( $this->included( $ctx ) as $p ) {
 			foreach ( $p->menu_items() as $item ) {
 				$args = array(

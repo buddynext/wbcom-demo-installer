@@ -17,4 +17,23 @@ return array(
 		array( 7, 'I will set up a fast, reliable Go API for your product', 'Development', 600, 'A small, well-tested REST API in Go with clear docs, deployment notes and a week of support after handover, so your team can run and extend it with confidence.', 'photos/developer-workspace.jpg' ),
 		array( 17, 'I will run sound and AV for your meetup or conference', 'Events', 250, 'Mics, speakers, mixing and recording for meetups and conferences of up to 300 people. Setup, sound check and teardown are included, and you get the recordings the same week.', 'photos/festival-friends.jpg' ),
 	),
+	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	'guide'    => array(
+		'member'   => array(
+			'browse' => 'Browse services and narrow them by category, price and delivery time.',
+			'order'  => 'Open a service, compare its packages and order one.',
+			'pay'    => 'At checkout choose Test Gateway. The order is paid at once and no real money moves.',
+			'follow' => 'Follow the order in your dashboard: message the seller, accept the delivery and leave a review.',
+		),
+		'owner'    => array(
+			'orders'      => 'See every order, its status and the money held until the buyer accepts the work.',
+			'vendors'     => 'Check each seller, their earnings and the commission you keep.',
+			'withdrawals' => 'Approve the payouts sellers request.',
+			'payments'    => 'Choose the payment gateways buyers can pay with.',
+		),
+		'accounts' => array(
+			'buyer'  => 'A buyer with orders in progress and delivered work to review.',
+			'seller' => 'A seller with services, orders to deliver and earnings to withdraw.',
+		),
+	),
 );
