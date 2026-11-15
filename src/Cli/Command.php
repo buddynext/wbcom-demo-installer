@@ -456,7 +456,7 @@ final class Command {
 	 * : For a demo whose content was not built by the installer: provider ids to show, comma separated.
 	 *
 	 * [--accounts=<list>]
-	 * : Accounts for the switch cards on such a demo, as provider:login pairs, comma separated.
+	 * : Accounts for the switch cards on such a demo, as provider:login pairs, comma separated, in the product's role order. Products not named keep the accounts they had.
 	 *
 	 * [--launch=<url>]
 	 * : The template's launch link. Signed-out visitors (the public model site) get it on every button.
@@ -479,16 +479,18 @@ final class Command {
 			if ( isset( $assoc['products'] ) ) {
 				$extra['products'] = array_values( array_filter( array_map( 'trim', explode( ',', (string) $assoc['products'] ) ) ) );
 			}
-			if ( isset( $assoc['accounts'] ) ) {
-				$extra['accounts'] = array();
-			}
+			// Each product named in --accounts gets exactly the accounts listed for it; other products keep theirs.
+			$named = array();
 			foreach ( array_filter( array_map( 'trim', explode( ',', (string) ( $assoc['accounts'] ?? '' ) ) ) ) as $pair ) {
 				list( $provider, $login ) = array_pad( explode( ':', $pair, 2 ), 2, '' );
 				$user                     = get_user_by( 'login', $login );
 				if ( ! $user ) {
 					WP_CLI::error( sprintf( 'No user "%s".', $login ) );
 				}
-				$extra['accounts'][ $provider ][] = (int) $user->ID;
+				$named[ $provider ][] = (int) $user->ID;
+			}
+			if ( $named ) {
+				$extra['accounts'] = array_merge( (array) ( $extra['accounts'] ?? array() ), $named );
 			}
 			update_option( Guide::OPTION, $extra, false );
 		}
