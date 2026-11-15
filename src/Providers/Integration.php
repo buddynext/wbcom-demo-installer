@@ -105,8 +105,7 @@ final class Integration extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function order(): int {
-		// A PeepSo community leads the tour (BuddyPress and BuddyBoss have their own provider); the rest follow the products.
-		return in_array( $this->key, array( 'peepso' ), true ) ? 1 : 90;
+		return 90; // After the products (community platforms have their own providers).
 	}
 
 	/**

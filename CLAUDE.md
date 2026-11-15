@@ -10,8 +10,9 @@ same step engine.
   building a provider is filed as a card in that product's Basecamp Bugs column; the provider works
   around it here and says so in a comment that names the card.
 - **Providers use product APIs only:** services, models, REST routes (`rest_do_request` as the right
-  user) and core WP functions. No raw SQL on product tables. The two narrow exceptions are documented
-  in code: BuddyNext hashtag rows by exact id, Product Roadmap votes for our own item ids.
+  user) and core WP functions. No raw SQL on product tables. The narrow exceptions are documented
+  in code: BuddyNext hashtag rows by exact id, Product Roadmap votes for our own item ids, and PeepSo post
+  followers and member rows for our own post ids and sample people (PeepSo has no delete for either).
 - **Seeder content is cherry-picked, never called:** product demo seeders are read for good content
   only. Content lives in `content/*.php` and media in `media/`.
 - **Everything created is recorded** in the ledger (`wp_wbcom_demo_ledger`) as `sample` or `setup`.

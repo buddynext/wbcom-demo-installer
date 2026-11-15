@@ -44,14 +44,20 @@ final class Registry {
 		if ( null === self::$providers ) {
 			self::$providers = array();
 			$registry        = new self();
+			$builtin         = array();
 			foreach ( self::builtin() as $class ) {
 				if ( class_exists( $class ) ) {
-					$registry->add( new $class() );
+					$provider                   = new $class();
+					$builtin[ $provider->id() ] = true;
+					$registry->add( $provider );
 				}
 			}
-			// Third-party plugins a demo site runs (guide only), one provider per integration.
+			// Third-party plugins a demo site runs (guide only), one provider per integration, unless a built-in
+			// provider for the same plugin builds its content and owns its guide (PeepSo).
 			foreach ( Providers\Integration::ids() as $id ) {
-				$registry->add( new Providers\Integration( $id ) );
+				if ( ! isset( $builtin[ $id ] ) ) {
+					$registry->add( new Providers\Integration( $id ) );
+				}
 			}
 			/**
 			 * Register or replace providers.
@@ -90,6 +96,7 @@ final class Registry {
 			Providers\People::class,
 			Providers\BuddyNext::class,
 			Providers\BuddyPress::class,
+			Providers\PeepSo::class,
 			Providers\MediaVerse::class,
 			Providers\Jetonomy::class,
 			Providers\Learnomy::class,
