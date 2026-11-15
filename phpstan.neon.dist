@@ -1,6 +1,7 @@
-# Run with a PHPStan install that has szepeviktor/phpstan-wordpress and php-stubs/wp-cli-stubs.
-includes:
-	- /private/tmp/claude-501/-Users-vapvarun/f7c4a91d-f305-4c3f-ae00-d322cd774c6c/scratchpad/phpstan/vendor/szepeviktor/phpstan-wordpress/extension.neon
+# Run with a PHPStan install that has szepeviktor/phpstan-wordpress and php-stubs/wp-cli-stubs, through a local config
+# that includes that install's extension.neon and this file (phpstan.neon is git-ignored), e.g.:
+#   includes: [ <phpstan>/vendor/szepeviktor/phpstan-wordpress/extension.neon, phpstan.neon.dist ]
+#   parameters: { scanFiles: [ <phpstan>/vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php ] }
 parameters:
 	level: 6
 	phpVersion: 80100
@@ -9,8 +10,6 @@ parameters:
 		- uninstall.php
 		- src
 		- content
-	scanFiles:
-		- /private/tmp/claude-501/-Users-vapvarun/f7c4a91d-f305-4c3f-ae00-d322cd774c6c/scratchpad/phpstan/vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
 	bootstrapFiles:
 		- tests/phpstan-bootstrap.php
 	reportUnmatchedIgnoredErrors: false
@@ -20,7 +19,7 @@ parameters:
 		- '#Function (update_space_meta|buddynext_|evnm|wb_listora_|wpss_|Jetonomy\\|Learnomy\\)\w* not found#'
 		# Third-party plugins the BuddyPress provider and the integrations talk to: optional, guarded at runtime.
 		- '#Function (bp_|groups_|friends_|xprofile_|bbp_|wc_|dokan_|tribe_)\w* not found#'
-		- '#(Class|Instantiated class|unknown class) \\?(BP_Activity_Activity|PeepSo|LearnDash_Settings_Section)#'
+		- '#(Class|Instantiated class|unknown class) \\?(BP_Activity_Activity|BP_Groups_Member|PeepSo|LearnDash_Settings_Section)#'
 		- '#Constant BP_PLATFORM_VERSION not found#'
 		# WordPress 7.0 AI client: newer than the WordPress stubs, guarded by function_exists() at runtime.
 		- '#(Function wp_ai_client_prompt not found|WordPress\\AiClient\\)#'

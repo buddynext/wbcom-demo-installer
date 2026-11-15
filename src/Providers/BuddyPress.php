@@ -636,6 +636,14 @@ final class BuddyPress extends Provider {
 					return false;
 				}
 				if ( groups_get_group( $id )->id ) {
+					// BuddyBoss saves a joined_date meta per membership and leaves it behind when the group is deleted.
+					// BuddyPress has no membership meta, so there is nothing to clear there.
+					foreach ( function_exists( 'groups_delete_membermeta' ) ? \BP_Groups_Member::get_group_member_ids( $id ) : array() as $user_id ) {
+						$membership = new \BP_Groups_Member( (int) $user_id, $id );
+						if ( $membership->id ) {
+							groups_delete_membermeta( $membership->id, false, false, true );
+						}
+					}
 					groups_delete_group( $id );
 				}
 				return ! groups_get_group( $id )->id;
