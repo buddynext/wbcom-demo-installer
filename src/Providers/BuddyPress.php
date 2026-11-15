@@ -36,7 +36,7 @@ final class BuddyPress extends Provider {
 	private const AWARD_ONE_IN = 30;
 
 	/** Components whose items announce rewards for what members did. */
-	private const AWARD_COMPONENTS = array( 'gamipress', 'wb-gamification', 'mycred', 'badgeos' );
+	private const AWARD_COMPONENTS = array( 'gamipress', 'wb_gamification', 'mycred', 'badgeos' );
 
 	/**
 	 * True while this provider creates activity, so the bridge listener leaves our own items alone.
