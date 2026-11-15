@@ -238,7 +238,8 @@ final class Guide {
 			return '<img class="wdi-tour__face" src="' . esc_url( WBCOM_DEMO_URL . $file ) . '" alt="" width="56" height="56" loading="lazy">';
 		}
 		$data = get_avatar_data( $user_id, array( 'size' => 112 ) );
-		if ( ! empty( $data['found_avatar'] ) && ! empty( $data['url'] ) ) {
+		// Gravatar's default silhouette counts as "found"; for a demo card initials read better.
+		if ( ! empty( $data['found_avatar'] ) && ! empty( $data['url'] ) && false === strpos( (string) $data['url'], 'gravatar.com' ) ) {
 			return '<img class="wdi-tour__face" src="' . esc_url( (string) $data['url'] ) . '" alt="" width="56" height="56" loading="lazy">';
 		}
 		$parts    = preg_split( '/\s+/', trim( (string) $user->display_name ) );
@@ -352,29 +353,27 @@ final class Guide {
 	 * @param string                                                      $launch   Launch link for signed-out visitors.
 	 */
 	private static function tour( array $products, string $launch ): void {
-		$first = reset( $products );
-		$tabs  = array(
-			'member' => (string) ( $first['guide']['member_label'] ?? __( 'As a member', 'wbcom-demo-installer' ) ),
-			'owner'  => __( 'As the owner', 'wbcom-demo-installer' ),
-		);
-		$uid   = wp_unique_id( 'wdi-tour-' );
+		$panels = self::panels( $products );
+		$uid    = wp_unique_id( 'wdi-tour-' );
 		?>
 		<section class="wdi-tour__section" id="tour">
 			<h2><?php esc_html_e( 'Guided tour', 'wbcom-demo-installer' ); ?></h2>
 			<p class="wdi-tour__lede"><?php esc_html_e( 'Each step opens the right screen as the right person, so you can follow the whole story in a few minutes.', 'wbcom-demo-installer' ); ?></p>
 			<div class="wdi-tour__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Guided tour', 'wbcom-demo-installer' ); ?>">
-				<?php foreach ( array_keys( $tabs ) as $i => $side ) : ?>
-					<button type="button" role="tab" id="<?php echo esc_attr( $uid . '-t-' . $side ); ?>" aria-controls="<?php echo esc_attr( $uid . '-p-' . $side ); ?>" aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"><?php echo esc_html( $tabs[ $side ] ); ?></button>
+				<?php foreach ( array_keys( $panels ) as $i => $key ) : ?>
+					<button type="button" role="tab" id="<?php echo esc_attr( $uid . '-t-' . $i ); ?>" aria-controls="<?php echo esc_attr( $uid . '-p-' . $i ); ?>" aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"><?php echo esc_html( $panels[ $key ]['label'] ); ?></button>
 				<?php endforeach; ?>
 			</div>
-			<?php foreach ( array_keys( $tabs ) as $i => $side ) : ?>
-				<div class="wdi-tour__steps" role="tabpanel" id="<?php echo esc_attr( $uid . '-p-' . $side ); ?>" aria-labelledby="<?php echo esc_attr( $uid . '-t-' . $side ); ?>"<?php echo 0 === $i ? '' : ' hidden'; ?>>
+			<?php
+			foreach ( array_values( $panels ) as $i => $panel ) :
+				$count = count( $panel['steps'] );
+				// Columns from the step count, so no row ends with one card on its own (6 steps = 3 + 3).
+				$cols = $count <= 5 ? max( 1, $count ) : min( 4, (int) ceil( $count / 2 ) );
+				?>
+				<div style="--wdi-cols:<?php echo (int) $cols; ?>" class="wdi-tour__steps" role="tabpanel" id="<?php echo esc_attr( $uid . '-p-' . $i ); ?>" aria-labelledby="<?php echo esc_attr( $uid . '-t-' . $i ); ?>"<?php echo 0 === $i ? '' : ' hidden'; ?>>
 					<?php
-					$n = 0;
-					foreach ( $products as $p ) {
-						foreach ( (array) ( $p['guide'][ $side ] ?? array() ) as $step ) {
-							self::step( (array) $step, ++$n, $side, $launch );
-						}
+					foreach ( $panel['steps'] as $n => $step ) {
+						self::step( (array) $step, $n + 1, $panel['side'], $launch );
 					}
 					?>
 				</div>
@@ -395,6 +394,49 @@ final class Guide {
 			</script>
 		</section>
 		<?php
+	}
+
+	/**
+	 * Tour tabs. One product: a member tab and an owner tab. Several products that name a tab: one tab per
+	 * product (a product without a tab name, such as MediaShield, joins the first), then the owner tab with each
+	 * product's first owner steps (two, or one past four products), so a complete-community demo reads as one story without a wall of cards.
+	 *
+	 * @param array<string,array{label:string,guide:array<string,mixed>}> $products Products.
+	 * @return array<string,array{label:string,side:string,steps:array<int,mixed>}>
+	 */
+	private static function panels( array $products ): array {
+		$tabbed = array_filter( $products, static fn( $p ) => ! empty( $p['guide']['tab'] ) && ! empty( $p['guide']['member'] ) );
+		$multi  = count( $tabbed ) > 1;
+		$first  = reset( $products );
+		$out    = array();
+		$owner  = array();
+		foreach ( $products as $id => $p ) {
+			$key = $multi && ! empty( $p['guide']['tab'] ) ? (string) $id : 'member';
+			if ( 'member' === $key && ! isset( $out['member'] ) && $multi ) {
+				$key = (string) array_key_first( $tabbed );
+			}
+			if ( ! empty( $p['guide']['member'] ) ) {
+				if ( ! isset( $out[ $key ] ) ) {
+					$label       = $multi ? (string) ( $products[ $key ]['guide']['tab'] ?? $p['guide']['tab'] ?? '' ) : (string) ( $first['guide']['member_label'] ?? __( 'As a member', 'wbcom-demo-installer' ) );
+					$out[ $key ] = array(
+						'label' => $label,
+						'side'  => 'member',
+						'steps' => array(),
+					);
+				}
+				$out[ $key ]['steps'] = array_merge( $out[ $key ]['steps'], (array) $p['guide']['member'] );
+			}
+			$steps = (array) ( $p['guide']['owner'] ?? array() );
+			$owner = array_merge( $owner, $multi ? array_slice( $steps, 0, count( $products ) > 4 ? 1 : 2 ) : $steps );
+		}
+		if ( $owner ) {
+			$out['owner'] = array(
+				'label' => __( 'As the owner', 'wbcom-demo-installer' ),
+				'side'  => 'owner',
+				'steps' => $owner,
+			);
+		}
+		return $out;
 	}
 
 	/**
@@ -440,8 +482,10 @@ final class Guide {
 	 */
 	private static function highlights( array $products, string $name ): void {
 		$items = array();
+		$multi = count( $products ) > 2;
 		foreach ( $products as $p ) {
-			$items = array_merge( $items, (array) ( $p['guide']['highlights'] ?? array() ) );
+			$list  = (array) ( $p['guide']['highlights'] ?? array() );
+			$items = array_merge( $items, $multi ? array_slice( $list, 0, 2 ) : $list );
 		}
 		if ( ! $items ) {
 			return;
@@ -452,7 +496,7 @@ final class Guide {
 			<h2><?php echo esc_html( sprintf( __( 'What comes with %s', 'wbcom-demo-installer' ), $name ) ); ?></h2>
 			<p class="wdi-tour__lede"><?php esc_html_e( 'Everything you clicked through above ships in the plugin.', 'wbcom-demo-installer' ); ?></p>
 			<div class="wdi-tour__feats">
-				<?php foreach ( array_slice( $items, 0, 9 ) as $item ) : ?>
+				<?php foreach ( array_slice( $items, 0, 12 ) as $item ) : ?>
 					<div class="wdi-tour__feat">
 						<span class="wdi-tour__icon"><?php echo Icons::svg( (string) ( $item['icon'] ?? 'tick' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed markup. ?></span>
 						<div><strong><?php echo esc_html( (string) $item['title'] ); ?></strong><span><?php echo esc_html( (string) ( $item['text'] ?? '' ) ); ?></span></div>
@@ -497,7 +541,8 @@ final class Guide {
 		.wdi-tour__tabs{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:color-mix(in srgb,currentColor 7%,transparent);margin-bottom:20px;flex-wrap:wrap}
 		.wdi-tour__tabs button{border:0;background:transparent;color:var(--wdi-muted);font:inherit;font-weight:600;font-size:15px;padding:9px 16px;border-radius:9px;cursor:pointer}
 		.wdi-tour__tabs button[aria-selected=true]{background:var(--wdi-accent);color:#fff}
-		.wdi-tour__steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:16px}
+		.wdi-tour__steps{display:grid;grid-template-columns:repeat(var(--wdi-cols,4),minmax(0,1fr));gap:16px}
+		@media (max-width:1024px){.wdi-tour__steps{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}}
 		.wdi-tour__steps[hidden]{display:none}
 		.wdi-tour__step{display:flex;flex-direction:column;gap:8px;border:1px solid var(--wdi-line);border-radius:14px;padding:20px;color:inherit!important;text-decoration:none!important;transition:border-color .15s,transform .15s}
 		a.wdi-tour__step:hover,a.wdi-tour__step:focus-visible{border-color:var(--wdi-accent);transform:translateY(-2px)}

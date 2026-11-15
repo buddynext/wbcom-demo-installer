@@ -931,6 +931,7 @@ final class BuddyNext extends Provider {
 		}
 		return array(
 			'name'         => $t['name'],
+			'tab'          => $t['tab'],
 			'member_label' => $t['member_label'],
 			'owner_points' => $t['owner_points'],
 			'roles'        => array(

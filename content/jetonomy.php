@@ -186,6 +186,7 @@ return array(
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'      => array(
 		'name'         => 'Jetonomy',
+		'tab'          => 'Discussions',
 		'member_label' => 'As a member',
 		'owner_points' => array( 'Spaces for forums, Q&A and ideas', 'Flagged posts and approvals', 'Reputation, voting and email rules' ),
 		'roles'        => array(

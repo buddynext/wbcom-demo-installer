@@ -267,6 +267,7 @@ return array(
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'      => array(
 		'name'         => 'BuddyNext',
+		'tab'          => 'Community',
 		'member_label' => 'As a member',
 		'owner_points' => array( 'Members, spaces and moderation in one hub', 'Reports, suspensions and appeals', 'Engagement, notifications and email' ),
 		'roles'        => array(

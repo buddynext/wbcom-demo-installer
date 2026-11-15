@@ -143,6 +143,7 @@ return array(
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'      => array(
 		'name'         => 'Learnomy',
+		'tab'          => 'Learn',
 		'member_label' => 'As a student',
 		'owner_points' => array( 'Build courses with lessons and quizzes', 'See students, revenue and certificates', 'Sell memberships and coupons' ),
 		'roles'        => array(

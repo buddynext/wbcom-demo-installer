@@ -26,6 +26,7 @@ return array(
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'    => array(
 		'name'         => 'Listora',
+		'tab'          => 'Directory',
 		'member_label' => 'As a member',
 		'owner_points' => array( 'Approve and edit every listing', 'Sell featured and paid listings', 'Award badges such as Verified' ),
 		'roles'        => array(

@@ -20,6 +20,7 @@ return array(
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'    => array(
 		'name'         => 'WP Sell Services',
+		'tab'          => 'Marketplace',
 		'member_label' => 'As a buyer',
 		'owner_points' => array( 'Approve sellers and their services', 'Hold payments until the work is accepted', 'Set your commission and pay sellers out' ),
 		'roles'        => array(

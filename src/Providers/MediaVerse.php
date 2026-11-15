@@ -335,6 +335,42 @@ final class MediaVerse extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function guide(): array {
+		if ( ! class_exists( '\\WPMediaVerse\\Core\\SettingsHelper' ) ) {
+			return array();
+		}
+		$page    = (int) \WPMediaVerse\Core\SettingsHelper::get_page_id( 'explore' );
+		$explore = $page ? (string) get_permalink( $page ) : '';
+		if ( '' === $explore ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		return array(
+			'name'       => $t['name'],
+			'tab'        => $t['tab'],
+			'member'     => self::guide_steps(
+				$t['member'],
+				array(
+					'explore' => $explore,
+					'share'   => $explore,
+				),
+				array( 'explore' => array( 'public' => true ) )
+			),
+			'owner'      => self::guide_steps(
+				$t['owner'],
+				array(
+					'media'    => $admin( 'mvs-media' ),
+					'settings' => $admin( 'mvs-settings' ),
+				)
+			),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		if ( ! class_exists( '\WPMediaVerse\Core\SettingsHelper' ) ) {
 			return array();

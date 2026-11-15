@@ -271,4 +271,21 @@ return array(
 			'photos' => array( 8, 10, 12 ),
 		),
 	),
+	// "Try the demo" page: text only; the provider adds the links (Provider::guide()).
+	'guide'  => array(
+		'name'       => 'WPMediaVerse',
+		'tab'        => 'Media',
+		'member'     => array(
+			'explore' => array( 'play', 'Browse photos and videos', 'Albums, photos and videos shared by members.', 'Open the gallery' ),
+			'share'   => array( 'upload', 'Share your own', 'Upload photos or a video to your profile and albums.', 'Upload media' ),
+		),
+		'owner'      => array(
+			'media'    => array( 'list', 'Review media', 'Every upload, with reports and moderation.', 'Open media' ),
+			'settings' => array( 'settings', 'Set media rules', 'Upload limits, privacy and storage.', 'Open media settings' ),
+		),
+		'highlights' => array(
+			array( 'play', 'Photos and video', 'Albums, galleries and video for every member.' ),
+			array( 'shield', 'Media moderation', 'Review uploads and reports in one queue.' ),
+		),
+	),
 );

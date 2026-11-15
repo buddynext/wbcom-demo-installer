@@ -23,4 +23,26 @@ return array(
 		array( 2, 'Mobile Developer (Android)', 'Engineering', 'Contract', 'Remote', 'Senior', 30000, 45000, true, 'Our ordering app has to work in kitchens with flour on the screen and no wifi. Offline-first experience is a must.' ),
 		array( 2, 'Junior Support Engineer', 'Customer Success', 'Full-time', 'Kochi, IN', 'Entry Level', 7000, 9500, false, 'Learn our product inside out, fix small bugs, and help bakeries get set up. Great first role, we will teach you a lot.' ),
 	),
+	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
+	'guide'     => array(
+		'name'       => 'WP Career Board',
+		'tab'        => 'Jobs',
+		'roles'      => array(
+			'candidate' => array( 'Candidate', array( 'Applications already sent', 'A resume ready to share', 'Job alerts and saved jobs' ) ),
+			'employer'  => array( 'Employer', array( 'Jobs live on the board', 'Applicants to review', 'A company page' ) ),
+		),
+		'member'     => array(
+			'jobs'  => array( 'search', 'Find a job', 'Filter jobs by type, location and salary.', 'Browse jobs' ),
+			'apply' => array( 'check', 'Track applications', 'See every job you applied for and where it stands.', 'Open my applications' ),
+			'post'  => array( 'plus', 'Post a job', 'As the employer, publish a job and review applicants.', 'Post a job' ),
+		),
+		'owner'      => array(
+			'jobs'         => array( 'list', 'Manage jobs', 'Approve, edit or feature any job.', 'Open jobs' ),
+			'applications' => array( 'users', 'See applications', 'Every application across every employer.', 'Open applications' ),
+		),
+		'highlights' => array(
+			array( 'package', 'Job board', 'Jobs, companies and applications in one place.' ),
+			array( 'users', 'Both sides of the hire', 'Dashboards for candidates and employers.' ),
+		),
+	),
 );

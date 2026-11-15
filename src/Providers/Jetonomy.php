@@ -431,6 +431,7 @@ final class Jetonomy extends Provider {
 		$admin  = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
 		return array(
 			'name'         => $t['name'],
+			'tab'          => $t['tab'],
 			'member_label' => $t['member_label'],
 			'owner_points' => $t['owner_points'],
 			'roles'        => array(

@@ -239,6 +239,39 @@ final class Gamification extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function guide(): array {
+		$hub = (int) get_option( 'wb_gam_hub_page_id' );
+		if ( ! $hub || 'publish' !== get_post_status( $hub ) ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$url   = (string) get_permalink( $hub );
+		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		return array(
+			'name'       => $t['name'],
+			'tab'        => $t['tab'],
+			'member'     => self::guide_steps(
+				$t['member'],
+				array(
+					'leaderboard' => add_query_arg( 'panel', 'leaderboard', $url ),
+					'badges'      => $url,
+				),
+				array( 'leaderboard' => array( 'public' => true ) )
+			),
+			'owner'      => self::guide_steps(
+				$t['owner'],
+				array(
+					'rules'  => $admin( 'wb-gamification' ),
+					'badges' => $admin( 'wb-gamification-badges' ),
+				)
+			),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		$page = (int) get_option( 'wb_gam_hub_page_id' );
 		return $page && 'publish' === get_post_status( $page )

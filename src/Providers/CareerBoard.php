@@ -355,6 +355,70 @@ final class CareerBoard extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function guide(): array {
+		if ( ! class_exists( '\\WCB\\Admin\\Pages' ) ) {
+			return array();
+		}
+		$page = static function ( string $key ): string {
+			$id = (int) \WCB\Admin\Pages::get_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$jobs = $page( 'jobs_archive_page' );
+		if ( '' === $jobs ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		return array(
+			'name'       => $t['name'],
+			'tab'        => $t['tab'],
+			'roles'      => array(
+				array(
+					'key'    => 'candidate',
+					'user'   => People::user_id( 'candidate' ),
+					'label'  => $t['roles']['candidate'][0],
+					'points' => $t['roles']['candidate'][1],
+				),
+				array(
+					'key'    => 'employer',
+					'user'   => People::user_id( 'employer' ),
+					'label'  => $t['roles']['employer'][0],
+					'points' => $t['roles']['employer'][1],
+				),
+			),
+			'member'     => self::guide_steps(
+				$t['member'],
+				array(
+					'jobs'  => $jobs,
+					'apply' => $page( 'candidate_dashboard_page' ),
+					'post'  => $page( 'post_job_page' ),
+				),
+				array(
+					'jobs'  => array(
+						'public' => true,
+						'as'     => 'candidate',
+					),
+					'apply' => array( 'as' => 'candidate' ),
+					'post'  => array(
+						'as'        => 'employer',
+						'highlight' => true,
+					),
+				)
+			),
+			'owner'      => self::guide_steps(
+				$t['owner'],
+				array(
+					'jobs'         => $admin( 'wcb-jobs' ),
+					'applications' => $admin( 'wcb-applications' ),
+				)
+			),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		if ( ! class_exists( '\WCB\Admin\Pages' ) ) {
 			return array();
