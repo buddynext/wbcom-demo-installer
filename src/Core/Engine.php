@@ -99,7 +99,8 @@ final class Engine {
 		$theme    = wp_get_theme();
 		$products = array();
 		foreach ( Registry::all() as $id => $p ) {
-			if ( in_array( $id, array( 'people', 'theme' ), true ) || ! $p->available() ) {
+			// A provider with nothing to build (guide only, e.g. Woo Sell Services) is not offered in the wizard.
+			if ( in_array( $id, array( 'people', 'theme' ), true ) || ! $p->available() || ! $p->plan() ) {
 				continue;
 			}
 			$products[] = array(

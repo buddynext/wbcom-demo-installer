@@ -92,6 +92,7 @@ final class Registry {
 			Providers\CareerBoard::class,
 			Providers\Listora::class,
 			Providers\SellServices::class,
+			Providers\WooSellServices::class,
 			Providers\Gamification::class,
 			Providers\MediaShield::class,
 			Providers\Roadmap::class,
