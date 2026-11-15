@@ -23,14 +23,20 @@ final class BuddyPress extends Provider {
 
 	private const UPDATES_PER_STEP = 12;
 
-	/** Activity a product posts more than this often in a day is kept off the site-wide feed (stays on profiles). */
+	/** New things of one type (events, posts, groups) shown site-wide per day; the rest stay on profiles. */
 	private const SAME_TYPE_PER_DAY = 3;
 
-	/** Social side effects shown in the site-wide feed: one in this many (all stay on profiles and in groups). */
-	private const SOCIAL_ONE_IN = 3;
+	/** Repeat reactions (RSVPs, enrolments, joins, friendships) shown site-wide: one in this many. */
+	private const REPEAT_ONE_IN = 4;
 
-	/** Automatic social items that would otherwise outnumber what members post. */
-	private const SOCIAL_TYPES = array( 'friendship_created', 'joined_group', 'new_avatar', 'new_member' );
+	/** Social side effects that are repeats however they are named. */
+	private const REPEAT_TYPES = array( 'friendship_created', 'joined_group', 'new_avatar', 'new_member' );
+
+	/** Award announcements (points, badges) shown site-wide: one in this many. */
+	private const AWARD_ONE_IN = 30;
+
+	/** Components whose items announce rewards for what members did. */
+	private const AWARD_COMPONENTS = array( 'gamipress', 'wb-gamification', 'mycred', 'badgeos' );
 
 	/**
 	 * True while this provider creates activity, so the bridge listener leaves our own items alone.
@@ -202,13 +208,8 @@ final class BuddyPress extends Provider {
 				}
 				// Thin repeats of any automatic item (another product's, or "joined a group" / "became friends"), never
 				// members' own updates and replies.
-				if ( empty( $activity->id ) && ! in_array( $activity->type, array( 'activity_update', 'activity_comment' ), true ) ) {
-					$social             = in_array( $activity->type, self::SOCIAL_TYPES, true );
-					$key                = $social ? $activity->type : $activity->type . '|' . substr( (string) $activity->date_recorded, 0, 10 );
-					self::$seen[ $key ] = ( self::$seen[ $key ] ?? 0 ) + 1;
-					if ( $social ? 1 !== self::$seen[ $key ] % self::SOCIAL_ONE_IN : self::$seen[ $key ] > self::SAME_TYPE_PER_DAY ) {
-						$activity->hide_sitewide = 1;
-					}
+				if ( empty( $activity->id ) && self::thin( (string) $activity->component, (string) $activity->type, (string) $activity->date_recorded ) ) {
+					$activity->hide_sitewide = 1;
 				}
 			}
 		);
@@ -220,6 +221,34 @@ final class BuddyPress extends Provider {
 				}
 			}
 		);
+	}
+
+	/**
+	 * Whether an item should stay off the site-wide feed (it still shows on profiles and in groups), so members' own
+	 * posts lead: their updates and replies always show; something new being created (an event, a post, a group)
+	 * shows up to SAME_TYPE_PER_DAY a day; repeat reactions one in REPEAT_ONE_IN; award announcements one in
+	 * AWARD_ONE_IN.
+	 *
+	 * @param string $component Component.
+	 * @param string $type      Activity type.
+	 * @param string $date      Date recorded.
+	 */
+	private static function thin( string $component, string $type, string $date ): bool {
+		if ( in_array( $component, array( 'activity', 'groups' ), true ) && in_array( $type, array( 'activity_update', 'activity_comment' ), true ) ) {
+			return false;
+		}
+		if ( in_array( $component, self::AWARD_COMPONENTS, true ) ) {
+			self::$seen[ $component ] = ( self::$seen[ $component ] ?? 0 ) + 1;
+			return 1 !== self::$seen[ $component ] % self::AWARD_ONE_IN;
+		}
+		if ( ! in_array( $type, self::REPEAT_TYPES, true ) && preg_match( '/created|^new_|publish/', $type ) ) {
+			$key                = $type . '|' . substr( $date, 0, 10 );
+			self::$seen[ $key ] = ( self::$seen[ $key ] ?? 0 ) + 1;
+			return self::$seen[ $key ] > self::SAME_TYPE_PER_DAY;
+		}
+		$key                = $component . '|' . $type;
+		self::$seen[ $key ] = ( self::$seen[ $key ] ?? 0 ) + 1;
+		return 1 !== self::$seen[ $key ] % self::REPEAT_ONE_IN;
 	}
 
 	/**
@@ -440,7 +469,8 @@ final class BuddyPress extends Provider {
 			if ( '' !== $url ) {
 				$content .= "\n\n" . esc_url( $url );
 			}
-			Clock::set( $ctx->date( (int) $i, count( $all ), 45 ) );
+			// Members' posts fill the last three weeks, so the newest part of the feed is what people wrote.
+			Clock::set( $ctx->date( (int) $i, count( $all ), 21 ) );
 			$id = 0;
 			if ( '' !== $group && isset( $groups[ $group ] ) && function_exists( 'groups_post_update' ) ) {
 				$id = groups_post_update(
@@ -518,6 +548,25 @@ final class BuddyPress extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function tidy( Context $ctx ): void {
+		// BuddyPress stamps a group's last activity with the time an update was posted (the build time): use the date
+		// of its newest item instead, so groups do not all read "active a minute ago".
+		if ( function_exists( 'groups_update_groupmeta' ) ) {
+			foreach ( (array) $ctx->get( $this->id(), 'groups', array() ) as $group_id ) {
+				$latest = \BP_Activity_Activity::get(
+					array(
+						'per_page'    => 1,
+						'show_hidden' => true,
+						'filter'      => array(
+							'object'     => 'groups',
+							'primary_id' => (int) $group_id,
+						),
+					)
+				);
+				if ( ! empty( $latest['activities'][0]->date_recorded ) ) {
+					groups_update_groupmeta( (int) $group_id, 'last_activity', $latest['activities'][0]->date_recorded );
+				}
+			}
+		}
 		$from = (string) $ctx->state->get( 'started_at' );
 		$to   = (string) ( $ctx->state->get( 'built_at' ) ? $ctx->state->get( 'built_at' ) : current_time( 'mysql', true ) );
 		if ( '' === $from || ! class_exists( '\BP_Activity_Activity' ) ) {
@@ -538,7 +587,7 @@ final class BuddyPress extends Provider {
 				'filter_query'     => array(
 					array(
 						'column'  => 'type',
-						'value'   => array( 'activity_update', 'activity_comment', 'last_activity', 'new_avatar', 'friendship_created', 'joined_group', 'created_group' ),
+						'value'   => array( 'last_activity', 'new_avatar', 'friendship_created', 'joined_group', 'created_group' ),
 						'compare' => 'NOT IN',
 					),
 				),
@@ -546,12 +595,13 @@ final class BuddyPress extends Provider {
 		);
 		$seen  = array();
 		foreach ( (array) ( $found['activities'] ?? array() ) as $a ) {
+			if ( in_array( $a->component, array( 'activity', 'groups' ), true ) && in_array( $a->type, array( 'activity_update', 'activity_comment' ), true ) ) {
+				continue; // Members' own posts keep their dates.
+			}
 			$item                = new \BP_Activity_Activity( (int) $a->id );
 			$seed                = abs( crc32( $item->type . '|' . $item->item_id . '|' . $item->secondary_item_id . '|' . $item->user_id ) );
 			$item->date_recorded = $ctx->date( $seed % 500, 500, 45 );
-			$key                 = $item->type . '|' . substr( $item->date_recorded, 0, 10 );
-			$seen[ $key ]        = ( $seen[ $key ] ?? 0 ) + 1;
-			if ( $seen[ $key ] > self::SAME_TYPE_PER_DAY ) {
+			if ( self::thin( (string) $item->component, (string) $item->type, $item->date_recorded ) ) {
 				$item->hide_sitewide = 1;
 			}
 			$item->save();
