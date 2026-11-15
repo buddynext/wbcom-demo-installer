@@ -383,12 +383,17 @@ final class Learnomy extends Provider {
 	public function settings(): array {
 		// Inside a Wbcom theme the theme's own container sets the width, so Learnomy fills it instead of
 		// its narrower 960px default.
+		// The test payment method, so a visitor can buy a paid sample course without a real gateway.
 		$settings = array(
 			'learnomy_setup_complete'       => true,
 			'learnomy_onboarding_dismissed' => true,
+			'learnomy_settings'             => array(
+				'enable_test_gateway' => true,
+				'payment_mode'        => 'sandbox',
+			),
 		);
 		if ( in_array( Theme::theme_family(), array( 'BuddyX', 'BuddyX Pro', 'Reign' ), true ) ) {
-			$settings['learnomy_settings'] = array( 'container_width' => 'none' );
+			$settings['learnomy_settings']['container_width'] = 'none';
 		}
 		return $settings;
 	}
