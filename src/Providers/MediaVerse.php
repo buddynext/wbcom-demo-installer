@@ -339,23 +339,47 @@ final class MediaVerse extends Provider {
 		if ( ! class_exists( '\\WPMediaVerse\\Core\\SettingsHelper' ) ) {
 			return array();
 		}
-		$page    = (int) \WPMediaVerse\Core\SettingsHelper::get_page_id( 'explore' );
-		$explore = $page ? (string) get_permalink( $page ) : '';
+		$page_url = static function ( string $key ): string {
+			$id = (int) \WPMediaVerse\Core\SettingsHelper::get_page_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$explore  = $page_url( 'explore' );
 		if ( '' === $explore ) {
 			return array();
 		}
-		$t     = $this->content()['guide'];
-		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		$upload = $page_url( 'upload' );
+		$mine   = $page_url( 'dashboard' );
+		$t      = $this->content()['guide'];
+		$admin  = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
 		return array(
 			'name'       => $t['name'],
 			'tab'        => $t['tab'],
+			'roles'      => array(
+				array(
+					'key'    => 'creator',
+					'user'   => People::user_id( '', 1 ),
+					'label'  => $t['roles']['creator'][0],
+					'points' => $t['roles']['creator'][1],
+				),
+			),
 			'member'     => self::guide_steps(
 				$t['member'],
 				array(
 					'explore' => $explore,
-					'share'   => $explore,
+					'share'   => '' !== $upload ? $upload : $explore,
+					'mine'    => '' !== $mine ? $mine : null,
 				),
-				array( 'explore' => array( 'public' => true ) )
+				array(
+					'explore' => array(
+						'public' => true,
+						'as'     => 'creator',
+					),
+					'share'   => array(
+						'as'        => 'creator',
+						'highlight' => true,
+					),
+					'mine'    => array( 'as' => 'creator' ),
+				)
 			),
 			'owner'      => self::guide_steps(
 				$t['owner'],
@@ -367,6 +391,7 @@ final class MediaVerse extends Provider {
 			'highlights' => self::guide_highlights( $t['highlights'] ),
 		);
 	}
+
 
 	/**
 	 * {@inheritDoc}
