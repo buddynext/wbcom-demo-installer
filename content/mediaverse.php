@@ -275,9 +275,13 @@ return array(
 	'guide'  => array(
 		'name'       => 'WPMediaVerse',
 		'tab'        => 'Media',
+		'roles'      => array(
+			'creator' => array( 'Creator', array( 'Photos, videos and albums already shared', 'Followers, likes and comments', 'Private messages with other members' ) ),
+		),
 		'member'     => array(
 			'explore' => array( 'play', 'Browse photos and videos', 'Albums, photos and videos shared by members.', 'Open the gallery' ),
 			'share'   => array( 'upload', 'Share your own', 'Upload photos or a video to your profile and albums.', 'Upload media' ),
+			'mine'    => array( 'list', 'Manage your media', 'Your uploads, albums, favourites and stats in one place.', 'Open my media' ),
 		),
 		'owner'      => array(
 			'media'    => array( 'list', 'Review media', 'Every upload, with reports and moderation.', 'Open media' ),
