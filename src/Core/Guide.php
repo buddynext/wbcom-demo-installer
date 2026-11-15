@@ -126,6 +126,15 @@ final class Guide {
 	}
 
 	/**
+	 * User ids of every account the guides offer (the people on the role cards).
+	 *
+	 * @return int[]
+	 */
+	public static function account_ids(): array {
+		return array_keys( self::roles( self::products() ) );
+	}
+
+	/**
 	 * Every account the guides offer, user id => role data.
 	 *
 	 * @param array<string,array{label:string,guide:array<string,mixed>}> $products Products.
@@ -493,8 +502,13 @@ final class Guide {
 		?>
 		<section class="wdi-tour__section">
 			<?php /* translators: %s: product name */ ?>
-			<h2><?php echo esc_html( sprintf( __( 'What comes with %s', 'wbcom-demo-installer' ), $name ) ); ?></h2>
-			<p class="wdi-tour__lede"><?php esc_html_e( 'Everything you clicked through above ships in the plugin.', 'wbcom-demo-installer' ); ?></p>
+			<?php if ( $multi ) : ?>
+				<h2><?php esc_html_e( 'Everything in this demo', 'wbcom-demo-installer' ); ?></h2>
+				<p class="wdi-tour__lede"><?php esc_html_e( 'Each part is its own plugin, and they work together on one site.', 'wbcom-demo-installer' ); ?></p>
+			<?php else : ?>
+				<h2><?php echo esc_html( sprintf( __( 'What comes with %s', 'wbcom-demo-installer' ), $name ) ); ?></h2>
+				<p class="wdi-tour__lede"><?php esc_html_e( 'Everything you clicked through above ships in the plugin.', 'wbcom-demo-installer' ); ?></p>
+			<?php endif; ?>
 			<div class="wdi-tour__feats">
 				<?php foreach ( array_slice( $items, 0, 12 ) as $item ) : ?>
 					<div class="wdi-tour__feat">

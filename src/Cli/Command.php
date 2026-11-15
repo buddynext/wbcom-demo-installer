@@ -501,6 +501,14 @@ final class Command {
 		}
 		Ledger::add( 'guide', 'theme', 'page', $id, 'setup' );
 		Theme::hide_title( $id );
+		// BuddyNext sends a member who never finished onboarding to the onboarding screen on every page; the
+		// people on the cards must open straight into their account.
+		if ( class_exists( '\\BuddyNext\\Onboarding\\OnboardingService' ) ) {
+			$onboarding = new \BuddyNext\Onboarding\OnboardingService();
+			foreach ( Guide::account_ids() as $account ) {
+				$onboarding->finish( (int) $account );
+			}
+		}
 		// A page made by the first version holds only the shortcode: give it the tour block.
 		if ( false !== strpos( (string) get_post_field( 'post_content', $id ), '[' . Guide::SHORTCODE . ']' ) ) {
 			wp_update_post(
