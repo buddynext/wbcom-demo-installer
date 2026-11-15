@@ -246,9 +246,11 @@ final class Guide {
 		if ( str_starts_with( (string) $user->user_login, 'demo.' ) && is_readable( WBCOM_DEMO_DIR . $file ) ) {
 			return '<img class="wdi-tour__face" src="' . esc_url( WBCOM_DEMO_URL . $file ) . '" alt="" width="56" height="56" loading="lazy">';
 		}
-		$data = get_avatar_data( $user_id, array( 'size' => 112 ) );
-		// Gravatar's default silhouette counts as "found"; for a demo card initials read better.
-		if ( ! empty( $data['found_avatar'] ) && ! empty( $data['url'] ) && false === strpos( (string) $data['url'], 'gravatar.com' ) ) {
+		$data    = get_avatar_data( $user_id, array( 'size' => 112 ) );
+		$uploads = (string) wp_parse_url( (string) wp_get_upload_dir()['baseurl'], PHP_URL_PATH );
+		// Only an uploaded photo counts: Gravatar's silhouette and a theme's default member image (Reign) both report
+		// "found", and for a demo card initials read better than a placeholder.
+		if ( ! empty( $data['found_avatar'] ) && '' !== $uploads && str_contains( (string) wp_parse_url( (string) $data['url'], PHP_URL_PATH ), $uploads . '/' ) ) {
 			return '<img class="wdi-tour__face" src="' . esc_url( (string) $data['url'] ) . '" alt="" width="56" height="56" loading="lazy">';
 		}
 		$parts    = preg_split( '/\s+/', trim( (string) $user->display_name ) );
