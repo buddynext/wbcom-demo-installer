@@ -264,4 +264,23 @@ return array(
 		array( 12, 7, array( 'Tom, we are opening a backend role soon. Would you share it with your network?', 'Happy to. Send me the link when it is up.' ) ),
 	),
 	'companies'  => array( 'Nomad Studio', 'Hyperlane', 'Northwind Labs', 'Paperplane', 'Bluefin Data', 'Pixel Harbor', 'Tidewater Institute', 'Roastworks', 'Clearword', 'Lumen Cloud' ),
+	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	'guide'      => array(
+		'member'   => array(
+			'activity'      => 'Post an update with a photo or a poll, then react to and comment on other posts.',
+			'spaces'        => 'Join a space and start a conversation in it.',
+			'people'        => 'Find people in the member directory, follow them or send a connection request.',
+			'messages'      => 'Send someone a direct message.',
+			'notifications' => 'See replies, reactions and new followers in your notifications.',
+		),
+		'owner'    => array(
+			'start'      => 'See the setup checklist and how your community is growing.',
+			'members'    => 'Manage members, member types and profile fields.',
+			'spaces'     => 'Create spaces and decide who can join and post.',
+			'moderation' => 'Review reports, posts waiting for approval and suspensions.',
+		),
+		'accounts' => array(
+			'member' => 'An active member with posts, spaces, followers and messages.',
+		),
+	),
 );

@@ -912,6 +912,36 @@ final class BuddyNext extends Provider {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		$page = static fn( string $key ): string => ( (int) get_option( 'buddynext_page_' . $key ) ) ? (string) get_permalink( (int) get_option( 'buddynext_page_' . $key ) ) : '';
+		if ( '' === $page( 'activity' ) ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		$steps = array();
+		foreach ( array( 'activity', 'spaces', 'people', 'messages', 'notifications' ) as $key ) {
+			if ( '' !== $page( $key ) ) {
+				$steps[] = array( $t['member'][ $key ], $page( $key ) );
+			}
+		}
+		return array(
+			'member'   => $steps,
+			'owner'    => array(
+				array( $t['owner']['start'], $admin( 'buddynext' ) ),
+				array( $t['owner']['members'], $admin( 'buddynext-members' ) ),
+				array( $t['owner']['spaces'], $admin( 'buddynext-spaces' ) ),
+				array( $t['owner']['moderation'], $admin( 'buddynext-moderation' ) ),
+			),
+			'accounts' => array(
+				array( People::user_id( '', 0 ), $t['accounts']['member'] ),
+			),
+		);
+	}
+
+	/**
 	 * Pages for the menu.
 	 */
 	public function menu_items(): array {
