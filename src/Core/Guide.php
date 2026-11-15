@@ -189,7 +189,13 @@ final class Guide {
 		$as = isset( $_GET['as'] ) ? absint( $_GET['as'] ) : 0;
 		$ok = isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), 'wdi_go' );
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
-		$to    = wp_validate_redirect( $to, home_url( '/' ) );
+		$to = wp_validate_redirect( $to, home_url( '/' ) );
+		if ( ! $ok ) {
+			// A link from an earlier session (browser back after a switch): its nonce no longer matches, so opening the
+			// step would show it as the wrong person. Back to the guide, which renders fresh links for this session.
+			wp_safe_redirect( wp_get_referer() ? wp_get_referer() : $to );
+			exit;
+		}
 		$owner = self::owner();
 		// Only the site owner, or someone switched from them, may switch, and only to accounts the guide offers.
 		if ( $ok && $owner && function_exists( 'switch_to_user' ) && ( 0 === $as || isset( self::roles( self::products() )[ $as ] ) ) ) {
