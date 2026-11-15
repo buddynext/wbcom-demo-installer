@@ -463,7 +463,8 @@ final class BuddyPress extends Provider {
 				$att = $ctx->attachment( (string) $image, $user, $this->id() );
 				$src = $att ? wp_get_attachment_image_url( $att, 'large' ) : '';
 				if ( $src ) {
-					$content .= "\n\n" . sprintf( '<a href="%1$s"><img src="%1$s" alt="%2$s" /></a>', esc_url( $src ), esc_attr( Context::alt_text( (string) $image ) ) );
+					// The image alone: a link around it counts twice against BuddyBoss's links-per-post moderation limit.
+					$content .= "\n\n" . sprintf( '<img src="%1$s" alt="%2$s" />', esc_url( $src ), esc_attr( Context::alt_text( (string) $image ) ) );
 				}
 			}
 			if ( '' !== $url ) {
