@@ -51,6 +51,26 @@ return array(
 			array( 'users', 'Profiles and groups', 'Member profiles, connections and groups.' ),
 		),
 	),
+	'peepso'      => array(
+		'name'         => 'PeepSo',
+		'tab'          => 'Community',
+		'member_label' => 'As a member',
+		'owner_points' => array( 'Members, groups and the stream', 'Profiles and privacy', 'Which PeepSo features are on' ),
+		'roles'        => array( 'member' => $wbcom_demo_member ),
+		'member'       => array(
+			'activity' => array( 'home', 'Post to the stream', 'Share an update, react and comment.', 'Open the stream' ),
+			'members'  => array( 'users', 'Meet the members', 'Profiles, friends and messages.', 'Open members' ),
+			'groups'   => array( 'message', 'Join a group', 'Groups with their own stream.', 'Open groups' ),
+		),
+		'owner'        => array(
+			'components' => array( 'settings', 'PeepSo settings', 'Features, profiles and privacy.', 'Open PeepSo' ),
+			'users'      => array( 'users', 'Members', 'Every member, their role and profile.', 'Open users' ),
+		),
+		'highlights'   => array(
+			array( 'home', 'Activity stream', 'Updates, reactions and comments from across the site.' ),
+			array( 'users', 'Profiles and groups', 'Member profiles, friends and groups.' ),
+		),
+	),
 	'bbpress'     => array(
 		'name'         => 'bbPress',
 		'tab'          => 'Forums',

@@ -87,6 +87,8 @@ final class Integration extends Provider {
 				return function_exists( 'bp_get_members_directory_permalink' ) && ! defined( 'BP_PLATFORM_VERSION' );
 			case 'buddyboss':
 				return defined( 'BP_PLATFORM_VERSION' ) && function_exists( 'bp_get_members_directory_permalink' );
+			case 'peepso':
+				return class_exists( 'PeepSo' );
 			case 'bbpress':
 				return function_exists( 'bbp_get_forum_post_type' );
 			case 'learndash':
@@ -108,7 +110,7 @@ final class Integration extends Provider {
 	 */
 	public function order(): int {
 		// The community a theme demo is built on leads the tour; the other integrations follow the products.
-		return in_array( $this->key, array( 'buddypress', 'buddyboss' ), true ) ? 1 : 90;
+		return in_array( $this->key, array( 'buddypress', 'buddyboss', 'peepso' ), true ) ? 1 : 90;
 	}
 
 	/**
@@ -182,6 +184,22 @@ final class Integration extends Provider {
 					),
 					array(
 						'components' => (string) bp_get_admin_url( 'admin.php?page=bp-components' ),
+						'users'      => admin_url( 'users.php' ),
+					),
+				);
+			case 'peepso':
+				$page = static function ( string $key ): ?string {
+					$slug = trim( (string) ( ( (array) get_option( 'peepso_config', array() ) )[ 'page_' . $key ] ?? '' ), '/' );
+					return '' === $slug && 'activity' !== $key ? null : home_url( '' === $slug ? '/' : '/' . $slug . '/' );
+				};
+				return array(
+					array(
+						'activity' => $page( 'activity' ),
+						'members'  => $page( 'members' ),
+						'groups'   => $page( 'groups' ),
+					),
+					array(
+						'components' => admin_url( 'admin.php?page=peepso_config' ),
 						'users'      => admin_url( 'users.php' ),
 					),
 				);
