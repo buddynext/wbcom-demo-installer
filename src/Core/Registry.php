@@ -49,6 +49,10 @@ final class Registry {
 					$registry->add( new $class() );
 				}
 			}
+			// Third-party plugins a demo site runs (guide only), one provider per integration.
+			foreach ( Providers\Integration::ids() as $id ) {
+				$registry->add( new Providers\Integration( $id ) );
+			}
 			/**
 			 * Register or replace providers.
 			 *
