@@ -40,6 +40,7 @@ final class Icons {
 		'package'  => '<path d="m7.5 4.3 9 5.2M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
 		'flag'     => '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
 		'home'     => '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+		'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
 		'arrow'    => '<path d="M5 12h14M13 6l6 6-6 6"/>',
 		'tick'     => '<path d="M20 6 9 17l-5-5"/>',
 	);
