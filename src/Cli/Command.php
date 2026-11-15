@@ -458,21 +458,30 @@ final class Command {
 	 * [--accounts=<list>]
 	 * : Accounts for the switch cards on such a demo, as provider:login pairs, comma separated.
 	 *
+	 * [--launch=<url>]
+	 * : The template's launch link. Signed-out visitors (the public model site) get it on every button.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp wbcom-demo guide --menu=primary
-	 *     wp wbcom-demo guide --products=listora --accounts=listora:priya_nair --menu=primary-menu
+	 *     wp wbcom-demo guide --products=listora --accounts=listora:priya_nair --menu=primary-menu --launch=https://app.instawp.io/launch?s=wb-listora
 	 *
 	 * @param array<int,string>    $args  Args.
 	 * @param array<string,string> $assoc Assoc args.
 	 */
 	public function guide( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- WP-CLI command signature.
 		$this->as_admin();
-		if ( isset( $assoc['products'] ) || isset( $assoc['accounts'] ) ) {
-			$extra = array(
-				'products' => array_filter( array_map( 'trim', explode( ',', (string) ( $assoc['products'] ?? '' ) ) ) ),
-				'accounts' => array(),
-			);
+		if ( isset( $assoc['products'] ) || isset( $assoc['accounts'] ) || isset( $assoc['launch'] ) ) {
+			$extra = (array) get_option( Guide::OPTION, array() );
+			if ( isset( $assoc['launch'] ) ) {
+				$extra['launch'] = esc_url_raw( (string) $assoc['launch'] );
+			}
+			if ( isset( $assoc['products'] ) ) {
+				$extra['products'] = array_values( array_filter( array_map( 'trim', explode( ',', (string) $assoc['products'] ) ) ) );
+			}
+			if ( isset( $assoc['accounts'] ) ) {
+				$extra['accounts'] = array();
+			}
 			foreach ( array_filter( array_map( 'trim', explode( ',', (string) ( $assoc['accounts'] ?? '' ) ) ) ) as $pair ) {
 				list( $provider, $login ) = array_pad( explode( ':', $pair, 2 ), 2, '' );
 				$user                     = get_user_by( 'login', $login );
@@ -491,6 +500,16 @@ final class Command {
 			WP_CLI::error( 'The page could not be made.' );
 		}
 		Ledger::add( 'guide', 'theme', 'page', $id, 'setup' );
+		Theme::hide_title( $id );
+		// A page made by the first version holds only the shortcode: give it the tour block.
+		if ( false !== strpos( (string) get_post_field( 'post_content', $id ), '[' . Guide::SHORTCODE . ']' ) ) {
+			wp_update_post(
+				array(
+					'ID'           => $id,
+					'post_content' => Guide::page_content(),
+				)
+			);
+		}
 		// Sample people made before 1.1.0 have no billing details (a checkout tried as them would ask for an address)
 		// and see the WordPress toolbar on the site.
 		foreach ( People::roster() as $person ) {

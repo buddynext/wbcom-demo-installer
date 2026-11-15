@@ -915,29 +915,63 @@ final class BuddyNext extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function guide(): array {
-		$page = static fn( string $key ): string => ( (int) get_option( 'buddynext_page_' . $key ) ) ? (string) get_permalink( (int) get_option( 'buddynext_page_' . $key ) ) : '';
+		$page = static function ( string $key ): string {
+			$id = (int) get_option( 'buddynext_page_' . $key );
+			return $id ? (string) get_permalink( $id ) : '';
+		};
 		if ( '' === $page( 'activity' ) ) {
 			return array();
 		}
-		$t     = $this->content()['guide'];
-		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
-		$steps = array();
-		foreach ( array( 'activity', 'spaces', 'people', 'messages', 'notifications' ) as $key ) {
-			if ( '' !== $page( $key ) ) {
-				$steps[] = array( $t['member'][ $key ], $page( $key ) );
-			}
+		$t      = $this->content()['guide'];
+		$member = People::user_id( '', 0 );
+		$admin  = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		$links  = array();
+		foreach ( array_keys( $t['member'] ) as $key ) {
+			$links[ $key ] = '' !== $page( $key ) ? $page( $key ) : null;
 		}
 		return array(
-			'member'   => $steps,
-			'owner'    => array(
-				array( $t['owner']['start'], $admin( 'buddynext' ) ),
-				array( $t['owner']['members'], $admin( 'buddynext-members' ) ),
-				array( $t['owner']['spaces'], $admin( 'buddynext-spaces' ) ),
-				array( $t['owner']['moderation'], $admin( 'buddynext-moderation' ) ),
+			'name'         => $t['name'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'member',
+					'user'   => $member,
+					'label'  => $t['roles']['member'][0],
+					'points' => $t['roles']['member'][1],
+				),
 			),
-			'accounts' => array(
-				array( People::user_id( '', 0 ), $t['accounts']['member'] ),
+			'member'       => self::guide_steps(
+				$t['member'],
+				$links,
+				array(
+					'activity'      => array(
+						'public'    => true,
+						'as'        => 'member',
+						'highlight' => true,
+					),
+					'spaces'        => array(
+						'public' => true,
+						'as'     => 'member',
+					),
+					'people'        => array(
+						'public' => true,
+						'as'     => 'member',
+					),
+					'messages'      => array( 'as' => 'member' ),
+					'notifications' => array( 'as' => 'member' ),
+				)
 			),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'start'      => $admin( 'buddynext' ),
+					'members'    => $admin( 'buddynext-members' ),
+					'spaces'     => $admin( 'buddynext-spaces' ),
+					'moderation' => $admin( 'buddynext-moderation' ),
+				)
+			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
 		);
 	}
 

@@ -140,24 +140,34 @@ return array(
 		array( 5, 'Short lessons, big results', 'Each lesson takes ten minutes and changes something real.' ),
 		array( 4, 'Recommended', 'Good pace and friendly tone. Worth it.' ),
 	),
-	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'      => array(
-		'member'   => array(
-			'catalog' => 'Browse the course catalog and filter by category, level and price.',
-			'course'  => 'Open a popular course, watch its free preview and read the reviews.',
-			'pay'     => 'Enroll and choose Test payment at checkout. The course is paid at once and no real money moves.',
-			'account' => 'Pick up where you left off in your account: progress, notes, quiz results and certificates.',
-			'teach'   => 'Switch to the instructor above, then see your students and grade quiz answers in the instructor dashboard.',
+		'name'         => 'Learnomy',
+		'member_label' => 'As a student',
+		'owner_points' => array( 'Build courses with lessons and quizzes', 'See students, revenue and certificates', 'Sell memberships and coupons' ),
+		'roles'        => array(
+			'student'    => array( 'Student', array( 'Courses in progress and certificates', 'Buy a course with Test payment', 'Notes, quizzes and progress' ) ),
+			'instructor' => array( 'Instructor', array( 'Published courses and students', 'Earnings at a glance', 'Quiz answers to grade' ) ),
 		),
-		'owner'    => array(
-			'courses'      => 'Build courses with sections, lessons, quizzes and drip content.',
-			'students'     => 'See each student, their progress and certificates.',
-			'memberships'  => 'Sell memberships, subscriptions, coupons and gift codes.',
-			'transactions' => 'Track payments, refunds and instructor earnings.',
+		'member'       => array(
+			'catalog' => array( 'search', 'Browse the catalog', 'Filter courses by category, level and price.', 'Open the catalog' ),
+			'course'  => array( 'play', 'Preview a course', 'Watch the free preview and read the reviews.', 'Open the course' ),
+			'pay'     => array( 'card', 'Buy it with Test payment', 'Checkout goes through at once and costs nothing.', 'Enroll now' ),
+			'account' => array( 'cap', 'Keep learning', 'Progress, notes, quiz results and certificates.', 'Open my courses' ),
+			'teach'   => array( 'check', 'Grade as the instructor', 'Switches you to the instructor to review students and grade answers.', 'Open grading' ),
 		),
-		'accounts' => array(
-			'student'    => 'A student with courses in progress and certificates earned.',
-			'instructor' => 'An instructor with published courses, students and quiz answers to grade.',
+		'owner'        => array(
+			'courses'      => array( 'book', 'Build a course', 'Sections, lessons, quizzes and drip schedules.', 'Open courses' ),
+			'students'     => array( 'users', 'Follow your students', 'Progress, scores and certificates for every learner.', 'Open students' ),
+			'memberships'  => array( 'money', 'Sell memberships', 'Plans, subscriptions, coupons and gift codes.', 'Open memberships' ),
+			'transactions' => array( 'chart', 'Track revenue', 'Payments, refunds and instructor earnings.', 'Open transactions' ),
+		),
+		'highlights'   => array(
+			array( 'book', 'Course builder', 'Sections, lessons, quizzes, assignments and drip content.' ),
+			array( 'card', 'Payments built in', 'Stripe, PayPal or WooCommerce, with coupons and refunds.' ),
+			array( 'money', 'Memberships', 'Plans that unlock groups of courses.' ),
+			array( 'users', 'Many instructors', 'Applications, co-instructors and commissions.' ),
+			array( 'award', 'Certificates', 'Issued on completion and verifiable by anyone.' ),
 		),
 	),
 );

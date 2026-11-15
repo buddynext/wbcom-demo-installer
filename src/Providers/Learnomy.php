@@ -405,7 +405,7 @@ final class Learnomy extends Provider {
 		}
 		$t     = $this->content()['guide'];
 		$route = static fn( string $name, array $args = array() ): string => (string) \Learnomy\route_url( $name, $args );
-		// The installer's first course, else the paid course with the most students, so "buy it" has something to buy.
+		// The demo's first course, else the paid course with the most students, so "buy it" has something to buy.
 		$course = null;
 		$built  = Ledger::ids( $this->id(), 'course' );
 		$pool   = $built ? \Learnomy\Models\Course::find_published_in( array( (int) min( $built ) ) ) : \Learnomy\Models\Course::list_published( 1, 100 );
@@ -414,25 +414,64 @@ final class Learnomy extends Provider {
 				$course = $row;
 			}
 		}
-		$admin = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
+		$course_url = $course ? $route( 'course', array( 'slug' => (string) $course->slug ) ) : $route( 'catalog' );
+		$student    = People::user_id( 'student' );
+		$instructor = People::user_id( 'instructor' );
+		$admin      = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
 		return array(
-			'member'   => array(
-				array( $t['member']['catalog'], $route( 'catalog' ) ),
-				array( $t['member']['course'], $course ? $route( 'course', array( 'slug' => (string) $course->slug ) ) : $route( 'catalog' ) ),
-				array( $t['member']['pay'], '' ),
-				array( $t['member']['account'], $route( 'student-dashboard' ) ),
-				array( $t['member']['teach'], $route( 'instructor-dashboard' ) ),
+			'name'         => $t['name'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'student',
+					'user'   => $student,
+					'label'  => $t['roles']['student'][0],
+					'points' => $t['roles']['student'][1],
+				),
+				array(
+					'key'    => 'instructor',
+					'user'   => $instructor,
+					'label'  => $t['roles']['instructor'][0],
+					'points' => $t['roles']['instructor'][1],
+				),
 			),
-			'owner'    => array(
-				array( $t['owner']['courses'], $admin( 'learnomy-courses' ) ),
-				array( $t['owner']['students'], $admin( 'learnomy-students' ) ),
-				array( $t['owner']['memberships'], $admin( 'learnomy-memberships' ) ),
-				array( $t['owner']['transactions'], $admin( 'learnomy-transactions' ) ),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'catalog' => $route( 'catalog' ),
+					'course'  => $course_url,
+					'pay'     => $course ? add_query_arg( 'course_id', (int) $course->id, $route( 'enroll' ) ) : $course_url,
+					'account' => $route( 'student-dashboard' ),
+					'teach'   => $route( 'instructor-grading' ),
+				),
+				array(
+					'catalog' => array(
+						'public' => true,
+						'as'     => 'student',
+					),
+					'course'  => array(
+						'public' => true,
+						'as'     => 'student',
+					),
+					'pay'     => array(
+						'as'        => 'student',
+						'highlight' => true,
+					),
+					'account' => array( 'as' => 'student' ),
+					'teach'   => array( 'as' => 'instructor' ),
+				)
 			),
-			'accounts' => array(
-				array( People::user_id( 'student' ), $t['accounts']['student'] ),
-				array( People::user_id( 'instructor' ), $t['accounts']['instructor'] ),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'courses'      => $admin( 'learnomy-courses' ),
+					'students'     => $admin( 'learnomy-students' ),
+					'memberships'  => $admin( 'learnomy-memberships' ),
+					'transactions' => $admin( 'learnomy-transactions' ),
+				)
 			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
 		);
 	}
 

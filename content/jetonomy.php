@@ -183,4 +183,33 @@ return array(
 		'Happy to help if you want to pair on it.',
 		'The second option worked better for us.',
 	),
+	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
+	'guide'      => array(
+		'name'         => 'Jetonomy',
+		'member_label' => 'As a member',
+		'owner_points' => array( 'Spaces for forums, Q&A and ideas', 'Flagged posts and approvals', 'Reputation, voting and email rules' ),
+		'roles'        => array(
+			'member' => array( 'Member', array( 'Posts, replies and reputation', 'Votes and accepted answers', 'Mentions and notifications' ) ),
+		),
+		'member'       => array(
+			'community'     => array( 'home', 'Explore the community', 'Forums, Q&A and idea boards in one place.', 'Open the community' ),
+			'discussion'    => array( 'message', 'Join a discussion', 'Vote on a busy thread and add your reply.', 'Open the discussion' ),
+			'notifications' => array( 'bell', 'See your replies', 'Mentions and replies in your notifications.', 'Open notifications' ),
+			'leaderboard'   => array( 'trophy', 'Climb the leaderboard', 'Earn reputation for helpful answers.', 'Open the leaderboard' ),
+		),
+		'owner'        => array(
+			'spaces'     => array( 'home', 'Create spaces', 'Forum, Q&A or ideas, and who can join.', 'Open spaces' ),
+			'content'    => array( 'list', 'Manage posts', 'Find, edit, move or merge any post.', 'Open content' ),
+			'moderation' => array( 'shield', 'Moderate', 'Flagged posts and posts waiting for approval.', 'Open moderation' ),
+			'settings'   => array( 'settings', 'Tune the rules', 'Reputation, voting and email.', 'Open settings' ),
+		),
+		'highlights'   => array(
+			array( 'message', 'Forums', 'Threaded discussions in public or private spaces.' ),
+			array( 'check', 'Q&A', 'Questions with voted and accepted answers.' ),
+			array( 'star', 'Idea boards', 'Members suggest and vote on ideas.' ),
+			array( 'trophy', 'Reputation', 'Points and a leaderboard for helpful members.' ),
+			array( 'shield', 'Moderation', 'Flags, approvals and a review queue.' ),
+			array( 'search', 'Search', 'Find any post, reply or member.' ),
+		),
+	),
 );

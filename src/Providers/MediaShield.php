@@ -202,7 +202,7 @@ final class MediaShield extends Provider {
 	 */
 	public function guide(): array {
 		$t      = $this->content()['guide'];
-		$member = array();
+		$lesson = null;
 		// A lesson that plays a protected video, preview lessons first (Learnomy orders them so), when Learnomy is here.
 		if ( class_exists( '\\Learnomy\\Models\\Lesson' ) ) {
 			foreach ( get_posts(
@@ -215,14 +215,16 @@ final class MediaShield extends Provider {
 			) as $video ) {
 				$lessons = \Learnomy\Models\Lesson::for_mediashield_video( (int) $video );
 				if ( $lessons && ! empty( $lessons[0]->is_preview ) ) {
-					$member[] = array( $t['member']['watch'], (string) \Learnomy\Models\Lesson::get_permalink( $lessons[0] ) );
+					$lesson = (string) \Learnomy\Models\Lesson::get_permalink( $lessons[0] );
 					break;
 				}
 			}
 		}
 		return array(
-			'member' => $member,
-			'owner'  => array( array( $t['owner']['protect'], admin_url( 'admin.php?page=mediashield' ) ) ),
+			'name'       => $t['name'],
+			'member'     => self::guide_steps( $t['member'], array( 'watch' => $lesson ), array( 'watch' => array( 'public' => true ) ) ),
+			'owner'      => self::guide_steps( $t['owner'], array( 'protect' => admin_url( 'admin.php?page=mediashield' ) ) ),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
 		);
 	}
 }

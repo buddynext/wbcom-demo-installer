@@ -14,13 +14,17 @@ return array(
 		array( 'R6MlUcmOul8', 'Tears of Steel', 'A live action and visual effects open movie, good for testing chapters and milestones.', 734 ),
 		array( 'WhWc3b3KhnY', 'Spring', 'A short animated open movie about a shepherd girl and her dog.', 464 ),
 	),
-	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	// "Try the demo" page: text only; the provider adds the links (Provider::guide()).
 	'guide'  => array(
-		'member' => array(
-			'watch' => 'Watch a lesson video protected by MediaShield.',
+		'name'       => 'MediaShield',
+		'member'     => array(
+			'watch' => array( 'shield', 'Watch a protected lesson', 'A free lesson streamed through MediaShield.', 'Play the lesson' ),
 		),
-		'owner'  => array(
-			'protect' => 'Protect videos with watermarks, domain lock and playback analytics.',
+		'owner'      => array(
+			'protect' => array( 'shield', 'Protect your videos', 'Watermarks, domain lock and playback analytics.', 'Open MediaShield' ),
+		),
+		'highlights' => array(
+			array( 'shield', 'Protected video', 'MediaShield keeps lesson videos on your site and away from downloaders.' ),
 		),
 	),
 );

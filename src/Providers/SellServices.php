@@ -363,27 +363,67 @@ final class SellServices extends Provider {
 		}
 		$t        = $this->content()['guide'];
 		$services = Ledger::ids( $this->id(), 'service' );
-		$first    = $services ? (string) get_permalink( (int) min( $services ) ) : '';
 		$browse   = (string) wpss_get_page_url( 'services_page' );
-		$admin    = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
+		$first    = $services ? (string) get_permalink( (int) min( $services ) ) : $browse;
+		$board    = (string) wpss_get_page_url( 'dashboard' );
+		$buyer    = People::user_id( 'buyer' );
+		// The seller of the first service, so the switch lands on someone with orders to deliver.
+		$seller = People::user_id( 'vendor', (int) ( $this->content()['services'][0][0] ?? -1 ) );
+		$admin  = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
 		return array(
-			'member'   => array(
-				array( $t['member']['browse'], $browse ),
-				array( $t['member']['order'], $first ? $first : $browse ),
-				array( $t['member']['pay'], '' ),
-				array( $t['member']['follow'], (string) wpss_get_page_url( 'dashboard' ) ),
+			'name'         => $t['name'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'buyer',
+					'user'   => $buyer,
+					'label'  => $t['roles']['buyer'][0],
+					'points' => $t['roles']['buyer'][1],
+				),
+				array(
+					'key'    => 'seller',
+					'user'   => $seller,
+					'label'  => $t['roles']['seller'][0],
+					'points' => $t['roles']['seller'][1],
+				),
 			),
-			'owner'    => array(
-				array( $t['owner']['orders'], $admin( 'wpss-orders' ) ),
-				array( $t['owner']['vendors'], $admin( 'wpss-vendors' ) ),
-				array( $t['owner']['withdrawals'], $admin( 'wpss-withdrawals' ) ),
-				array( $t['owner']['payments'], $admin( 'wpss-settings&tab=payments' ) ),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'browse' => $browse,
+					'order'  => $first,
+					'pay'    => $first,
+					'follow' => $board,
+					'sell'   => $board,
+				),
+				array(
+					'browse' => array(
+						'public' => true,
+						'as'     => 'buyer',
+					),
+					'order'  => array(
+						'public' => true,
+						'as'     => 'buyer',
+					),
+					'pay'    => array(
+						'as'        => 'buyer',
+						'highlight' => true,
+					),
+					'follow' => array( 'as' => 'buyer' ),
+					'sell'   => array( 'as' => 'seller' ),
+				)
 			),
-			'accounts' => array(
-				array( People::user_id( 'buyer' ), $t['accounts']['buyer'] ),
-				// The seller of the first service, so the switch lands on someone with orders to deliver.
-				array( People::user_id( 'vendor', (int) ( $this->content()['services'][0][0] ?? -1 ) ), $t['accounts']['seller'] ),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'orders'      => $admin( 'wpss-orders' ),
+					'vendors'     => $admin( 'wpss-vendors' ),
+					'withdrawals' => $admin( 'wpss-withdrawals' ),
+					'payments'    => $admin( 'wpss-settings&tab=payments' ),
+				)
 			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
 		);
 	}
 

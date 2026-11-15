@@ -264,23 +264,34 @@ return array(
 		array( 12, 7, array( 'Tom, we are opening a backend role soon. Would you share it with your network?', 'Happy to. Send me the link when it is up.' ) ),
 	),
 	'companies'  => array( 'Nomad Studio', 'Hyperlane', 'Northwind Labs', 'Paperplane', 'Bluefin Data', 'Pixel Harbor', 'Tidewater Institute', 'Roastworks', 'Clearword', 'Lumen Cloud' ),
-	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'      => array(
-		'member'   => array(
-			'activity'      => 'Post an update with a photo or a poll, then react to and comment on other posts.',
-			'spaces'        => 'Join a space and start a conversation in it.',
-			'people'        => 'Find people in the member directory, follow them or send a connection request.',
-			'messages'      => 'Send someone a direct message.',
-			'notifications' => 'See replies, reactions and new followers in your notifications.',
+		'name'         => 'BuddyNext',
+		'member_label' => 'As a member',
+		'owner_points' => array( 'Members, spaces and moderation in one hub', 'Reports, suspensions and appeals', 'Engagement, notifications and email' ),
+		'roles'        => array(
+			'member' => array( 'Member', array( 'Posts, spaces and followers in place', 'Direct messages and notifications', 'A profile with photos and activity' ) ),
 		),
-		'owner'    => array(
-			'start'      => 'See the setup checklist and how your community is growing.',
-			'members'    => 'Manage members, member types and profile fields.',
-			'spaces'     => 'Create spaces and decide who can join and post.',
-			'moderation' => 'Review reports, posts waiting for approval and suspensions.',
+		'member'       => array(
+			'activity'      => array( 'home', 'Post an update', 'Share a photo or a poll, then react and comment.', 'Open the feed' ),
+			'spaces'        => array( 'users', 'Join a space', 'Start a conversation with people who share a topic.', 'Browse spaces' ),
+			'people'        => array( 'search', 'Find people', 'Follow members or send a connection request.', 'Open the directory' ),
+			'messages'      => array( 'message', 'Send a message', 'Chat one to one.', 'Open messages' ),
+			'notifications' => array( 'bell', 'Catch up', 'Replies, reactions and new followers in one place.', 'Open notifications' ),
 		),
-		'accounts' => array(
-			'member' => 'An active member with posts, spaces, followers and messages.',
+		'owner'        => array(
+			'start'      => array( 'chart', 'See your community grow', 'Setup checklist and live numbers.', 'Open Get Started' ),
+			'members'    => array( 'users', 'Manage members', 'Member types, profile fields and roles.', 'Open members' ),
+			'spaces'     => array( 'home', 'Run spaces', 'Create spaces and choose who can join and post.', 'Open spaces' ),
+			'moderation' => array( 'shield', 'Keep it healthy', 'Reports, posts waiting for approval and suspensions.', 'Open moderation' ),
+		),
+		'highlights'   => array(
+			array( 'home', 'Activity feed', 'Posts, photos, polls, reactions and comments.' ),
+			array( 'users', 'Spaces', 'Public, private and hidden groups with their own feeds.' ),
+			array( 'message', 'Direct messages', 'One to one conversations between members.' ),
+			array( 'bell', 'Notifications', 'In the bell and by email, with per-member choices.' ),
+			array( 'search', 'Member directory', 'Profiles, follows and connections.' ),
+			array( 'shield', 'Moderation', 'Reports, approvals, suspensions and appeals.' ),
 		),
 	),
 );

@@ -177,14 +177,60 @@ abstract class Provider {
 	}
 
 	/**
-	 * How a visitor tries this product on the "Try the demo" page (Theme provider). Steps are
-	 * [ text, url ]: "member" for the front end as a sample person, "owner" for the site owner in wp-admin.
-	 * "accounts" are [ user id, what that account shows ] for the one-click switch cards. Empty: no guide.
+	 * How a visitor tries this product on the "Try the demo" page (Core\Guide). Keys: name, member_label,
+	 * owner_points (3 strings), roles ([ key, user, label, points ]), member and owner (tour steps from
+	 * guide_steps(); a member step's `as` names a role key), highlights (from guide_highlights()). Empty: no guide.
 	 *
-	 * @return array{member?:array<int,array{0:string,1:string}>,owner?:array<int,array{0:string,1:string}>,accounts?:array<int,array{0:int,1:string}>}
+	 * @return array<string,mixed>
 	 */
 	public function guide(): array {
 		return array();
+	}
+
+	/**
+	 * Tour steps from a content `guide` list (key => [ icon, title, text, button ]) and their links. A key whose
+	 * link is null is left out; `$extra` adds per-step keys (as, public, highlight).
+	 *
+	 * @param array<string,array<int,string>>   $text  Step text by key.
+	 * @param array<string,string|null>         $links Step URL by key.
+	 * @param array<string,array<string,mixed>> $extra Extra step keys by key.
+	 * @return array<int,array<string,mixed>>
+	 */
+	protected static function guide_steps( array $text, array $links, array $extra = array() ): array {
+		$out = array();
+		foreach ( $text as $key => $t ) {
+			if ( array_key_exists( $key, $links ) && null === $links[ $key ] ) {
+				continue;
+			}
+			$out[] = array_merge(
+				array(
+					'icon'  => (string) ( $t[0] ?? 'arrow' ),
+					'title' => (string) ( $t[1] ?? '' ),
+					'text'  => (string) ( $t[2] ?? '' ),
+					'go'    => (string) ( $t[3] ?? '' ),
+					'url'   => (string) ( $links[ $key ] ?? '' ),
+				),
+				$extra[ $key ] ?? array()
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Highlights from a content `guide` list ([ icon, title, text ]).
+	 *
+	 * @param array<int,array<int,string>> $items Items.
+	 * @return array<int,array<string,string>>
+	 */
+	protected static function guide_highlights( array $items ): array {
+		return array_map(
+			static fn( array $i ): array => array(
+				'icon'  => (string) ( $i[0] ?? 'tick' ),
+				'title' => (string) ( $i[1] ?? '' ),
+				'text'  => (string) ( $i[2] ?? '' ),
+			),
+			$items
+		);
 	}
 
 	/**

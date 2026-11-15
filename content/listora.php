@@ -23,21 +23,32 @@ return array(
 		array( 4, 'Great for small groups', 'Booked it for our team meetup, everything was easy.' ),
 		array( 5, 'A real gem', 'The kind of place you want to keep secret and tell everyone about.' ),
 	),
-	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'    => array(
-		'member'   => array(
-			'browse' => 'Browse the directory and filter places by type, location and rating.',
-			'open'   => 'Open a listing, save it to your favourites and write a review.',
-			'submit' => 'Add a listing of your own with photos, hours and a map pin.',
-			'manage' => 'Manage your listings and favourites from your dashboard.',
+		'name'         => 'Listora',
+		'member_label' => 'As a member',
+		'owner_points' => array( 'Approve and edit every listing', 'Sell featured and paid listings', 'Award badges such as Verified' ),
+		'roles'        => array(
+			'member' => array( 'Member', array( 'Favourites and reviews already saved', 'Add a listing with photos and hours', 'Manage everything from one dashboard' ) ),
 		),
-		'owner'    => array(
-			'listings' => 'Review, edit and approve every listing.',
-			'plans'    => 'Set up pricing plans for paid or featured listings.',
-			'badges'   => 'Award badges such as Verified or Top rated.',
+		'member'       => array(
+			'browse' => array( 'search', 'Search the directory', 'Filter places by type, location and rating.', 'Open the directory' ),
+			'open'   => array( 'star', 'Review a listing', 'Save it to your favourites and add your rating.', 'Open a listing' ),
+			'submit' => array( 'plus', 'Add your listing', 'Photos, opening hours and a map pin in one form.', 'Add a listing' ),
+			'manage' => array( 'list', 'Manage your listings', 'Edit your listings and see your favourites.', 'Open my dashboard' ),
 		),
-		'accounts' => array(
-			'member' => 'A member with favourites and reviews who can add listings.',
+		'owner'        => array(
+			'listings' => array( 'list', 'Review listings', 'Approve, edit or feature any listing.', 'Open listings' ),
+			'plans'    => array( 'money', 'Sell listing plans', 'Charge for featured or paid listings.', 'Open plans' ),
+			'badges'   => array( 'award', 'Award badges', 'Verified, Top rated or your own.', 'Open badges' ),
+		),
+		'highlights'   => array(
+			array( 'pin', 'Map search', 'Find places near any address, with filters.' ),
+			array( 'list', 'Listing types', 'Restaurants, hotels, jobs, real estate and more, each with its own fields.' ),
+			array( 'star', 'Reviews and ratings', 'Members rate and review every listing.' ),
+			array( 'heart', 'Favourites', 'Members save the places they like.' ),
+			array( 'money', 'Paid listings', 'Sell plans for featured and paid listings.' ),
+			array( 'award', 'Badges', 'Mark trusted listings as Verified or Top rated.' ),
 		),
 	),
 );

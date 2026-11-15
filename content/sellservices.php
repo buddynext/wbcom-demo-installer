@@ -17,23 +17,35 @@ return array(
 		array( 7, 'I will set up a fast, reliable Go API for your product', 'Development', 600, 'A small, well-tested REST API in Go with clear docs, deployment notes and a week of support after handover, so your team can run and extend it with confidence.', 'photos/developer-workspace.jpg' ),
 		array( 17, 'I will run sound and AV for your meetup or conference', 'Events', 250, 'Mics, speakers, mixing and recording for meetups and conferences of up to 300 people. Setup, sound check and teardown are included, and you get the recordings the same week.', 'photos/festival-friends.jpg' ),
 	),
-	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'    => array(
-		'member'   => array(
-			'browse' => 'Browse services and narrow them by category, price and delivery time.',
-			'order'  => 'Open a service, compare its packages and order one.',
-			'pay'    => 'At checkout choose Test Gateway. The order is paid at once and no real money moves.',
-			'follow' => 'Follow the order in your dashboard: message the seller, accept the delivery and leave a review.',
+		'name'         => 'WP Sell Services',
+		'member_label' => 'As a buyer',
+		'owner_points' => array( 'Approve sellers and their services', 'Hold payments until the work is accepted', 'Set your commission and pay sellers out' ),
+		'roles'        => array(
+			'buyer'  => array( 'Buyer', array( 'Order any service in two clicks', 'Pay with Test Gateway, no real money', 'Message sellers and review their work' ) ),
+			'seller' => array( 'Seller', array( 'Services, packages and orders to deliver', 'Earnings and payout requests', 'Reviews from real buyers' ) ),
 		),
-		'owner'    => array(
-			'orders'      => 'See every order, its status and the money held until the buyer accepts the work.',
-			'vendors'     => 'Check each seller, their earnings and the commission you keep.',
-			'withdrawals' => 'Approve the payouts sellers request.',
-			'payments'    => 'Choose the payment gateways buyers can pay with.',
+		'member'       => array(
+			'browse' => array( 'search', 'Find a service', 'Search and filter by category, price and delivery time.', 'Browse services' ),
+			'order'  => array( 'store', 'Order a package', 'Compare Basic, Standard and Premium, then order the one you want.', 'Open a service' ),
+			'pay'    => array( 'card', 'Pay with Test Gateway', 'Checkout goes through at once and costs nothing.', 'Go to checkout' ),
+			'follow' => array( 'message', 'Follow your order', 'Message the seller, accept the delivery and leave a review.', 'Open my orders' ),
+			'sell'   => array( 'package', 'Deliver as the seller', 'Switches you to the seller to deliver work and check earnings.', 'Open the seller dashboard' ),
 		),
-		'accounts' => array(
-			'buyer'  => 'A buyer with orders in progress and delivered work to review.',
-			'seller' => 'A seller with services, orders to deliver and earnings to withdraw.',
+		'owner'        => array(
+			'orders'      => array( 'list', 'See every order', 'Status of each order and the money held until the buyer accepts.', 'Open orders' ),
+			'vendors'     => array( 'users', 'Manage sellers', 'Earnings, commission and approval for each seller.', 'Open sellers' ),
+			'withdrawals' => array( 'money', 'Pay sellers out', 'Approve the payouts sellers request.', 'Open payouts' ),
+			'payments'    => array( 'card', 'Choose how buyers pay', 'Stripe, PayPal or the Test Gateway.', 'Open payment settings' ),
+		),
+		'highlights'   => array(
+			array( 'store', 'Services with packages', 'Basic, Standard and Premium tiers with delivery times and revisions.' ),
+			array( 'message', 'Order conversations', 'Buyers and sellers talk on the order, with files and deliveries.' ),
+			array( 'shield', 'Payments held safely', 'Money waits until the buyer accepts the work.' ),
+			array( 'money', 'Commission and payouts', 'Keep your cut and pay sellers on request.' ),
+			array( 'star', 'Reviews and ratings', 'Buyers rate every completed order.' ),
+			array( 'flag', 'Disputes', 'Step in when an order goes wrong.' ),
 		),
 	),
 );

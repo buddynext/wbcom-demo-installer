@@ -336,11 +336,9 @@ final class Listora extends Provider {
 		}
 		$t        = $this->content()['guide'];
 		$listings = Ledger::ids( $this->id(), 'listing' );
-		$browse   = (string) wb_listora_get_page_url( 'directory' );
 		$pick     = $listings ? (int) min( $listings ) : 0;
 		if ( ! $pick ) {
-			// A directory seeded another way: of its 30 newest listings, the one with the most reviews, so the step
-			// about favourites and reviews opens a listing that shows them.
+			// A directory seeded another way: of its 30 newest listings, the one with the most reviews.
 			$best = -1;
 			foreach ( get_posts(
 				array(
@@ -350,29 +348,60 @@ final class Listora extends Provider {
 					'numberposts' => 30,
 				)
 			) as $id ) {
-				$count = class_exists( '\WBListora\Core\Listing_Data' ) ? (int) \WBListora\Core\Listing_Data::get_rating_summary( (int) $id )['review_count'] : 0;
+				$count = class_exists( '\\WBListora\\Core\\Listing_Data' ) ? (int) \WBListora\Core\Listing_Data::get_rating_summary( (int) $id )['review_count'] : 0;
 				if ( $count > $best ) {
 					$best = $count;
 					$pick = (int) $id;
 				}
 			}
 		}
-		$first = $pick ? (string) get_permalink( $pick ) : '';
+		$browse = (string) wb_listora_get_page_url( 'directory' );
+		$member = People::user_id( 'reviewer' );
 		return array(
-			'member'   => array(
-				array( $t['member']['browse'], $browse ),
-				array( $t['member']['open'], $first ? $first : $browse ),
-				array( $t['member']['submit'], (string) wb_listora_get_page_url( 'submission' ) ),
-				array( $t['member']['manage'], (string) wb_listora_get_page_url( 'dashboard' ) ),
+			'name'         => $t['name'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'member',
+					'user'   => $member,
+					'label'  => $t['roles']['member'][0],
+					'points' => $t['roles']['member'][1],
+				),
 			),
-			'owner'    => array(
-				array( $t['owner']['listings'], admin_url( 'edit.php?post_type=listora_listing' ) ),
-				array( $t['owner']['plans'], admin_url( 'edit.php?post_type=listora_plan' ) ),
-				array( $t['owner']['badges'], admin_url( 'admin.php?page=listora-badges' ) ),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'browse' => $browse,
+					'open'   => $pick ? (string) get_permalink( $pick ) : $browse,
+					'submit' => (string) wb_listora_get_page_url( 'submission' ),
+					'manage' => (string) wb_listora_get_page_url( 'dashboard' ),
+				),
+				array(
+					'browse' => array(
+						'public' => true,
+						'as'     => 'member',
+					),
+					'open'   => array(
+						'public' => true,
+						'as'     => 'member',
+					),
+					'submit' => array(
+						'as'        => 'member',
+						'highlight' => true,
+					),
+					'manage' => array( 'as' => 'member' ),
+				)
 			),
-			'accounts' => array(
-				array( People::user_id( 'reviewer' ), $t['accounts']['member'] ),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'listings' => admin_url( 'edit.php?post_type=listora_listing' ),
+					'plans'    => admin_url( 'edit.php?post_type=listora_plan' ),
+					'badges'   => admin_url( 'admin.php?page=listora-badges' ),
+				)
 			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
 		);
 	}
 

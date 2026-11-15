@@ -208,7 +208,23 @@ final class Theme extends Provider {
 			return 0;
 		}
 		self::no_sidebar( (int) $id );
+		self::hide_title( (int) $id );
 		return (int) $id;
+	}
+
+	/**
+	 * Hide the page title on Reign: the guide page opens with its own headline, so the title would repeat it.
+	 *
+	 * @param int $id Page id.
+	 */
+	public static function hide_title( int $id ): void {
+		if ( 'Reign' !== self::theme_family() ) {
+			return;
+		}
+		$data                          = (array) get_post_meta( $id, 'reign_wbcom_metabox_data', true );
+		$data['layout']['site_layout'] = 'full_width';
+		$data['layout']['title_style'] = 'hidden'; // Reign 8.1+ hides the page title per page this way.
+		Snapshot::write( 'post_meta:' . $id . ':reign_wbcom_metabox_data', $data );
 	}
 
 	/**
