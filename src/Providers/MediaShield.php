@@ -197,4 +197,32 @@ final class MediaShield extends Provider {
 	public function remove( object $row ): bool {
 		return self::delete_post( (int) $row->object_id );
 	}
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		$t      = $this->content()['guide'];
+		$member = array();
+		// A lesson that plays a protected video, preview lessons first (Learnomy orders them so), when Learnomy is here.
+		if ( class_exists( '\\Learnomy\\Models\\Lesson' ) ) {
+			foreach ( get_posts(
+				array(
+					'post_type'   => 'mediashield_video',
+					'post_status' => 'publish',
+					'fields'      => 'ids',
+					'numberposts' => 20,
+				)
+			) as $video ) {
+				$lessons = \Learnomy\Models\Lesson::for_mediashield_video( (int) $video );
+				if ( $lessons && ! empty( $lessons[0]->is_preview ) ) {
+					$member[] = array( $t['member']['watch'], (string) \Learnomy\Models\Lesson::get_permalink( $lessons[0] ) );
+					break;
+				}
+			}
+		}
+		return array(
+			'member' => $member,
+			'owner'  => array( array( $t['owner']['protect'], admin_url( 'admin.php?page=mediashield' ) ) ),
+		);
+	}
 }

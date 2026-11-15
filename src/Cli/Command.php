@@ -498,7 +498,7 @@ final class Command {
 			if ( ! $user ) {
 				continue;
 			}
-			if ( ! get_user_meta( $user->ID, 'billing_email', true ) ) {
+			if ( ! get_user_meta( $user->ID, 'billing_address_1', true ) ) {
 				People::billing( (int) $user->ID, $person );
 			}
 			update_user_meta( $user->ID, 'show_admin_bar_front', 'false' );

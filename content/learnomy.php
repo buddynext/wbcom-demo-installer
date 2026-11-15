@@ -140,4 +140,24 @@ return array(
 		array( 5, 'Short lessons, big results', 'Each lesson takes ten minutes and changes something real.' ),
 		array( 4, 'Recommended', 'Good pace and friendly tone. Worth it.' ),
 	),
+	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	'guide'      => array(
+		'member'   => array(
+			'catalog' => 'Browse the course catalog and filter by category, level and price.',
+			'course'  => 'Open a popular course, watch its free preview and read the reviews.',
+			'pay'     => 'Enroll and choose Test payment at checkout. The course is paid at once and no real money moves.',
+			'account' => 'Pick up where you left off in your account: progress, notes, quiz results and certificates.',
+			'teach'   => 'Switch to the instructor above, then see your students and grade quiz answers in the instructor dashboard.',
+		),
+		'owner'    => array(
+			'courses'      => 'Build courses with sections, lessons, quizzes and drip content.',
+			'students'     => 'See each student, their progress and certificates.',
+			'memberships'  => 'Sell memberships, subscriptions, coupons and gift codes.',
+			'transactions' => 'Track payments, refunds and instructor earnings.',
+		),
+		'accounts' => array(
+			'student'    => 'A student with courses in progress and certificates earned.',
+			'instructor' => 'An instructor with published courses, students and quiz answers to grade.',
+		),
+	),
 );

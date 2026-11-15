@@ -14,4 +14,13 @@ return array(
 		array( 'R6MlUcmOul8', 'Tears of Steel', 'A live action and visual effects open movie, good for testing chapters and milestones.', 734 ),
 		array( 'WhWc3b3KhnY', 'Spring', 'A short animated open movie about a shepherd girl and her dog.', 464 ),
 	),
+	// "Try the demo" page: step text; the provider adds the links (Provider::guide()).
+	'guide'  => array(
+		'member' => array(
+			'watch' => 'Watch a lesson video protected by MediaShield.',
+		),
+		'owner'  => array(
+			'protect' => 'Protect videos with watermarks, domain lock and playback analytics.',
+		),
+	),
 );

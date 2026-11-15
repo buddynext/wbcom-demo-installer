@@ -52,20 +52,25 @@ final class People extends Provider {
 	}
 
 	/**
-	 * Billing name, email and country (from "City, CC" in the roster) on a sample person, so a visitor who tries
-	 * a checkout as them is not asked to type an address first. The standard billing_* user meta, which store
+	 * Billing name, email, city and country (from "City, CC" in the roster) and a sample street on a sample person,
+	 * so a visitor who tries a checkout as them is not asked to type an address first. The standard billing_* user meta, which store
 	 * plugins pre-fill from; removed with the user.
 	 *
 	 * @param int                 $user_id User id.
 	 * @param array<string,mixed> $person  Roster entry.
 	 */
 	public static function billing( int $user_id, array $person ): void {
-		$country = strtoupper( trim( (string) substr( (string) strrchr( (string) ( $person['location'] ?? '' ), ',' ), 1 ) ) );
-		$meta    = array(
+		$location = (string) ( $person['location'] ?? '' );
+		$country  = strtoupper( trim( (string) substr( (string) strrchr( $location, ',' ), 1 ) ) );
+		// Street and postcode are sample values: some checkouts (Learnomy) require a full address for every purchase.
+		$meta = array(
 			'billing_first_name' => (string) strtok( (string) $person['name'], ' ' ),
 			'billing_last_name'  => trim( (string) strstr( (string) $person['name'], ' ' ) ),
 			'billing_email'      => $person['login'] . '@' . QuietMode::DOMAIN,
 			'billing_country'    => 2 === strlen( $country ) ? $country : '',
+			'billing_city'       => trim( (string) strtok( $location, ',' ) ),
+			'billing_address_1'  => '12 Market Street',
+			'billing_postcode'   => '10001',
 		);
 		foreach ( array_filter( $meta ) as $key => $value ) {
 			update_user_meta( $user_id, $key, $value );

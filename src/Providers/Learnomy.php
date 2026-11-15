@@ -399,6 +399,46 @@ final class Learnomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function guide(): array {
+		if ( ! function_exists( '\\Learnomy\\route_url' ) || ! class_exists( '\\Learnomy\\Models\\Course' ) ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$route = static fn( string $name, array $args = array() ): string => (string) \Learnomy\route_url( $name, $args );
+		// The installer's first course, else the paid course with the most students, so "buy it" has something to buy.
+		$course = null;
+		$built  = Ledger::ids( $this->id(), 'course' );
+		$pool   = $built ? \Learnomy\Models\Course::find_published_in( array( (int) min( $built ) ) ) : \Learnomy\Models\Course::list_published( 1, 100 );
+		foreach ( $pool as $row ) {
+			if ( $built || ( 'paid' === ( $row->access_type ?? '' ) && ( ! $course || (int) $row->student_count > (int) $course->student_count ) ) ) {
+				$course = $row;
+			}
+		}
+		$admin = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
+		return array(
+			'member'   => array(
+				array( $t['member']['catalog'], $route( 'catalog' ) ),
+				array( $t['member']['course'], $course ? $route( 'course', array( 'slug' => (string) $course->slug ) ) : $route( 'catalog' ) ),
+				array( $t['member']['pay'], '' ),
+				array( $t['member']['account'], $route( 'student-dashboard' ) ),
+				array( $t['member']['teach'], $route( 'instructor-dashboard' ) ),
+			),
+			'owner'    => array(
+				array( $t['owner']['courses'], $admin( 'learnomy-courses' ) ),
+				array( $t['owner']['students'], $admin( 'learnomy-students' ) ),
+				array( $t['owner']['memberships'], $admin( 'learnomy-memberships' ) ),
+				array( $t['owner']['transactions'], $admin( 'learnomy-transactions' ) ),
+			),
+			'accounts' => array(
+				array( People::user_id( 'student' ), $t['accounts']['student'] ),
+				array( People::user_id( 'instructor' ), $t['accounts']['instructor'] ),
+			),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function menu_items(): array {
 		return function_exists( '\Learnomy\route_url' )
 			? array(
