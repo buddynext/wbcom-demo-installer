@@ -501,11 +501,11 @@ final class Guide {
 		}
 		?>
 		<section class="wdi-tour__section">
-			<?php /* translators: %s: product name */ ?>
 			<?php if ( $multi ) : ?>
 				<h2><?php esc_html_e( 'Everything in this demo', 'wbcom-demo-installer' ); ?></h2>
 				<p class="wdi-tour__lede"><?php esc_html_e( 'Each part is its own plugin, and they work together on one site.', 'wbcom-demo-installer' ); ?></p>
 			<?php else : ?>
+				<?php /* translators: %s: product name */ ?>
 				<h2><?php echo esc_html( sprintf( __( 'What comes with %s', 'wbcom-demo-installer' ), $name ) ); ?></h2>
 				<p class="wdi-tour__lede"><?php esc_html_e( 'Everything you clicked through above ships in the plugin.', 'wbcom-demo-installer' ); ?></p>
 			<?php endif; ?>
