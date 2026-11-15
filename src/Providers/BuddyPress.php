@@ -474,6 +474,10 @@ final class BuddyPress extends Provider {
 			Clock::set( $ctx->date( (int) $i, count( $all ), 21 ) );
 			$id = 0;
 			if ( '' !== $group && isset( $groups[ $group ] ) && function_exists( 'groups_post_update' ) ) {
+				// Only members may post in a group: the author joins first if the roster did not put them in it.
+				if ( ! groups_is_user_member( $user, (int) $groups[ $group ] ) ) {
+					groups_join_group( (int) $groups[ $group ], $user );
+				}
 				$id = groups_post_update(
 					array(
 						'content'  => $content,
