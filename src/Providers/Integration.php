@@ -85,6 +85,8 @@ final class Integration extends Provider {
 		switch ( $this->key ) {
 			case 'buddypress':
 				return function_exists( 'bp_get_members_directory_permalink' ) && ! defined( 'BP_PLATFORM_VERSION' );
+			case 'buddyboss':
+				return defined( 'BP_PLATFORM_VERSION' ) && function_exists( 'bp_get_members_directory_permalink' );
 			case 'bbpress':
 				return function_exists( 'bbp_get_forum_post_type' );
 			case 'learndash':
@@ -106,7 +108,7 @@ final class Integration extends Provider {
 	 */
 	public function order(): int {
 		// The community a theme demo is built on leads the tour; the other integrations follow the products.
-		return in_array( $this->key, array( 'buddypress' ), true ) ? 1 : 90;
+		return in_array( $this->key, array( 'buddypress', 'buddyboss' ), true ) ? 1 : 90;
 	}
 
 	/**
@@ -171,6 +173,7 @@ final class Integration extends Provider {
 		};
 		switch ( $this->key ) {
 			case 'buddypress':
+			case 'buddyboss':
 				return array(
 					array(
 						'activity' => function_exists( 'bp_get_activity_directory_permalink' ) && bp_is_active( 'activity' ) ? (string) bp_get_activity_directory_permalink() : null,
