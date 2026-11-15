@@ -105,7 +105,8 @@ final class Integration extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function order(): int {
-		return 90;
+		// The community a theme demo is built on leads the tour; the other integrations follow the products.
+		return in_array( $this->key, array( 'buddypress' ), true ) ? 1 : 90;
 	}
 
 	/**
@@ -220,6 +221,21 @@ final class Integration extends Provider {
 	}
 
 	/**
+	 * A sample person for a role: vendors by their role, everyone else from the first cast role that has someone.
+	 *
+	 * @param string $key Role key.
+	 */
+	private static function person( string $key ): int {
+		foreach ( 'vendor' === $key ? array( 'vendor' ) : array( 'member', 'attendee', 'student', 'buyer' ) as $role ) {
+			$id = People::user_id( $role );
+			if ( $id ) {
+				return $id;
+			}
+		}
+		return 0;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function guide(): array {
@@ -232,7 +248,7 @@ final class Integration extends Provider {
 		foreach ( (array) $t['roles'] as $key => $role ) {
 			$roles[] = array(
 				'key'    => (string) $key,
-				'user'   => People::user_id( 'vendor' === $key ? 'vendor' : 'member' ),
+				'user'   => self::person( (string) $key ),
 				'label'  => $role[0],
 				'points' => $role[1],
 			);
