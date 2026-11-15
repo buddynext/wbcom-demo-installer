@@ -198,7 +198,7 @@ final class Guide {
 		}
 		$owner = self::owner();
 		// Only the site owner, or someone switched from them, may switch, and only to accounts the guide offers.
-		if ( $ok && $owner && function_exists( 'switch_to_user' ) && ( 0 === $as || isset( self::roles( self::products() )[ $as ] ) ) ) {
+		if ( $owner && function_exists( 'switch_to_user' ) && ( 0 === $as || isset( self::roles( self::products() )[ $as ] ) ) ) {
 			$target = 0 === $as ? $owner : get_userdata( $as );
 			if ( $target instanceof \WP_User && get_current_user_id() !== $target->ID ) {
 				if ( get_current_user_id() !== $owner->ID ) {

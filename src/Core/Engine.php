@@ -291,6 +291,50 @@ final class Engine {
 	}
 
 	/**
+	 * Add products to a demo that is already built: their steps run on the same build and ledger, so Finish removes
+	 * them with the rest. The original build window is kept, so a provider can find what that build stamped.
+	 *
+	 * @param string[] $products Provider ids.
+	 * @return array<string,mixed>|\WP_Error Status.
+	 */
+	public static function add_products( array $products ) {
+		$state = new State();
+		if ( State::BUILT !== $state->get( 'status' ) ) {
+			return new \WP_Error( 'wbcom_demo_not_built', __( 'There is no finished demo to add to. Build one first.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
+		}
+		$current   = (array) $state->get( 'include' );
+		$choosable = Registry::choosable();
+		$new       = array_values( array_filter( array_unique( $products ), static fn( $id ) => isset( $choosable[ $id ] ) && $choosable[ $id ]->supported() && ! in_array( $id, $current, true ) ) );
+		if ( ! $new ) {
+			return new \WP_Error( 'wbcom_demo_nothing', __( 'Every product named is already in the demo or not available here.', 'wbcom-demo-installer' ), array( 'status' => 400 ) );
+		}
+		$state->set( 'include', array_merge( $current, $new ) );
+		$ctx   = new Context( $state );
+		$queue = array();
+		foreach ( Registry::all() as $id => $p ) {
+			if ( ! in_array( $id, $new, true ) || ! $p->available() ) {
+				continue;
+			}
+			if ( $p->settings() || $p->activation_redirects() ) {
+				$queue[] = array( $id, self::SETTINGS_STEP );
+			}
+			foreach ( $p->steps( $ctx ) as $step ) {
+				$queue[] = array( $id, $step );
+			}
+		}
+		$queue[] = array( 'theme', 'pages' );
+		$state->set( 'status', State::BUILDING )
+			->set( 'queue', $queue )
+			->set( 'total', count( $queue ) )
+			->set( 'done', 0 )
+			->set( 'errors', array() )
+			->set( 'warnings', array() )
+			->set( 'failed', array() )
+			->save();
+		return self::status();
+	}
+
+	/**
 	 * Run the next build or finish step.
 	 *
 	 * @return array<string,mixed> Status after the step.

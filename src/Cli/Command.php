@@ -103,6 +103,9 @@ final class Command {
 	 * [--brief=<json>]
 	 * : Internal: the picked idea as JSON, passed on by --describe.
 	 *
+	 * [--add=<ids>]
+	 * : Add these products to the demo that is already built (same ledger, so Finish removes them too).
+	 *
 	 * [--install-missing]
 	 * : First install and activate the free Wbcom products the starting point uses that are not active yet.
 	 *
@@ -160,6 +163,19 @@ final class Command {
 					'exit_error' => true,
 				)
 			);
+			return;
+		}
+		if ( isset( $assoc['add'] ) ) {
+			$status = Engine::add_products( array_filter( array_map( 'trim', explode( ',', (string) $assoc['add'] ) ) ) );
+			if ( is_wp_error( $status ) ) {
+				WP_CLI::error( $status->get_error_message() );
+			}
+			$this->run_steps( 'Adding' );
+			$status = Engine::status();
+			foreach ( array_merge( (array) $status['errors'], (array) $status['warnings'] ) as $problem ) {
+				WP_CLI::warning( $problem );
+			}
+			WP_CLI::success( sprintf( 'Added to the demo: %d items in total now.', array_sum( array_column( $status['ledger'], 'count' ) ) ) );
 			return;
 		}
 		$recipes = Recipes::available();

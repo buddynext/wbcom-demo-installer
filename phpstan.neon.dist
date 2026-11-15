@@ -18,5 +18,9 @@ parameters:
 		# Products the providers talk to are optional and not installed when analysing this plugin.
 		- '#(Class|Call to static method .* on an unknown class|Instantiated class|on an unknown class|unknown class) \\?(BuddyNext|Jetonomy|Learnomy|Eventonomy|WCB|WBListora|WPSellServices|WBGam|MediaShield|WPMediaVerse|Roadmap_API|user_switching)#'
 		- '#Function (update_space_meta|buddynext_|evnm|wb_listora_|wpss_|Jetonomy\\|Learnomy\\)\w* not found#'
+		# Third-party plugins the BuddyPress provider and the integrations talk to: optional, guarded at runtime.
+		- '#Function (bp_|groups_|friends_|xprofile_|bbp_|wc_|dokan_|tribe_)\w* not found#'
+		- '#(Class|Instantiated class|unknown class) \\?(BP_Activity_Activity|PeepSo|LearnDash_Settings_Section)#'
+		- '#Constant BP_PLATFORM_VERSION not found#'
 		# WordPress 7.0 AI client: newer than the WordPress stubs, guarded by function_exists() at runtime.
 		- '#(Function wp_ai_client_prompt not found|WordPress\\AiClient\\)#'

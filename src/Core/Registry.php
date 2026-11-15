@@ -89,6 +89,7 @@ final class Registry {
 		return array(
 			Providers\People::class,
 			Providers\BuddyNext::class,
+			Providers\BuddyPress::class,
 			Providers\MediaVerse::class,
 			Providers\Jetonomy::class,
 			Providers\Learnomy::class,

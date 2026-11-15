@@ -83,10 +83,6 @@ final class Integration extends Provider {
 	 */
 	public function available(): bool {
 		switch ( $this->key ) {
-			case 'buddypress':
-				return function_exists( 'bp_get_members_directory_permalink' ) && ! defined( 'BP_PLATFORM_VERSION' );
-			case 'buddyboss':
-				return defined( 'BP_PLATFORM_VERSION' ) && function_exists( 'bp_get_members_directory_permalink' );
 			case 'peepso':
 				return class_exists( 'PeepSo' );
 			case 'bbpress':
@@ -109,8 +105,8 @@ final class Integration extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function order(): int {
-		// The community a theme demo is built on leads the tour; the other integrations follow the products.
-		return in_array( $this->key, array( 'buddypress', 'buddyboss', 'peepso' ), true ) ? 1 : 90;
+		// A PeepSo community leads the tour (BuddyPress and BuddyBoss have their own provider); the rest follow the products.
+		return in_array( $this->key, array( 'peepso' ), true ) ? 1 : 90;
 	}
 
 	/**
@@ -174,19 +170,6 @@ final class Integration extends Provider {
 			return $link ? (string) $link : null;
 		};
 		switch ( $this->key ) {
-			case 'buddypress':
-			case 'buddyboss':
-				return array(
-					array(
-						'activity' => function_exists( 'bp_get_activity_directory_permalink' ) && bp_is_active( 'activity' ) ? (string) bp_get_activity_directory_permalink() : null,
-						'members'  => (string) bp_get_members_directory_permalink(),
-						'groups'   => function_exists( 'bp_get_groups_directory_url' ) && bp_is_active( 'groups' ) ? (string) bp_get_groups_directory_url() : null,
-					),
-					array(
-						'components' => (string) bp_get_admin_url( 'admin.php?page=bp-components' ),
-						'users'      => admin_url( 'users.php' ),
-					),
-				);
 			case 'peepso':
 				$page = static function ( string $key ): ?string {
 					$slug = trim( (string) ( ( (array) get_option( 'peepso_config', array() ) )[ 'page_' . $key ] ?? '' ), '/' );

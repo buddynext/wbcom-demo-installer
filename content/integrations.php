@@ -11,46 +11,6 @@ defined( 'ABSPATH' ) || exit;
 $wbcom_demo_member = array( 'Member', array( 'A profile, friends and groups already set up', 'Activity, messages and notifications', 'Courses, jobs and orders where the site has them' ) );
 
 return array(
-	'buddypress'  => array(
-		'name'         => 'BuddyPress',
-		'tab'          => 'Community',
-		'member_label' => 'As a member',
-		'owner_points' => array( 'Members, groups and activity', 'Profile fields and privacy', 'Which community features are on' ),
-		'roles'        => array( 'member' => $wbcom_demo_member ),
-		'member'       => array(
-			'activity' => array( 'home', 'Post to the activity feed', 'Share an update, then like and reply to others.', 'Open the activity' ),
-			'members'  => array( 'users', 'Meet the members', 'Profiles, friends and private messages.', 'Open members' ),
-			'groups'   => array( 'message', 'Join a group', 'Public and private groups with their own feeds.', 'Open groups' ),
-		),
-		'owner'        => array(
-			'components' => array( 'settings', 'Community features', 'Turn activity, groups, messages and more on or off.', 'Open components' ),
-			'users'      => array( 'users', 'Members', 'Every member, their role and profile.', 'Open users' ),
-		),
-		'highlights'   => array(
-			array( 'home', 'Activity feed', 'Updates, likes and replies from across the site.' ),
-			array( 'users', 'Profiles and groups', 'Member profiles, friends and groups.' ),
-		),
-	),
-	'buddyboss'   => array(
-		'name'         => 'BuddyBoss Platform',
-		'tab'          => 'Community',
-		'member_label' => 'As a member',
-		'owner_points' => array( 'Members, groups and activity', 'Profile types and privacy', 'Which community features are on' ),
-		'roles'        => array( 'member' => $wbcom_demo_member ),
-		'member'       => array(
-			'activity' => array( 'home', 'Post to the activity feed', 'Share an update, react and reply.', 'Open the activity' ),
-			'members'  => array( 'users', 'Meet the members', 'Profiles, connections and messages.', 'Open members' ),
-			'groups'   => array( 'message', 'Join a group', 'Groups with their own feeds and forums.', 'Open groups' ),
-		),
-		'owner'        => array(
-			'components' => array( 'settings', 'Community features', 'Turn activity, groups, messages and more on or off.', 'Open components' ),
-			'users'      => array( 'users', 'Members', 'Every member, their role and profile.', 'Open users' ),
-		),
-		'highlights'   => array(
-			array( 'home', 'Activity feed', 'Updates, reactions and replies from across the site.' ),
-			array( 'users', 'Profiles and groups', 'Member profiles, connections and groups.' ),
-		),
-	),
 	'peepso'      => array(
 		'name'         => 'PeepSo',
 		'tab'          => 'Community',
