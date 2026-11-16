@@ -325,12 +325,16 @@ final class BuddyPress extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function profiles( Context $ctx ): void {
-		foreach ( $ctx->people() as $user_id ) {
+		$people = $ctx->people();
+		foreach ( $people as $i => $user_id ) {
 			$person = $ctx->profile( $user_id );
 			$user   = get_userdata( $user_id );
 			if ( ! $user ) {
 				continue;
 			}
+			// The members directory lists only people with a last-active time; without one a fresh site shows the
+			// admin alone. Active over the last three days, so "Recently active" reads like a living community.
+			bp_update_user_last_activity( $user_id, $ctx->date( (int) $i, count( $people ), 3 ) );
 			if ( function_exists( 'xprofile_set_field_data' ) && function_exists( 'bp_xprofile_fullname_field_id' ) ) {
 				xprofile_set_field_data( bp_xprofile_fullname_field_id(), $user_id, $user->display_name );
 			}
