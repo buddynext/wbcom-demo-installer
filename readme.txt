@@ -77,6 +77,7 @@ Pick a demo by what your site is for, set it up in one click, and remove it agai
 * Fix      - Removing a demo now also removes the BuddyPress group photos.
 * Fix      - BuddyBoss Platform sites are no longer treated as BuddyPress sites, so BuddyBoss demos are offered.
 * Fix      - Demos built on BuddyNext now include WPMediaVerse, Jetonomy and WB Gamification content when BuddyNext is already active.
+* Fix      - A site running an older BuddyPress, BuddyBoss or BuddyNext gets demos that update it, never a second community plugin.
 * Dev      - WP-CLI: wp wbcom-demo demos lists the demos, wp wbcom-demo build --demo=<id> builds one, and wp wbcom-demo install accepts every product the demos use.
 
 = 1.1.0 - November 2026 =
