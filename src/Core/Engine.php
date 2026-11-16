@@ -139,6 +139,7 @@ final class Engine {
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
 				'adapter' => $theme_provider ? $theme_provider->label() : '',
+				'family'  => \WbcomDemo\Providers\Theme::theme_family(),
 			),
 			'products'    => $products,
 			'recipes'     => Recipes::available(),
@@ -150,6 +151,8 @@ final class Engine {
 			'catalog'     => Installer::overview(),
 			// The sample logo is the BuddyNext brand pack, set only when BuddyNext is active.
 			'brand'       => \WbcomDemo\Providers\Theme::branded(),
+			// The Starting point gallery: demos for the active theme and what each needs.
+			'demos'       => Demos::overview(),
 			// The designed home page's hero, numbers and closing, for the wizard to swap for Wbcom Essential blocks.
 			'home'        => \WbcomDemo\Providers\Theme::home_upgrade(),
 			'memory'      => self::memory(),
@@ -220,9 +223,10 @@ final class Engine {
 	 * @param string              $tagline Tagline typed on Review; empty keeps the current one.
 	 * @param array<string,mixed> $brief The AI idea the owner picked (description, name, tagline, audience,
 	 *                          tone, highlights); empty builds with the curated text.
+	 * @param string              $demo    Gallery demo id it was chosen from; empty when none.
 	 * @return array<string,mixed>|\WP_Error Status.
 	 */
-	public static function start_build( string $recipe, array $products, string $look, bool $consent = false, string $name = '', string $tagline = '', array $brief = array() ) {
+	public static function start_build( string $recipe, array $products, string $look, bool $consent = false, string $name = '', string $tagline = '', array $brief = array(), string $demo = '' ) {
 		$state = new State();
 		if ( State::IDLE !== $state->get( 'status' ) ) {
 			return new \WP_Error( 'wbcom_demo_exists', __( 'A demo is already on this site. Finish it before building another.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
@@ -248,6 +252,7 @@ final class Engine {
 			->set( 'build_id', wp_generate_uuid4() )
 			->set( 'recipe', sanitize_key( $recipe ) )
 			->set( 'include', $products )
+			->set( 'demo', (string) ( Demos::all()[ $demo ]['name'] ?? '' ) ) // The gallery demo it was built from, for the ready screen.
 			->set( 'look', 'keep' === $look ? 'keep' : 'demo' )
 			->set( 'errors', array() )
 			->set( 'warnings', array() )
@@ -530,6 +535,8 @@ final class Engine {
 			'recipe'           => $state->get( 'recipe' ),
 			'include'          => $state->get( 'include' ),
 			'look'             => $state->get( 'look' ),
+			'demo'             => (string) $state->get( 'demo' ),
+			'front_page'       => 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0,
 			'done'             => $done,
 			'total'            => $total,
 			'current'          => $label,

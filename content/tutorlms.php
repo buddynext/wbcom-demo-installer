@@ -17,9 +17,9 @@ return array(
 	'reviews'    => $wbcom_demo_learnomy['reviews'],
 	// Designed home page: text only; the provider adds the links, counts and the course cards.
 	'home'       => array(
-		'title'    => 'Learn a new skill, one short lesson at a time',
-		'text'     => 'Practical courses in design, development, community building and wellbeing, taught by people who do the work every day.',
-		'image'    => 'photos/open-books.jpg',
+		'title'    => 'Courses taught by people who do the work',
+		'text'     => 'Design, development, community building and wellbeing, taught by working practitioners. Watch, practise, and track your progress on your own dashboard.',
+		'image'    => 'photos/developer-desk.jpg',
 		'browse'   => 'Browse courses',
 		'second'   => 'Your dashboard',
 		'closing'  => 'Your next skill starts with one lesson. Pick a course and begin.',

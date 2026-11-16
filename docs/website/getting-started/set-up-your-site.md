@@ -2,33 +2,163 @@
 title: Set up your site with sample content
 ---
 
-Wbcom Demo Installer shows your Wbcom products working with believable sample content, so you can see
-what your community will look like before your first real member joins.
+Wbcom Demo Installer fills a fresh site with believable sample content: people, posts, courses, stores, places or
+jobs, a designed home page and a menu. You see your theme and plugins working before your first real member joins,
+then remove the sample content in one step when you are ready.
+
+## What it is
+
+- **For site owners** who use a Wbcom theme (Reign, BuddyX, BuddyX Pro) or Wbcom plugins and want to see a finished
+  site before building their own. No code and no command line: everything happens in one screen in the dashboard.
+- **Free.** Download the latest zip from
+  [GitHub releases](https://github.com/buddynext/wbcom-demo-installer/releases/latest) (the file named
+  `wbcom-demo-installer-<version>.zip`), then upload it under **Plugins > Add New > Upload Plugin**. It is not in your
+  Wbcom account downloads.
+- **Temporary.** Everything it adds is tracked, and Finish demo removes it again. Your own users, posts and settings
+  are never changed.
 
 ## Before you start
 
 - Use a fresh site: a new install, a staging copy or a sandbox. The demo is made for showing and trying the
   products, not for a site people already use. If the site already has other members, blog posts or comments,
   the site check says so, and you have to confirm before the build starts.
-- Activate your theme (BuddyX, BuddyX Pro, Reign or any other theme). The free Wbcom products can be installed from
-  the wizard itself; Pro add-ons are installed from your account as usual.
-- If a product shipped its own demo data earlier, remove it from that product first. The site check tells you.
+- Activate your theme (Reign, BuddyX, BuddyX Pro or any other theme).
+- Install the paid plugins you bought and activate their licences first: Reign add-ons, LearnDash, BuddyBoss Platform,
+  PeepSo, and any Pro add-on. The installer never downloads paid plugins. Free plugins it can install for you.
+- **Use one source of sample content.** Some plugins come with their own sample data or importer. Use either that
+  or this installer, never both: two sets of sample content mix together and cannot be removed cleanly. If a
+  product's own demo data is already on the site, remove it from that product first; the site check tells you.
 - You need to be a site administrator.
 
 ## Run the wizard
 
 1. Go to **Appearance > Set up your site**.
 2. **Site check** shows your theme, the products that are ready, and your own users and posts, which are never changed.
-   Below it, **Wbcom products** lists every free product with its state. BuddyNext, WPMediaVerse and Jetonomy are the
-   community set every starting point uses, so they are ticked when one is missing. Tick any others you want and choose
-   **Install and activate**. When your theme is not a Wbcom theme, the free BuddyX theme is offered too (Finish demo
-   does not switch your theme back).
-3. **Starting point**: pick the closest match. Only starting points for products you have active are shown.
+3. **Starting point** asks **What is your site for?** and shows one demo for each purpose: Community, Learning,
+   Events, Jobs, Directory, Services and Shop. See [Pick a demo](#pick-a-demo) below for what each one needs.
+   - Each card shows our own product for that purpose, unless your site already has a plugin for it. A Reign add-on
+     you uploaded puts its demo first, marked **Your add-on**; an active plugin (for example BuddyPress) puts its
+     demo in that purpose's place, marked **On your site**.
+   - **See every combination** opens the rest: whole-site theme demos, every Reign add-on demo and the starting points
+     built from the products you have active.
+   Each demo card shows what you still have to upload (with a **Get it** link) and how many free plugins it sets up
+   for you. **Set up and use this demo** installs, updates or switches on what is missing and moves you to the next
+   step. **Live preview** opens the same demo on our sandbox.
+
+   ![The demo gallery: one card per purpose, the Reign LearnDash add-on first](../images/02-gallery.webp)
+
+   ![A demo card: what it uses and Set up and use this demo](../images/03-demo-card.webp)
+
 4. **Products**: switch each product on or off. The bar at the bottom shows exactly what will be created.
-5. **Home page and menu**: use the community home page, menu and logo, or keep your own.
+5. **Home page and menu**: use the demo home page, menu and logo, or keep your own.
 6. **Review** the list. You can type your own site name and tagline here: a new name shows in the header in place of
    the sample logo, and Remove everything puts your current ones back. Then choose **Build my demo**.
 7. Wait for the progress bar. You can leave the page; the build continues where it stopped when you come back.
+
+When the build finishes, the wizard names your demo and links to every page. Under **Done exploring?** you choose
+what happens next: **Start my real site** removes the sample people and content and keeps the pages, menu and
+settings; **Remove everything** puts the site back as it was; **Try a different demo** removes everything and takes
+you back to pick another one. Each one shows what will be removed and asks you to confirm first. See
+[Finish the demo](finish-demo.md); it is also under **Tools > Demo data** at any time.
+
+![Your demo is ready, with the Done exploring? choices](../images/09-ready.webp)
+
+## Pick a demo
+
+Every demo adds the 20 sample people, a designed home page and Wbcom Essential's About, Join, FAQ and Blog pages.
+"Installed for you" means free plugins the card installs, updates or switches on in one click. "You install" means
+paid plugins you buy, upload under **Plugins > Add New** and license yourself.
+
+### What is your site for?
+
+The first cards you see, on any theme. Members come from the community plugin you already run (BuddyPress,
+BuddyBoss Platform or PeepSo); on a site without one they come from BuddyNext with WPMediaVerse, Jetonomy and WB
+Gamification, all installed for you.
+
+| Purpose | Demo | Installed for you | You install |
+|---|---|---|---|
+| Community | BuddyNext community | BuddyNext, WPMediaVerse, Jetonomy, Product Roadmap, WB Gamification, Wbcom Essential | |
+| Learning | Learnomy courses | Learnomy, MediaShield, the members, Wbcom Essential | |
+| Events | Eventonomy events | Eventonomy, the members, Wbcom Essential | |
+| Jobs | WP Career Board jobs | WP Career Board, the members, Wbcom Essential | |
+| Directory | WB Listora directory | WB Listora, the members, Wbcom Essential | |
+| Services | WP Sell Services marketplace | WP Sell Services, the members, Wbcom Essential | |
+| Shop | WooCommerce store | WooCommerce, Wbcom Essential | |
+
+When your site already has a plugin for a purpose, that plugin's demo from the tables below takes the card: a Reign
+add-on you uploaded (for example the Reign LearnDash Addon puts **Reign LearnDash** under Learning), or an active
+plugin such as BuddyPress or Dokan.
+
+### Reign add-on demos
+
+Under **See every combination**, or on top when you uploaded the add-on. Shown when Reign is your active theme. Members come from BuddyPress, or from the community plugin you already run
+(BuddyBoss Platform, PeepSo or BuddyNext).
+
+| Demo | You install | Installed for you | Best for |
+|---|---|---|---|
+| Reign LearnDash | Reign LearnDash Addon, LearnDash | BuddyPress, Wbcom Essential | Course sites on LearnDash |
+| Reign Tutor LMS | Reign TutorLMS Addon | Tutor LMS, BuddyPress, Wbcom Essential | Course sites on Tutor LMS |
+| Reign LifterLMS | Reign LifterLMS Addon | LifterLMS, BuddyPress, Wbcom Essential | Course sites on LifterLMS |
+| Reign Sensei LMS | Reign Sensei Addon | Sensei LMS, BuddyPress, Wbcom Essential | Course sites on Sensei LMS |
+| Reign Dokan | Reign Dokan Addon | WooCommerce, Dokan, BuddyPress, Wbcom Essential | Multi-vendor marketplaces |
+| Reign WCFM | Reign WCFM Addon | WooCommerce, WCFM Marketplace and Frontend Manager, BuddyPress, Wbcom Essential | Multi-vendor marketplaces |
+| Reign WC Vendors | Reign WC Vendors Addon | WooCommerce, WC Vendors, BuddyPress, Wbcom Essential | Vendor shops |
+| Reign GeoDirectory | Reign GeoDirectory Addon | GeoDirectory, BuddyPress, Wbcom Essential | Local directories with a map |
+| Reign WP Job Manager | Reign WP Job Manager Addon | WP Job Manager, BuddyPress, Wbcom Essential | Job boards |
+
+### Theme demos
+
+Under **See every combination**, shown for the active theme. Wbcom products install as their free versions; add your Pro add-ons yourself if you
+have them. Add-ons marked optional make the demo look better but are not needed to build it.
+
+| Demo | You install | Installed for you | Best for |
+|---|---|---|---|
+| Reign + BuddyPress | Optional: Reign Dokan Addon | BuddyPress, Learnomy, Eventonomy, Jetonomy, WP Career Board, WooCommerce, Dokan, Wbcom Essential | A community that teaches, meets and sells |
+| Reign + BuddyBoss | BuddyBoss Platform, LearnDash; optional: Reign LearnDash Addon, Reign WP Job Manager Addon | WP Job Manager, Wbcom Essential | BuddyBoss communities with courses and jobs |
+| Reign + PeepSo | PeepSo | Learnomy, Eventonomy, Jetonomy, WP Career Board, Wbcom Essential | PeepSo communities |
+| Reign + BuddyNext | | BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, WB Gamification, Wbcom Essential | The full Wbcom suite |
+| Reign + BuddyNext + LearnDash + Dokan | LearnDash; optional: Reign LearnDash Addon, Reign Dokan Addon | BuddyNext set, WooCommerce, Dokan, Wbcom Essential | Learning communities with a marketplace |
+| Reign + BuddyNext + Tutor LMS + WCFM | Optional: Reign TutorLMS Addon, Reign WCFM Addon | BuddyNext set, Tutor LMS, WooCommerce, WCFM, Wbcom Essential | Learning communities with a marketplace |
+| Reign + BuddyNext + LifterLMS + WC Vendors | Optional: Reign LifterLMS Addon, Reign WC Vendors Addon | BuddyNext set, LifterLMS, WooCommerce, WC Vendors, Wbcom Essential | Learning communities with vendor shops |
+| Reign Shop | | WooCommerce, Wbcom Essential | A single store |
+| BuddyX + BuddyPress | | BuddyPress, Learnomy, Eventonomy, Jetonomy, WP Career Board, WooCommerce, Wbcom Essential | BuddyPress communities on the free BuddyX theme |
+| BuddyX + BuddyNext | | BuddyNext set, Learnomy, Wbcom Essential | BuddyNext communities on BuddyX |
+| BuddyX Pro + BuddyPress | | BuddyPress, Learnomy, Eventonomy, Jetonomy, WP Career Board, WooCommerce, Dokan, Wbcom Essential | Communities with a marketplace on BuddyX Pro |
+| BuddyX Pro + BuddyBoss | BuddyBoss Platform | Learnomy, Eventonomy, Jetonomy, WP Career Board, Wbcom Essential | BuddyBoss communities on BuddyX Pro |
+| BuddyX Pro + BuddyNext | | The full Wbcom suite, Wbcom Essential | The full Wbcom suite on BuddyX Pro |
+
+"BuddyNext set" is BuddyNext, WPMediaVerse, Jetonomy, Eventonomy, WB Gamification and WP Career Board.
+
+### Starting points
+
+Under **See every combination**, starting points build from the Wbcom products on your site, on any theme. All of them use the free
+versions; the one marked in **Needs** is installed for you when you choose it.
+
+| Starting point | Needs | Also uses | Best for |
+|---|---|---|---|
+| Community | BuddyNext | WPMediaVerse, Jetonomy, Product Roadmap, WB Gamification, Wbcom Essential | Member communities |
+| Learning community | Learnomy | BuddyNext, WPMediaVerse, Jetonomy, MediaShield, WB Gamification, Wbcom Essential | Courses with a community |
+| Events community | Eventonomy | BuddyNext, WPMediaVerse, Jetonomy, WB Gamification, Wbcom Essential | Meetups and ticketed events |
+| Job board community | WP Career Board | BuddyNext, WPMediaVerse, Jetonomy, WB Gamification, Wbcom Essential | Job boards with candidate profiles |
+| Directory | WB Listora | BuddyNext, WPMediaVerse, Jetonomy, WB Gamification, Wbcom Essential | Listings with reviews and maps |
+| Services marketplace | WP Sell Services | BuddyNext, WPMediaVerse, Jetonomy, WB Gamification, Wbcom Essential | Freelancers selling services |
+| Everything I have | | Every supported product that is active | Seeing all your products together |
+
+## When a paid plugin or Reign add-on is missing
+
+Reign, the Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo and every Pro add-on are paid. You buy, install and
+license them yourself; the installer never downloads them.
+
+- **Not installed**: the demo card marks it with **Get it**. Reign add-ons come from your
+  [Wbcom account](https://wbcomdesigns.com/my-account/?ref=nav); other paid plugins from their own sellers. Upload the
+  zip under **Plugins > Add New > Upload Plugin**, activate its licence, then come back to **Appearance > Set up your
+  site**. The card checks again and offers to set up the rest.
+- **Installed but not active**: the card switches it on for you when you choose **Set up and use this demo**.
+- **An older version**: free plugins are updated to their latest release from the card. Reign and its add-ons are
+  updated through your licence, the same way **Dashboard > Updates** does it; without an active licence the card asks
+  you to activate it first.
+- **A different community plugin is active** (for example BuddyNext on a Reign + BuddyPress demo): the card says so.
+  Pick a demo built for the plugin you run.
 
 ## Describe your site and let AI build it
 
@@ -118,4 +248,4 @@ To edit them, open the page in the block editor:
   setup reminders waiting for you.
 - No email is sent to anyone.
 
-When you are done looking around, see [Finish the demo](finish-demo.md).
+When you are done looking around, see [Finish the demo](finish-demo.md) or open **Tools > Demo data**.

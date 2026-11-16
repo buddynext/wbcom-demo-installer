@@ -75,6 +75,9 @@ final class Command {
 	 * [--include=<ids>]
 	 * : Comma-separated product ids. Default: the starting point's products.
 	 *
+	 * [--demo=<id>]
+	 * : A named demo from the Starting point gallery (wp wbcom-demo demos): builds exactly its products.
+	 *
 	 * [--keep-look]
 	 * : Do not change the home page, menu or logo.
 	 *
@@ -178,6 +181,19 @@ final class Command {
 			WP_CLI::error( sprintf( 'Unknown or unavailable starting point "%s". Available: %s', $recipe, implode( ', ', array_keys( $recipes ) ) ) );
 		}
 		$include = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : $recipes[ $recipe ]['use'];
+		if ( isset( $assoc['demo'] ) ) {
+			// A named demo from the Starting point gallery: exactly its products, once everything it needs is active.
+			$demo = current( array_filter( \WbcomDemo\Core\Demos::overview(), static fn( array $d ): bool => $d['id'] === $assoc['demo'] ) );
+			if ( ! $demo ) {
+				WP_CLI::error( sprintf( 'Unknown demo "%s" for this theme. Demos: %s', $assoc['demo'], implode( ', ', array_column( \WbcomDemo\Core\Demos::overview(), 'id' ) ) ) );
+			}
+			if ( 'ready' !== $demo['state'] ) {
+				$missing = array_column( array_filter( $demo['rows'], static fn( array $r ): bool => $r['required'] && 'active' !== $r['state'] ), 'label' );
+				WP_CLI::error( sprintf( 'Demo "%s" needs: %s.%s', $demo['name'], implode( ', ', $missing ), $demo['conflict'] ? ' This site runs ' . $demo['conflict'] . '.' : ' Install them with: wp wbcom-demo install <id>, or upload the paid ones under Plugins.' ) );
+			}
+			$recipe  = 'everything';
+			$include = $demo['products'];
+		}
 		if ( isset( $assoc['dry-run'] ) ) {
 			foreach ( Engine::site()['products'] as $p ) {
 				if ( in_array( $p['id'], $include, true ) ) {
@@ -198,7 +214,7 @@ final class Command {
 				WP_CLI::warning( 'PeepSo does not load under WP-CLI, so its stream posts are left out. Build from Appearance > Set up your site, or the REST API, to include PeepSo.' );
 			}
 		}
-		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ), (string) ( $assoc['name'] ?? '' ), (string) ( $assoc['tagline'] ?? '' ), (array) json_decode( (string) ( $assoc['brief'] ?? '' ), true ) );
+		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ), (string) ( $assoc['name'] ?? '' ), (string) ( $assoc['tagline'] ?? '' ), (array) json_decode( (string) ( $assoc['brief'] ?? '' ), true ), sanitize_key( (string) ( $assoc['demo'] ?? '' ) ) );
 		if ( is_wp_error( $status ) ) {
 			WP_CLI::error( $status->get_error_message() . ( 'wbcom_demo_live_site' === $status->get_error_code() ? ' Add --yes to build anyway.' : '' ) );
 		}
@@ -340,6 +356,42 @@ final class Command {
 	}
 
 	/**
+	 * The demos on the Starting point gallery for the active theme, and what each still needs.
+	 *
+	 * [--format=<format>]
+	 * : table or json.
+	 * ---
+	 * default: table
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wbcom-demo demos
+	 *     wp wbcom-demo build --demo=reign-learndash --yes
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function demos( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed -- WP-CLI command signature.
+		$this->as_admin();
+		$rows = array_map(
+			static fn( array $d ): array => array(
+				'id'    => $d['id'],
+				'group' => $d['group'],
+				'name'  => $d['name'],
+				'state' => $d['state'],
+				'needs' => implode( ', ', array_column( array_filter( $d['rows'], static fn( array $r ): bool => $r['required'] && 'active' !== $r['state'] ), 'label' ) ),
+			),
+			\WbcomDemo\Core\Demos::overview()
+		);
+		if ( ! $rows ) {
+			WP_CLI::log( 'No named demos for this theme. Use wp wbcom-demo build --recipe=<starting point>.' );
+			return;
+		}
+		WP_CLI\Utils\format_items( (string) ( $assoc['format'] ?? 'table' ), $rows, array( 'id', 'group', 'name', 'state', 'needs' ) );
+	}
+
+	/**
 	 * Suggest three site ideas from a description, with the AI connector set up in Settings > Connectors.
 	 *
 	 * ## OPTIONS
@@ -405,7 +457,8 @@ final class Command {
 	 */
 	public function install( $args, $assoc ): void {
 		$this->as_admin();
-		$ids = isset( $assoc['all'] ) ? array_values( array_diff( array_keys( Installer::catalog() ), array( 'buddyx' ) ) ) : array_map( 'sanitize_key', $args );
+		// --all: every product the installer can download (not the theme, not the ones uploaded by hand).
+		$ids = isset( $assoc['all'] ) ? array_keys( array_filter( Installer::catalog(), static fn( array $e, string $id ): bool => 'buddyx' !== $id && ( isset( $e['wporg'] ) || isset( $e['item_id'] ) ), ARRAY_FILTER_USE_BOTH ) ) : array_map( 'sanitize_key', $args );
 		if ( ! $ids ) {
 			WP_CLI::error( 'Name the products to install, or pass --all.' );
 		}
@@ -418,15 +471,27 @@ final class Command {
 	 * @param string[] $ids Catalog ids.
 	 */
 	private function install_ids( array $ids ): void {
-		$states = array_column( Installer::overview(), 'state', 'id' );
+		$catalog = Installer::catalog();
 		foreach ( $ids as $id ) {
-			if ( ! isset( $states[ $id ] ) ) {
-				WP_CLI::error( sprintf( '"%s" is not a product this installer can add. Products: %s', $id, implode( ', ', array_keys( Installer::catalog() ) ) ) );
+			// The whole catalog, as the demo cards use it: the site check's list hides a Reign add-on's plugin
+			// until the add-on is active.
+			if ( ! isset( $catalog[ $id ] ) ) {
+				WP_CLI::error( sprintf( '"%s" is not a product this installer can add. Products: %s', $id, implode( ', ', array_keys( $catalog ) ) ) );
 			}
-			if ( 'active' === $states[ $id ] ) {
+			$state = Installer::status( $id )['state'];
+			if ( 'active' === $state ) {
 				continue;
 			}
-			WP_CLI::log( sprintf( '%s %s...', 'inactive' === $states[ $id ] ? 'Activating' : 'Installing', $id ) );
+			WP_CLI::log(
+				sprintf(
+					'%s %s...',
+					array(
+						'inactive' => 'Activating',
+						'outdated' => 'Updating',
+					)[ $state ] ?? 'Installing',
+					$id
+				)
+			);
 			$done = Installer::install( $id );
 			if ( is_wp_error( $done ) ) {
 				WP_CLI::error( sprintf( '%s: %s', $id, $done->get_error_message() ) );

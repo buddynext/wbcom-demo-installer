@@ -4,7 +4,7 @@ Tags: demo content, sample data, community, setup wizard, buddynext
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,7 +24,7 @@ Wbcom Demo Installer sets up a believable demo of every Wbcom product you have a
 
 When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report shows what was removed and what is still on the site.
 
-Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap and WB Gamification (with their Pro add-ons active), on BuddyX, BuddyX Pro, Reign or any theme.
+Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and Wbcom Essential (with their Pro add-ons active); BuddyPress, BuddyBoss Platform and PeepSo; WooCommerce, Dokan, WCFM Marketplace, WC Vendors, LearnDash, Tutor LMS, LifterLMS, Sensei LMS, GeoDirectory and WP Job Manager, with the Reign add-on for each. Themes: Reign, BuddyX, BuddyX Pro or any theme. Paid plugins (Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo, Pro add-ons) are bought, installed and licensed by you; the installer sets up the free ones.
 
 = For developers =
 
@@ -60,6 +60,25 @@ That product's sample content waits, and the sample people who made it stay, unt
 Yes. Nothing you kept depends on it. If sample content is still on the site, uninstalling keeps the plugin's record of it so reinstalling can still finish the demo.
 
 == Changelog ==
+
+= 1.1.1 - November 2026 =
+
+Pick a demo by what your site is for, set it up in one click, and remove it again from the same screen.
+
+* New      - Demo gallery: the Starting point step asks what your site is for and shows one demo each for community, learning, events, jobs, directory, services and shop.
+* New      - A Reign add-on you uploaded puts its demo first, marked Your add-on, and a plugin you already run takes its purpose's card.
+* New      - Set up and use this demo installs, updates or switches on the free plugins a demo needs and lists the paid ones to upload with a Get it link.
+* New      - See every combination lists every theme demo for Reign, BuddyX and BuddyX Pro, every Reign add-on demo and the starting points.
+* New      - The ready screen names your demo and offers Start my real site, Remove everything and Try a different demo, each confirmed before anything is removed.
+* New      - Live preview on every demo card opens the same demo on our sandbox.
+* Improve  - Each LMS and marketplace demo has its own home page hero.
+* Improve  - Demo card images load from wbcomdesigns.com, which keeps the plugin small.
+* Improve  - BuddyPress demos hide the toolbar from logged-out visitors.
+* Fix      - Removing a demo now also removes the BuddyPress group photos.
+* Fix      - BuddyBoss Platform sites are no longer treated as BuddyPress sites, so BuddyBoss demos are offered.
+* Fix      - Demos built on BuddyNext now include WPMediaVerse, Jetonomy and WB Gamification content when BuddyNext is already active.
+* Fix      - A site running an older BuddyPress, BuddyBoss or BuddyNext gets demos that update it, never a second community plugin.
+* Dev      - WP-CLI: wp wbcom-demo demos lists the demos, wp wbcom-demo build --demo=<id> builds one, and wp wbcom-demo install accepts every product the demos use.
 
 = 1.1.0 - November 2026 =
 

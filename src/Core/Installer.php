@@ -133,6 +133,22 @@ final class Installer {
 			'tutorlms'      => $addon( 'Tutor LMS', 'tutor/tutor.php', 'tutor', array( 'reign-tutorlms-addon' => 'Reign TutorLMS' ) ),
 			'lifterlms'     => $addon( 'LifterLMS', 'lifterlms/lifterlms.php', 'lifterlms', array( 'reign-lifterlms-addon' => 'Reign LifterLMS' ) ),
 			'sensei'        => $addon( 'Sensei LMS', 'sensei-lms/sensei-lms.php', 'sensei-lms', array( 'reign-sensei-addon' => 'Reign Sensei' ) ),
+			// Uploaded by hand (not on WordPress.org): the demo gallery reads them from the installed plugins and
+			// can switch an installed one on; hidden from the site check's product list.
+			'buddyboss'     => array(
+				'label'    => 'BuddyBoss Platform',
+				'type'     => 'plugin',
+				'basename' => 'buddyboss-platform/bp-loader.php',
+				'url'      => 'https://www.buddyboss.com/platform/',
+				'hidden'   => true,
+			),
+			'peepso'        => array(
+				'label'    => 'PeepSo',
+				'type'     => 'plugin',
+				'basename' => 'peepso/peepso.php',
+				'url'      => 'https://www.peepso.com/',
+				'hidden'   => true,
+			),
 			// Sold by LearnDash, not on WordPress.org: named with where to get it, never installed from here.
 			'learndash'     => array(
 				'label'    => 'LearnDash',
@@ -161,6 +177,9 @@ final class Installer {
 		$folders = array_map( 'dirname', (array) get_option( 'active_plugins', array() ) );
 		$out     = array();
 		foreach ( self::catalog() as $id => $entry ) {
+			if ( ! empty( $entry['hidden'] ) ) {
+				continue; // Only the demo gallery lists it.
+			}
 			$state = self::state( (string) $id, $entry, $plugins );
 			if ( 'theme' === $entry['type'] && 'active' !== $state && self::wbcom_theme() ) {
 				continue; // A Wbcom theme is active: BuddyX is not offered over it.
@@ -193,6 +212,36 @@ final class Installer {
 			);
 		}
 		return array_merge( self::reign_updates( $plugins ), $out );
+	}
+
+	/**
+	 * One catalog product's state for the demo gallery: active, inactive, outdated or not_installed; whether this
+	 * account can act on it here; whether it is paid (no download source: the owner uploads it) and where to get it.
+	 *
+	 * @param string $id Catalog id.
+	 * @return array{label:string,state:string,can:bool,paid:bool,url:string}
+	 */
+	public static function status( string $id ): array {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		$entry = self::catalog()[ $id ] ?? null;
+		if ( ! $entry ) {
+			return array(
+				'label' => $id,
+				'state' => 'not_installed',
+				'can'   => false,
+				'paid'  => false,
+				'url'   => '',
+			);
+		}
+		$state = self::state( $id, $entry, get_plugins() );
+		$paid  = ! isset( $entry['wporg'] ) && ! isset( $entry['item_id'] );
+		return array(
+			'label' => (string) $entry['label'],
+			'state' => $state,
+			'can'   => ! ( $paid && 'not_installed' === $state ) && self::allowed( in_array( $state, array( 'not_installed', 'outdated' ), true ) ? 'install' : 'activate', (string) $entry['type'] ),
+			'paid'  => $paid,
+			'url'   => $paid ? (string) ( $entry['url'] ?? '' ) : '',
+		);
 	}
 
 	/**
@@ -293,6 +342,9 @@ final class Installer {
 		if ( str_starts_with( $id, 'update:' ) ) {
 			return self::update( substr( $id, 7 ) );
 		}
+		if ( str_starts_with( $id, 'addon:' ) ) {
+			return self::activate_addon( substr( $id, 6 ) );
+		}
 		$catalog = self::catalog();
 		if ( ! isset( $catalog[ $id ] ) ) {
 			return new \WP_Error( 'wbcom_demo_unknown_product', __( 'This product cannot be installed from here.', 'wbcom-demo-installer' ), array( 'status' => 404 ) );
@@ -352,6 +404,27 @@ final class Installer {
 		}
 		remove_filter( 'wp_doing_ajax', '__return_true' );
 		return is_wp_error( $activated ) ? $activated : true;
+	}
+
+	/**
+	 * Switch on a Reign add-on the owner installed (it is theirs, uploaded with their licence): only an add-on a
+	 * gallery demo names, never any other plugin.
+	 *
+	 * @param string $folder Add-on folder.
+	 * @return true|\WP_Error
+	 */
+	private static function activate_addon( string $folder ) {
+		$file = Demos::addon_file( $folder );
+		if ( '' === $file || ! in_array( $folder, Demos::addon_folders(), true ) ) {
+			return new \WP_Error( 'wbcom_demo_unknown_product', __( 'This add-on cannot be switched on from here.', 'wbcom-demo-installer' ), array( 'status' => 404 ) );
+		}
+		if ( ! self::allowed( 'activate', 'plugin' ) ) {
+			return new \WP_Error( 'wbcom_demo_cannot_install', __( 'Your account is not allowed to activate plugins on this site.', 'wbcom-demo-installer' ), array( 'status' => 403 ) );
+		}
+		add_filter( 'wp_doing_ajax', '__return_true' ); // As install(): no activation redirect ends the request.
+		$done = activate_plugin( $file );
+		remove_filter( 'wp_doing_ajax', '__return_true' );
+		return is_wp_error( $done ) ? $done : true;
 	}
 
 	/**

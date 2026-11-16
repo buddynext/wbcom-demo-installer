@@ -4,8 +4,9 @@ title: Finish the demo
 
 When you are ready for real members, remove the sample content and keep everything you set up.
 
-1. Go to **Tools > Demo data** (or **Appearance > Set up your site** and choose **Finish demo**). The screen is
-   there whenever the demo left something on the site, also after an earlier finish.
+1. Go to **Tools > Demo data**, or use the **Done exploring?** choices on the wizard's last screen: **Start my real
+   site** (keep the setup), **Remove everything** or **Try a different demo** opens this screen with that choice
+   made. The screen is there whenever the demo left something on the site, also after an earlier finish.
 2. Choose what should stay:
    - **Keep my setup, remove sample content** (recommended): removes the sample people and everything they made, keeps settings, pages, menus, spaces, categories and plans.
    - **Let me choose**: tick what to remove for each product.
@@ -13,6 +14,11 @@ When you are ready for real members, remove the sample content and keep everythi
 3. Check the **Will remove** and **Will keep** lists, choose **Continue**, tick the confirmation and choose **Finish demo**.
 4. The report shows what was removed, what you kept, and anything still waiting. It says nothing was left behind
    only when the demo left nothing on the site.
+   After **Try a different demo**, its main button is **Pick another demo**, which goes back to the demo gallery.
+
+![Choose what should stay](../images/11-finish-choose.webp)
+
+![The report after removing everything](../images/13-finish-report.webp)
 
 ## Good to know
 
