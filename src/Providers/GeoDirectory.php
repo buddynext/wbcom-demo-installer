@@ -555,6 +555,23 @@ final class GeoDirectory extends Provider {
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * GeoDirectory's "Admin Hints" box sits on every directory page for administrators, and the owner walks the
+	 * demo as one; hints are turned off for the demo and come back on Remove everything.
+	 */
+	public function settings(): array {
+		return array( 'geodir_settings' => array( 'enable_hints' => 0 ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function full_width_archives(): array {
+		return array( 'gd_place' );
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public function layout_pages(): array {
 		return array_filter( array( self::page( 'page_location' ), self::page( 'page_archive' ) ) );

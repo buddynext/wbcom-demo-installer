@@ -327,6 +327,12 @@ final class Theme extends Provider {
 			Snapshot::write( 'buddyx_demo_setup_state', 'dismissed' );
 		}
 		foreach ( $this->included( $ctx ) as $p ) {
+			// Reign keeps a layout per archive type and falls back to a right sidebar with the default widgets.
+			if ( 'Reign' === self::theme_family() ) {
+				foreach ( $p->full_width_archives() as $type ) {
+					Snapshot::write( 'theme_mod:reign_' . sanitize_key( $type ) . '_archive_layout', 'full_width' );
+				}
+			}
 			$ids = $p->layout_pages();
 			foreach ( $p->menu_items() as $item ) {
 				$ids[] = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );

@@ -57,6 +57,16 @@ abstract class Provider {
 	}
 
 	/**
+	 * Post types whose archive (and taxonomy archives) the theme shows without sidebars, on themes that keep a
+	 * layout per archive type (Reign). A directory or catalogue brings its own columns, filters and map.
+	 *
+	 * @return string[] Post type names.
+	 */
+	public function full_width_archives(): array {
+		return array();
+	}
+
+	/**
 	 * Read the content again on next use (a content pack was added during this request).
 	 */
 	public function forget_content(): void {
