@@ -86,6 +86,26 @@ final class Controller {
 				),
 			)
 		);
+		// Add products to a finished demo (same as `wp wbcom-demo build --add`): the steps then run through /step, inside a
+		// web request, for products that do not load under WP-CLI (PeepSo).
+		register_rest_route(
+			self::NS,
+			'/add',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $auth,
+				'args'                => array(
+					'include' => array(
+						'type'     => 'array',
+						'required' => true,
+						'items'    => array( 'type' => 'string' ),
+					),
+				),
+				'callback'            => static fn( \WP_REST_Request $r ) => rest_ensure_response(
+					Engine::add_products( array_map( 'sanitize_key', (array) $r['include'] ) )
+				),
+			)
+		);
 		register_rest_route(
 			self::NS,
 			'/step',
