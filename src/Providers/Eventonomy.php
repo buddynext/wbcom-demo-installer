@@ -51,7 +51,7 @@ final class Eventonomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.9.1';
+		return '1.9.1'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

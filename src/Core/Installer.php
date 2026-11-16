@@ -83,6 +83,7 @@ final class Installer {
 		// Public repositories: the latest release zip comes straight from GitHub (always the newest release); the
 		// store's free channel stays the fallback, and the only source for private repositories.
 		foreach ( array(
+			'buddynext'    => 'buddynext/buddynext',
 			'mediaverse'   => 'vapvarun/wpmediaverse',
 			'jetonomy'     => 'vapvarun/jetonomy',
 			'careerboard'  => 'vapvarun/wp-career-board',
@@ -187,7 +188,95 @@ final class Installer {
 				'url'       => $manual ? (string) ( $entry['url'] ?? '' ) : '',
 			);
 		}
+		return array_merge( self::reign_updates( $plugins ), $out );
+	}
+
+	/**
+	 * Reign and the active Reign add-ons that WordPress already offers an update for (Dashboard > Updates, through
+	 * the customer's licence): the demo is built on their latest release, so the site check updates them first.
+	 *
+	 * @param array<string,array<string,mixed>> $plugins get_plugins().
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function reign_updates( array $plugins ): array {
+		$out    = array();
+		$themes = get_site_transient( 'update_themes' );
+		$theme  = wp_get_theme( 'reign-theme' );
+		$new    = is_object( $themes ) ? (array) ( $themes->response['reign-theme'] ?? array() ) : array();
+		if ( $theme->exists() && 'reign-theme' === get_template() && ! empty( $new['new_version'] ) ) {
+			$out[] = self::update_row( 'theme:reign-theme', 'Reign', 'theme', (string) $theme->get( 'Version' ), (string) $new['new_version'], ! empty( $new['package'] ) );
+		}
+		$updates = get_site_transient( 'update_plugins' );
+		foreach ( is_object( $updates ) ? (array) $updates->response : array() as $file => $info ) {
+			$info = (array) $info;
+			if ( str_starts_with( (string) $file, 'reign-' ) && is_plugin_active( (string) $file ) && isset( $plugins[ $file ] ) ) {
+				$out[] = self::update_row( 'plugin:' . $file, (string) $plugins[ $file ]['Name'], 'plugin', (string) $plugins[ $file ]['Version'], (string) ( $info['new_version'] ?? '' ), ! empty( $info['package'] ) );
+			}
+		}
 		return $out;
+	}
+
+	/**
+	 * A site check row for one update.
+	 *
+	 * @param string $key     theme:<stylesheet> or plugin:<file>.
+	 * @param string $label   Name.
+	 * @param string $type    'theme' or 'plugin'.
+	 * @param string $version Installed version.
+	 * @param string $latest  Latest version.
+	 * @param bool   $package The licence lets WordPress download it.
+	 * @return array<string,mixed>
+	 */
+	private static function update_row( string $key, string $label, string $type, string $version, string $latest, bool $package ): array {
+		return array(
+			'id'        => 'update:' . $key,
+			'label'     => $label,
+			'type'      => $type,
+			'core'      => false,
+			'state'     => 'outdated',
+			'update'    => true,
+			'can'       => $package && current_user_can( 'theme' === $type ? 'update_themes' : 'update_plugins' ) && wp_is_file_mod_allowed( 'wbcom_demo_install' ),
+			'version'   => $version,
+			'latest'    => $latest,
+			'licence'   => $package,
+			'pro'       => '',
+			'needed_by' => array(),
+			'community' => false,
+			'url'       => '',
+		);
+	}
+
+	/**
+	 * Run WordPress's own update for Reign or a Reign add-on (the package its licence provides).
+	 *
+	 * @param string $key theme:<stylesheet> or plugin:<file>.
+	 * @return true|\WP_Error
+	 */
+	private static function update( string $key ) {
+		list( $type, $item ) = array_pad( explode( ':', $key, 2 ), 2, '' );
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		// Only an update the site check listed: never any other plugin or theme on the site.
+		if ( ! in_array( 'update:' . $key, array_column( self::reign_updates( get_plugins() ), 'id' ), true ) ) {
+			return new \WP_Error( 'wbcom_demo_unknown_product', __( 'This product cannot be updated from here.', 'wbcom-demo-installer' ), array( 'status' => 404 ) );
+		}
+		if ( ! current_user_can( 'theme' === $type ? 'update_themes' : 'update_plugins' ) || ! wp_is_file_mod_allowed( 'wbcom_demo_install' ) ) {
+			return new \WP_Error( 'wbcom_demo_cannot_install', __( 'Your account is not allowed to update plugins and themes on this site.', 'wbcom-demo-installer' ), array( 'status' => 403 ) );
+		}
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		$skin     = new \WP_Ajax_Upgrader_Skin();
+		$upgrader = 'theme' === $type ? new \Theme_Upgrader( $skin ) : new \Plugin_Upgrader( $skin );
+		$result   = $upgrader->bulk_upgrade( array( $item ) );
+		$done     = is_array( $result ) ? ( $result[ $item ] ?? null ) : null;
+		if ( is_wp_error( $done ) ) {
+			return $done;
+		}
+		if ( ! $done ) {
+			$errors = $skin->get_errors();
+			return $errors->has_errors() ? $errors : new \WP_Error( 'wbcom_demo_update_failed', __( 'The update could not be installed. Check that your licence is active under Dashboard > Updates.', 'wbcom-demo-installer' ) );
+		}
+		return true;
 	}
 
 	/**
@@ -197,6 +286,9 @@ final class Installer {
 	 * @return true|\WP_Error
 	 */
 	public static function install( string $id ) {
+		if ( str_starts_with( $id, 'update:' ) ) {
+			return self::update( substr( $id, 7 ) );
+		}
 		$catalog = self::catalog();
 		if ( ! isset( $catalog[ $id ] ) ) {
 			return new \WP_Error( 'wbcom_demo_unknown_product', __( 'This product cannot be installed from here.', 'wbcom-demo-installer' ), array( 'status' => 404 ) );

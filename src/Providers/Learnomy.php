@@ -51,7 +51,7 @@ final class Learnomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '2.2.0';
+		return '2.3.0'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

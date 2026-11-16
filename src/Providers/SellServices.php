@@ -52,7 +52,7 @@ final class SellServices extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.9.2';
+		return '1.9.3'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

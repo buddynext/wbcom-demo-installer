@@ -185,7 +185,10 @@ final class Controller {
 					'id' => array(
 						'type'              => 'string',
 						'required'          => true,
-						'sanitize_callback' => 'sanitize_key',
+						// A catalog id, or an update id such as update:plugin:reign-geodirectory/reign-geolocation.php
+						// (Installer::install() accepts only ids its own lists hold).
+						'pattern'           => '^[a-z0-9_:./-]+$',
+						'sanitize_callback' => 'sanitize_text_field',
 					),
 				),
 				'callback'            => static function ( \WP_REST_Request $r ) {

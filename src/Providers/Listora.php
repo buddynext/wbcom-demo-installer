@@ -52,7 +52,7 @@ final class Listora extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '2.1.0';
+		return '2.1.1'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

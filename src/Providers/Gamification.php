@@ -68,7 +68,7 @@ final class Gamification extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.6.4'; // First release with everything the build calls (MemberData::purge, dated badges, ImportService).
+		return '1.6.7'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

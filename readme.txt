@@ -84,7 +84,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * New      - The site check installs the free plugin each active Reign add-on is built for, and every starting point can install the product it needs.
 * New      - Demo data entry under Tools, and your own site name and tagline on the Review step.
 * Improve  - After Remove everything, Try a different demo goes straight back to the site check to build another starting point.
-* Improve  - A Wbcom product older than the demo needs is ticked on the site check and updated to its latest release in place, settings kept.
+* Improve  - The demo is built on the latest releases: an older Wbcom product, Reign or Reign add-on is ticked on the site check and updated in place, settings kept (Reign through its licence, as Dashboard > Updates does).
 * Improve  - Free Wbcom products with a public repository install from their latest GitHub release, with the store as the fallback.
 * Improve  - Wbcom Essential is ticked on the site check, as its blocks build the home page and the regular pages.
 * Improve  - The site check says when a Reign add-on still needs its plugin, even when other products are ready.

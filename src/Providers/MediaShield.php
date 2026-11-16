@@ -50,7 +50,7 @@ final class MediaShield extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.4.1';
+		return '1.4.2'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

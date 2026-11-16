@@ -55,7 +55,7 @@ final class MediaVerse extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '2.6.3';
+		return '2.6.4'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

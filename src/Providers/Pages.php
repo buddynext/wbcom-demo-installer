@@ -57,7 +57,7 @@ final class Pages extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '4.7.0';
+		return '4.7.1'; // Latest release; the site check updates an older copy.
 	}
 
 	/**

@@ -55,7 +55,7 @@ final class Jetonomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '2.0.6';
+		return '2.0.7'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
