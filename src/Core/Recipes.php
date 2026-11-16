@@ -75,7 +75,9 @@ final class Recipes {
 	 * @return array<string,array<string,mixed>>
 	 */
 	public static function available(): array {
-		$active = array_keys( Registry::choosable() );
+		// Only products this installer can build on their active version: an older one stays on the site check with
+		// "update the product", and is never promised on Review and then dropped by the build.
+		$active = array_keys( array_filter( Registry::choosable(), static fn( Provider $p ): bool => $p->supported() ) );
 		$out    = array();
 		foreach ( self::all() as $id => $recipe ) {
 			if ( array_diff( $recipe['needs'], $active ) ) {

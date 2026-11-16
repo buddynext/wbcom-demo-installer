@@ -92,6 +92,10 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * Improve  - The site check warns when PHP memory is too low for a build.
 * Improve  - A failed build step can be retried from the wizard.
 * Improve  - Back and Continue stay in view on long wizard steps.
+* Fix      - A product too old for the installer is no longer listed on Review and then left out of the build without a word.
+* Fix      - Every sample forum discussion has replies that answer it, and tags that fit it.
+* Fix      - BuddyPress replies show real mentions instead of placeholder text.
+* Fix      - Review counts spaces and sub-spaces together, as the spaces directory shows them.
 * Fix      - Remove everything no longer leaves sample groups behind on a fresh BuddyPress site.
 * Fix      - A plugin the wizard installs that finishes its own setup only on an admin page, such as GeoDirectory, now builds its demo without errors.
 * Fix      - Remove everything puts back settings that other plugins also change, such as GeoDirectory's and the theme's menu locations, instead of reporting them as kept.

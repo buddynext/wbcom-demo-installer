@@ -117,7 +117,8 @@ final class BuddyNext extends Provider {
 		$c = $this->content();
 		return array(
 			'space_category' => array( count( array_diff_key( $c['categories'], $this->existing_categories() ) ), 'setup', __( 'space categories', 'wbcom-demo-installer' ) ),
-			'space'          => array( count( $c['spaces'] ) + count( $c['subspaces'] ), 'setup', __( 'spaces', 'wbcom-demo-installer' ) ),
+			// The spaces directory lists top-level spaces until "Include sub-spaces": say both, so the counts add up.
+			'space'          => array( count( $c['spaces'] ) + count( $c['subspaces'] ), 'setup', $c['subspaces'] ? __( 'spaces and sub-spaces', 'wbcom-demo-installer' ) : __( 'spaces', 'wbcom-demo-installer' ) ),
 			// Own posts, links, photo posts, the polls and three shares; other products add their own feed posts.
 			'post'           => array( count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + count( $this->polls() ) + 3, 'sample', __( 'feed posts, plus posts other products share to the feed', 'wbcom-demo-installer' ) ),
 			'media'          => array( count( $c['photos'] ) + 6, 'sample', __( 'photos', 'wbcom-demo-installer' ) ),

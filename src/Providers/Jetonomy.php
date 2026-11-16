@@ -225,7 +225,7 @@ final class Jetonomy extends Provider {
 			$existed = \Jetonomy\Models\Tag::exists( $slug );
 			$tid     = \Jetonomy\Models\Tag::find_or_create( $name );
 			if ( $tid > 0 ) {
-				$tags[] = $tid;
+				$tags[ $name ] = $tid;
 				if ( ! $existed ) {
 					$ctx->record( $this->id(), 'tag', $tid, 'setup' );
 				}
@@ -285,7 +285,9 @@ final class Jetonomy extends Provider {
 			}
 			$post_id = (int) $post_id;
 			$ctx->record( $this->id(), 'post', $post_id, 'sample', array( 'author' => $author ) );
-			foreach ( array_slice( $tags, $i % max( 1, count( $tags ) ), 1 + $i % 2 ) as $tid ) {
+			// Tags that fit the discussion: its own, else its space's.
+			$names = (array) ( $c['topic_tags'][ $i ] ?? $c['space_tags'][ $space ] ?? array() );
+			foreach ( array_intersect_key( $tags, array_flip( $names ) ) as $tid ) {
 				\Jetonomy\Models\Tag::attach_to_post( $post_id, (int) $tid );
 			}
 			if ( 'idea' === $type && $i % 2 ) {
