@@ -18,7 +18,7 @@ a feed), PeepSo (stream posts), WooCommerce (a store with products, photos, sale
 (courses with lessons, topics and students part way through), Tutor LMS (courses with topics, lessons, ratings and
 (courses with lessons, topics and students part way through), Tutor LMS (courses with topics, lessons, ratings and
 students part way through), LifterLMS (courses with sections, lessons, access plans, reviews and students part way
-through), Dokan and WCFM Marketplace (stores selling the sample products), WP Job Manager (job listings with
+through), Dokan, WCFM Marketplace and WC Vendors (stores selling the sample products), WP Job Manager (job listings with
 company logos and salaries) and GeoDirectory (places with photos, map pins, opening hours and reviews) are built in;
 the other plugins the Reign add-ons support follow.
 

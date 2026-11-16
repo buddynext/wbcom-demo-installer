@@ -95,6 +95,8 @@ final class Integration extends Provider {
 				return function_exists( 'dokan_get_navigation_url' );
 			case 'wcfm':
 				return function_exists( 'get_wcfm_url' ) && function_exists( 'wcfmmp_get_store_url' );
+			case 'wcvendors':
+				return class_exists( 'WCV_Vendors' );
 			case 'jobmanager':
 				return defined( 'JOB_MANAGER_VERSION' );
 			case 'tribeevents':
@@ -226,6 +228,17 @@ final class Integration extends Provider {
 					array(
 						'vendors'  => (string) get_wcfm_vendors_url(),
 						'settings' => (string) get_wcfm_settings_url(),
+					),
+				);
+			case 'wcvendors':
+				return array(
+					array(
+						'stores'    => self::page( (int) get_option( 'wcvendors_vendors_page_id' ) ),
+						'dashboard' => self::page( (int) get_option( 'wcvendors_vendor_dashboard_page_id' ) ),
+					),
+					array(
+						'vendors'  => admin_url( 'users.php?role=vendor' ),
+						'settings' => admin_url( 'admin.php?page=wcv-settings' ),
 					),
 				);
 			case 'jobmanager':

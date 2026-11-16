@@ -118,6 +118,24 @@ return array(
 			array( 'store', 'Multi-vendor marketplace', 'Vendors sell from their own stores with WCFM Marketplace.' ),
 		),
 	),
+	'wcvendors'   => array(
+		'name'         => 'WC Vendors',
+		'tab'          => 'Marketplace',
+		'member_label' => 'As a vendor',
+		'owner_points' => array( 'Vendors and their shops', 'Commissions', 'Products and orders' ),
+		'roles'        => array( 'vendor' => array( 'Vendor', array( 'A shop with products', 'Orders and commission', 'A vendor dashboard' ) ) ),
+		'member'       => array(
+			'stores'    => array( 'store', 'Browse the vendors', 'Every shop with its address and products.', 'Open the vendors' ),
+			'dashboard' => array( 'chart', 'Run a shop', 'As a vendor, see orders, products and shop settings.', 'Open the vendor dashboard' ),
+		),
+		'owner'        => array(
+			'vendors'  => array( 'users', 'Vendors', 'Approve vendors and see their sales.', 'Open vendors' ),
+			'settings' => array( 'settings', 'Marketplace settings', 'Commissions, capabilities and vendor pages.', 'Open settings' ),
+		),
+		'highlights'   => array(
+			array( 'store', 'Multi-vendor marketplace', 'Vendors sell from their own shops with WC Vendors.' ),
+		),
+	),
 	'jobmanager'  => array(
 		'name'         => 'WP Job Manager',
 		'tab'          => 'Jobs',

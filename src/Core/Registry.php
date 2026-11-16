@@ -115,6 +115,7 @@ final class Registry {
 			Providers\WooCommerce::class,
 			Providers\Dokan::class,
 			Providers\WCFM::class,
+			Providers\WCVendors::class,
 			Providers\Roadmap::class,
 			Providers\Pages::class,
 			Providers\Theme::class,
