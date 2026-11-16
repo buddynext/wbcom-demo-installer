@@ -141,6 +141,26 @@ validation, a tagged `media/` manifest, site identity through `Snapshot`, chunki
 Lab matrix plus a case for every card above, each one failing on 1.0.0; wizard at 1440 and 390 in light and dark;
 WP-CLI options checked against the wizard; AI path checked with a core provider configured and with none.
 
+## 1.2.0 plan: demo variations per Reign add-on
+
+1.1.0 ships one demo for each Reign add-on (GeoDirectory, Dokan, WCFM, WC Vendors, LearnDash, Tutor LMS,
+LifterLMS, Sensei, WP Job Manager) and for each Wbcom product. 1.2.0 adds 2 to 3 variations of each, so
+one product presents as several demos the way theme shops sell them.
+
+- **A variation is a look, not new content.** Same sample people and product content; a different colour
+  scheme, Reign theme options (header, layout, fonts, dark mode), home page and static pages. The
+  provider's content stays one set; a variation is data: palette, theme mods and a page layout.
+- **Pages are Wbcom Essential blocks and core blocks only**, built as the designed home page is
+  (Theme::designed_home(), Core\Blocks, Essential blocks via the wizard), no custom HTML, so owners edit
+  every piece. Each variation is checked at desktop, iPad and phone width, light and dark.
+- **The wizard offers variations as starting looks** on the Home page step (preview card per variation),
+  and Remove everything restores the owner's look as it does now.
+- **Improve Wbcom Essential alongside.** Any block a variation needs, or a block that falls short (feed
+  image height, stats two per row on phones, store grid for Dokan/WCFM/WC Vendors, BuddyNext support in
+  members/groups/activity, server-rendered hero/stats/CTA), goes into Essential's own release.
+- **Also in 1.2.0:** Pro add-ons add their own sample content and pages (card 10488498295); the LearnDash
+  guide offers an instructor role and LearnDash Dashboard steps (card 10514439950).
+
 ## Readiness audit
 
 | Area | State | Ready for |
