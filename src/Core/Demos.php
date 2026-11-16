@@ -70,7 +70,7 @@ final class Demos {
 				'group'    => (string) ( $demo['group'] ?? 'theme' ),
 				'name'     => (string) $demo['name'],
 				'desc'     => (string) $demo['desc'],
-				'image'    => file_exists( WBCOM_DEMO_DIR . 'media/demos/' . $id . '.webp' ) ? WBCOM_DEMO_URL . 'media/demos/' . $id . '.webp' : '',
+				'image'    => self::image( (string) $id, (string) ( $demo['preview'] ?? '' ) ),
 				'preview'  => (string) ( $demo['preview'] ?? '' ),
 				'rows'     => $rows,
 				'products' => self::products( (array) $demo['requires'] ),
@@ -126,6 +126,21 @@ final class Demos {
 			}
 		);
 		return $cards;
+	}
+
+	/**
+	 * Card image: a shot bundled for a demo without its own sandbox, else the live demo's image on
+	 * wbcomdesigns.com/demos (same sandbox as Live preview), so the zip stays small and cards follow the sandboxes.
+	 *
+	 * @param string $id      Demo id.
+	 * @param string $preview Live preview URL.
+	 */
+	private static function image( string $id, string $preview ): string {
+		if ( file_exists( WBCOM_DEMO_DIR . 'media/demos/' . $id . '.webp' ) ) {
+			return WBCOM_DEMO_URL . 'media/demos/' . $id . '.webp';
+		}
+		$host = (string) wp_parse_url( $preview, PHP_URL_HOST );
+		return '' !== $host ? 'https://wbcomdesigns.com/images/sandboxes/' . rawurlencode( $host ) . '.webp' : '';
 	}
 
 	/**

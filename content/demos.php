@@ -7,7 +7,7 @@
  * Each demo: theme family (Providers\Theme::theme_family()), the plugins it needs (catalog ids, see
  * Core\Installer::catalog(); "community" means any community plugin, else BuddyPress), the Reign add-on it presents
  * (addon demos) or the add-ons that improve it (theme demos, optional), the products it builds (provider ids) and
- * its live sandbox. The card image is media/demos/<id>.webp, the home page the installer builds for it.
+ * its live sandbox. The card image is that sandbox's image on wbcomdesigns.com/demos, or media/demos/<id>.webp for a demo with no sandbox of its own.
  *
  * Filter: wbcom_demo_demos.
  *
