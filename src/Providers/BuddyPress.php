@@ -424,8 +424,10 @@ final class BuddyPress extends Provider {
 			$ctx->record( $this->id(), 'group', (int) $id );
 			$map[ (string) $g['slug'] ] = (int) $id;
 			groups_update_groupmeta( (int) $id, 'last_activity', Clock::now() );
-			if ( ! empty( $g['image'] ) && self::write_avatar( $ctx->media( (string) $g['image'] ), (int) $id, 'group' ) ) {
-				$ctx->record( $this->id(), 'avatar', (int) $id, 'sample', array( 'object' => 'group' ) );
+			// The group's avatar goes with the group (see remove()): an "avatar" ledger row would share its id with a
+			// member's avatar row, and the ledger keeps one row per id.
+			if ( ! empty( $g['image'] ) ) {
+				self::write_avatar( $ctx->media( (string) $g['image'] ), (int) $id, 'group' );
 			}
 			$people  = $ctx->people();
 			$size    = min( count( $people ), max( 3, (int) ( $g['members'] ?? 6 ) ) );
@@ -721,6 +723,14 @@ final class BuddyPress extends Provider {
 						}
 					}
 					groups_delete_group( $id );
+				}
+				if ( function_exists( 'bp_core_delete_existing_avatar' ) ) {
+					bp_core_delete_existing_avatar(
+						array(
+							'item_id' => $id,
+							'object'  => 'group',
+						)
+					);
 				}
 				return ! groups_get_group( $id )->id;
 			case 'friendship':
