@@ -365,6 +365,9 @@ final class Engine {
 			if ( function_exists( 'set_time_limit' ) ) {
 				@set_time_limit( 120 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			}
+			// A step with several large products active (a store, a marketplace, an LMS) can pass 128 MB; WordPress
+			// raises admin work to WP_MAX_MEMORY_LIMIT (256 MB by default), and a build step is admin work.
+			wp_raise_memory_limit( 'admin' );
 			$state = new State();
 			if ( State::BUILDING === $state->get( 'status' ) ) {
 				self::build_step( $state );

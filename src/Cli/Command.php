@@ -132,13 +132,7 @@ final class Command {
 			foreach ( array( 'yes', 'keep-look' ) as $flag ) {
 				$flags .= isset( $assoc[ $flag ] ) ? ' --' . $flag : '';
 			}
-			WP_CLI::runcommand(
-				'wbcom-demo build' . $flags,
-				array(
-					'launch'     => true,
-					'exit_error' => true,
-				)
-			);
+			$this->relaunch( 'wbcom-demo build' . $flags );
 			return;
 		}
 		if ( isset( $assoc['install-missing'] ) ) {
@@ -156,13 +150,7 @@ final class Command {
 				// WP-CLI passes a bare flag as true.
 				$flags .= ! is_string( $v ) || '' === $v ? " --$k" : ' --' . $k . '=' . escapeshellarg( $v );
 			}
-			WP_CLI::runcommand(
-				'wbcom-demo build' . $flags,
-				array(
-					'launch'     => true,
-					'exit_error' => true,
-				)
-			);
+			$this->relaunch( 'wbcom-demo build' . $flags );
 			return;
 		}
 		if ( isset( $assoc['add'] ) ) {
@@ -199,7 +187,7 @@ final class Command {
 		}
 		$memory = Engine::memory();
 		if ( $memory['low'] ) {
-			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. Run with WP_CLI_PHP_ARGS="-d memory_limit=512M" if a step stops.', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
+			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. If a step stops, run WP-CLI with a higher limit: php -d memory_limit=512M $(which wp) wbcom-demo ...', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
 		}
 		// PeepSo switches itself off under WP-CLI (its constructor returns early), so its provider cannot run here.
 		foreach ( (array) get_option( 'active_plugins', array() ) as $plugin ) {
@@ -606,19 +594,45 @@ final class Command {
 			$state = new \WbcomDemo\Core\State();
 			if ( $state->get( 'reload' ) ) {
 				$state->set( 'reload', false )->save();
-				WP_CLI::runcommand(
-					'wbcom-demo resume',
-					array(
-						'launch'     => true,
-						'exit_error' => true,
-					)
-				);
+				$this->relaunch( 'wbcom-demo resume' );
 				return;
 			}
 			if ( ++$guard > 5000 ) {
 				WP_CLI::error( 'Stopped: too many steps.' );
 			}
 		} while ( in_array( $status['status'], array( 'building', 'finishing' ), true ) );
+	}
+
+	/**
+	 * Carry on in a fresh WP-CLI process. WP-CLI's own relaunch starts plain "php wp", which drops a raised memory
+	 * limit, and a site with a store, a marketplace and an LMS active needs about 200 MB just to boot; so the
+	 * same command is built here with the current limit passed on.
+	 *
+	 * @param string $command WP-CLI command and its arguments, already escaped.
+	 */
+	private function relaunch( string $command ): void {
+		$config = WP_CLI::get_runner()->config;
+		$assoc  = array();
+		foreach ( array( 'path', 'url', 'user', 'allow-root' ) as $key ) {
+			if ( ! empty( $config[ $key ] ) ) {
+				$assoc[ $key ] = $config[ $key ];
+			}
+		}
+		$line = sprintf(
+			'%s -d memory_limit=%s %s %s%s',
+			escapeshellarg( WP_CLI\Utils\get_php_binary() ),
+			escapeshellarg( (string) ini_get( 'memory_limit' ) ),
+			escapeshellarg( (string) $GLOBALS['argv'][0] ),
+			$command,
+			WP_CLI\Utils\assoc_args_to_str( $assoc )
+		);
+		// The child keeps this process's environment (database settings on containers often live there; WP-CLI's
+		// launch() starts it with none) and prints straight to this terminal.
+		$proc = proc_open( $line, array( STDIN, STDOUT, STDERR ), $pipes, null, getenv() ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open -- WP-CLI only, relaunching itself.
+		$code = is_resource( $proc ) ? proc_close( $proc ) : 1;
+		if ( 0 !== $code ) {
+			WP_CLI::halt( $code );
+		}
 	}
 
 	/**
