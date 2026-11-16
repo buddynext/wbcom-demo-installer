@@ -74,12 +74,17 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * New      - Sample content for GeoDirectory: places with photos, map pins, opening hours and reviews.
 * New      - Sample content for TutorLMS and LifterLMS: courses with lessons, instructors and students making progress.
 * New      - Sample content for WCFM Marketplace and WC Vendors: sample vendors become stores that sell the sample products.
+* New      - A designed home page for every combination: a hero, the site's numbers, each product's own sections (places and map, courses, jobs, stores, events, services, discussions) and the members with their activity, then a call to action.
+* New      - The home page uses Wbcom Essential's hero, stats, call to action, members, activity and groups blocks, so every piece is edited like any block.
+* New      - Reign add-ons are offered BuddyPress for their members, profiles, groups and activity when the site has no community plugin.
 * New      - Try the demo page with role cards, a guided tour and one-click switching between sample accounts.
 * New      - Describe your site in one sentence and get three ready ideas through the AI connector set up in Settings > Connectors.
 * New      - About, Join, FAQ and Blog pages built with Wbcom Essential.
 * New      - Install and activate the free Wbcom products from the site check.
 * New      - The site check installs the free plugin each active Reign add-on is built for, and every starting point can install the product it needs.
 * New      - Demo data entry under Tools, and your own site name and tagline on the Review step.
+* Improve  - Wbcom Essential is ticked on the site check, as its blocks build the home page and the regular pages.
+* Improve  - The site check says when a Reign add-on still needs its plugin, even when other products are ready.
 * Improve  - Sites without BuddyNext open on their community, shop or directory home page and show the site name in the header.
 * Improve  - A site that already runs BuddyPress, BuddyBoss or PeepSo is no longer offered the BuddyNext set by default.
 * Improve  - Keep my setup leaves the kept pages, menu and categories removable until you choose Keep them as mine.
@@ -94,7 +99,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * Fix      - A Try the demo link opened after switching accounts returns to the tour instead of acting as the wrong person.
 * Security - Learnomy sample settings never switch a site in live payment mode to the test gateway.
 * Dev      - WP-CLI commands ideas, install and adopt, plus build --add, --describe, --idea, --name and --tagline.
-* Dev      - REST routes POST /ideas and POST /add, and the provider methods full_width_archives() and settings().
+* Dev      - REST routes POST /ideas and POST /add, and the provider methods full_width_archives(), settings(), home(), offers_home() and community().
 
 = 1.0.0 - November 2026 =
 

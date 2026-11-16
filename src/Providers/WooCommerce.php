@@ -408,7 +408,7 @@ final class WooCommerce extends Provider {
 		$cards    = array_map(
 			static fn( array $c ): string => ( $c['image'] ? Blocks::image( $c['image'] ) : '' )
 				. Blocks::link_heading( $c['name'], $c['url'] )
-				/* translators: %d: products in the category */
+				/* translators: %d: number of products. */
 				. Blocks::paragraph( sprintf( _n( '%d product', '%d products', $c['count'], 'wbcom-demo-installer' ), $c['count'] ) ),
 			$cats
 		);

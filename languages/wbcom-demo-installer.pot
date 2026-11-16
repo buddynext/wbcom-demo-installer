@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T10:59:03+00:00\n"
+"POT-Creation-Date: 2026-11-16T11:57:04+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -43,21 +43,21 @@ msgstr ""
 #: src/Admin/Page.php:66
 #: src/Admin/Page.php:67
 #: src/Admin/Page.php:101
-#: src/Admin/Page.php:194
+#: src/Admin/Page.php:208
 #: src/Admin/view.php:14
 #: assets/js/wizard.js:121
-#: assets/js/wizard.js:297
-#: assets/js/wizard.js:317
-#: assets/js/wizard.js:333
-#: assets/js/wizard.js:342
-#: assets/js/wizard.js:359
-#: assets/js/wizard.js:519
+#: assets/js/wizard.js:304
+#: assets/js/wizard.js:324
+#: assets/js/wizard.js:340
+#: assets/js/wizard.js:349
+#: assets/js/wizard.js:366
+#: assets/js/wizard.js:526
 msgid "Set up your site"
 msgstr ""
 
 #: src/Admin/Page.php:74
 #: src/Admin/Page.php:75
-#: assets/js/wizard.js:439
+#: assets/js/wizard.js:446
 msgid "Demo data"
 msgstr ""
 
@@ -66,15 +66,15 @@ msgstr ""
 msgid "Only site administrators can set up or remove demo content."
 msgstr ""
 
-#: src/Admin/Page.php:191
+#: src/Admin/Page.php:205
 msgid "See your site with sample content"
 msgstr ""
 
-#: src/Admin/Page.php:192
+#: src/Admin/Page.php:206
 msgid "Set up a believable demo with 20 sample people in a few minutes, and install the plugins it needs. Remove the samples whenever you like and keep your setup."
 msgstr ""
 
-#: src/Admin/Page.php:195
+#: src/Admin/Page.php:209
 msgid "Not now"
 msgstr ""
 
@@ -136,73 +136,76 @@ msgid_plural "%d comments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Core/Engine.php:226
+#: src/Core/Engine.php:228
 msgid "A demo is already on this site. Finish it before building another."
 msgstr ""
 
 #. translators: %s: what the site already has, e.g. "3 other members, 12 blog posts".
-#: src/Core/Engine.php:233
+#: src/Core/Engine.php:235
 #, php-format
 msgid "This site already has %s. The demo is made for a fresh site; confirm that you want sample content added here."
 msgstr ""
 
-#: src/Core/Engine.php:238
+#: src/Core/Engine.php:240
 msgid "Choose one of the starting points shown on this site."
 msgstr ""
 
-#: src/Core/Engine.php:243
+#: src/Core/Engine.php:245
 msgid "Choose at least one product."
 msgstr ""
 
-#: src/Core/Engine.php:312
+#: src/Core/Engine.php:314
 msgid "There is no finished demo to add to. Build one first."
 msgstr ""
 
-#: src/Core/Engine.php:318
+#: src/Core/Engine.php:320
 msgid "Every product named is already in the demo or not available here."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:439
+#: src/Core/Engine.php:441
 #, php-format
 msgid "%s: a step stopped the request twice (often the PHP memory limit), so the rest of this product was skipped."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:504
+#: src/Core/Engine.php:506
 #, php-format
 msgid "the text for %s"
 msgstr ""
 
-#: src/Core/Engine.php:524
+#: src/Core/Engine.php:526
 msgid "sample content"
 msgstr ""
 
-#: src/Core/Engine.php:557
+#: src/Core/Engine.php:559
+#: src/Providers/GeoDirectory.php:634
+#: src/Providers/Listora.php:460
+#: src/Providers/SellServices.php:477
 msgid "categories"
 msgstr ""
 
-#: src/Core/Engine.php:558
+#: src/Core/Engine.php:560
 msgid "images"
 msgstr ""
 
-#: src/Core/Engine.php:559
-#: src/Providers/Pages.php:94
-#: src/Providers/Pages.php:107
+#: src/Core/Engine.php:561
+#: src/Providers/Pages.php:95
+#: src/Providers/Pages.php:108
 msgid "pages"
 msgstr ""
 
-#: src/Core/Engine.php:560
+#: src/Core/Engine.php:562
 #: src/Providers/People.php:333
 msgid "accounts"
 msgstr ""
 
-#: src/Core/Engine.php:561
+#: src/Core/Engine.php:563
 msgid "store currency setting"
 msgstr ""
 
-#: src/Core/Engine.php:562
-#: src/Providers/PeepSo.php:120
+#: src/Core/Engine.php:564
+#: src/Providers/PeepSo.php:121
 msgid "comments"
 msgstr ""
 
@@ -315,60 +318,60 @@ msgstr ""
 msgid "Everything you clicked through above ships in the plugin."
 msgstr ""
 
-#: src/Core/Installer.php:166
+#: src/Core/Installer.php:187
 msgid "This product cannot be installed from here."
 msgstr ""
 
 #. translators: 1: product name, 2: where to get it.
-#: src/Core/Installer.php:179
+#: src/Core/Installer.php:200
 #, php-format
 msgid "%1$s is not on WordPress.org. Get it from %2$s, upload it under Plugins > Add New, then come back."
 msgstr ""
 
-#: src/Core/Installer.php:187
+#: src/Core/Installer.php:208
 msgid "This site does not allow installing plugins or themes from the dashboard (DISALLOW_FILE_MODS). Ask your host, or upload them another way."
 msgstr ""
 
-#: src/Core/Installer.php:188
+#: src/Core/Installer.php:209
 msgid "Your account is not allowed to install or activate plugins and themes on this site."
 msgstr ""
 
-#: src/Core/Installer.php:205
+#: src/Core/Installer.php:226
 msgid "BuddyX was installed but could not be switched on. Activate it from Appearance > Themes."
 msgstr ""
 
-#: src/Core/Installer.php:286
+#: src/Core/Installer.php:307
 msgid "Could not reach wbcomdesigns.com to download the plugin. Check that this site can make outgoing connections, then try again."
 msgstr ""
 
-#: src/Core/Installer.php:289
+#: src/Core/Installer.php:310
 msgid "wbcomdesigns.com sent an unexpected answer. Try again in a minute."
 msgstr ""
 
 #. translators: %s: reason given by the store.
-#: src/Core/Installer.php:298
+#: src/Core/Installer.php:319
 #, php-format
 msgid "wbcomdesigns.com would not authorise the free download for this site (%s)."
 msgstr ""
 
-#: src/Core/Installer.php:335
+#: src/Core/Installer.php:356
 msgid "Could not reach WordPress.org to download it. Try again in a minute."
 msgstr ""
 
-#: src/Core/Installer.php:350
+#: src/Core/Installer.php:371
 msgid "The download did not come from the expected address, so it was not installed."
 msgstr ""
 
-#: src/Core/Installer.php:367
+#: src/Core/Installer.php:388
 msgid "WordPress cannot write files on this site without FTP details. Install it from the Plugins or Themes screen instead."
 msgstr ""
 
-#: src/Core/Installer.php:377
+#: src/Core/Installer.php:398
 msgid "The download could not be installed."
 msgstr ""
 
 #: src/Core/Recipes.php:27
-#: src/Providers/BuddyPress.php:828
+#: src/Providers/BuddyPress.php:829
 msgid "Community"
 msgstr ""
 
@@ -401,7 +404,7 @@ msgid "Employers, jobs and candidate profiles"
 msgstr ""
 
 #: src/Core/Recipes.php:51
-#: src/Providers/Listora.php:417
+#: src/Providers/Listora.php:482
 msgid "Directory"
 msgstr ""
 
@@ -425,124 +428,142 @@ msgstr ""
 msgid "Every active product, linked together"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:78
-#: src/Providers/CareerBoard.php:84
-#: src/Providers/Eventonomy.php:93
-#: src/Providers/Jetonomy.php:77
-#: src/Providers/Learnomy.php:81
-#: src/Providers/Listora.php:84
+#: src/Providers/BuddyNext.php:79
+#: src/Providers/CareerBoard.php:85
+#: src/Providers/Eventonomy.php:94
+#: src/Providers/Jetonomy.php:79
+#: src/Providers/Learnomy.php:82
+#: src/Providers/Listora.php:85
 #: src/Providers/MediaShield.php:81
-#: src/Providers/MediaVerse.php:91
+#: src/Providers/MediaVerse.php:93
 #: src/Providers/Roadmap.php:81
-#: src/Providers/SellServices.php:75
-#: assets/js/wizard.js:163
+#: src/Providers/SellServices.php:76
+#: assets/js/wizard.js:164
 msgid "Pro add-on active"
 msgstr ""
 
 #. translators: 1: spaces, 2: posts
-#: src/Providers/BuddyNext.php:88
+#: src/Providers/BuddyNext.php:89
 #, php-format
 msgid "Profiles for everyone, %1$d spaces, %2$d posts with comments, replies, mentions and reactions, follows, polls and direct messages"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:118
+#: src/Providers/BuddyNext.php:119
 msgid "space categories"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:119
+#: src/Providers/BuddyNext.php:120
+#: src/Providers/BuddyNext.php:1053
 msgid "spaces"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:121
+#: src/Providers/BuddyNext.php:122
 msgid "feed posts, plus posts other products share to the feed"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:122
-#: src/Providers/MediaVerse.php:126
+#: src/Providers/BuddyNext.php:123
+#: src/Providers/MediaVerse.php:128
 msgid "photos"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:123
+#: src/Providers/BuddyNext.php:124
 msgid "space albums"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:124
+#: src/Providers/BuddyNext.php:125
 msgid "profile pictures"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:125
+#: src/Providers/BuddyNext.php:126
 msgid "hashtags"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:985
+#: src/Providers/BuddyNext.php:1052
+#: src/Providers/BuddyPress.php:930
+#: src/Providers/PeepSo.php:374
+msgid "members"
+msgstr ""
+
+#: src/Providers/BuddyNext.php:1065
 msgid "Activity"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:986
+#: src/Providers/BuddyNext.php:1066
 msgid "Members"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:987
+#: src/Providers/BuddyNext.php:1067
 msgid "Spaces"
 msgstr ""
 
-#: src/Providers/BuddyPress.php:125
+#: src/Providers/BuddyPress.php:126
 msgid "Member photos, groups, friendships and a feed of updates, photos, links and comments"
 msgstr ""
 
-#: src/Providers/BuddyPress.php:203
+#: src/Providers/BuddyPress.php:204
 msgid "member photos"
 msgstr ""
 
-#: src/Providers/BuddyPress.php:204
+#: src/Providers/BuddyPress.php:205
 msgid "feed updates and comments"
 msgstr ""
 
-#: src/Providers/BuddyPress.php:207
+#: src/Providers/BuddyPress.php:208
+#: src/Providers/BuddyPress.php:965
 msgid "groups"
 msgstr ""
 
-#: src/Providers/BuddyPress.php:210
+#: src/Providers/BuddyPress.php:211
 msgid "friendships"
 msgstr ""
 
-#: src/Providers/BuddyPress.php:855
+#: src/Providers/BuddyPress.php:856
 msgid "BuddyBoss Platform keeps its reaction counts for the removed sample posts; the reactions themselves are removed and nothing shows on the site."
 msgstr ""
 
 #. translators: 1: companies, 2: jobs
-#: src/Providers/CareerBoard.php:93
+#: src/Providers/CareerBoard.php:94
 #, php-format
 msgid "%1$d companies, %2$d jobs and applications from the sample candidates"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:135
+#: src/Providers/CareerBoard.php:136
 msgid "job categories, types and locations"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:136
+#: src/Providers/CareerBoard.php:137
 msgid "job board pages"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:137
+#: src/Providers/CareerBoard.php:138
 msgid "companies"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:138
+#: src/Providers/CareerBoard.php:139
 msgid "jobs"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:139
+#: src/Providers/CareerBoard.php:140
 msgid "applications"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:140
+#: src/Providers/CareerBoard.php:141
 msgid "resume files"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:430
-#: src/Providers/JobManager.php:167
-#: src/Providers/JobManager.php:282
+#: src/Providers/CareerBoard.php:461
+#: src/Providers/JobManager.php:301
+msgid "open jobs"
+msgstr ""
+
+#: src/Providers/CareerBoard.php:462
+#: src/Providers/JobManager.php:302
+msgid "companies hiring"
+msgstr ""
+
+#: src/Providers/CareerBoard.php:483
+#: src/Providers/JobManager.php:168
+#: src/Providers/JobManager.php:330
 msgid "Jobs"
 msgstr ""
 
@@ -555,6 +576,7 @@ msgstr ""
 
 #: src/Providers/Dokan.php:103
 #: src/Providers/WCFM.php:130
+#: src/Providers/WooCommerce.php:547
 msgid "stores"
 msgstr ""
 
@@ -575,32 +597,34 @@ msgid "Stores"
 msgstr ""
 
 #. translators: 1: upcoming events, 2: past events
-#: src/Providers/Eventonomy.php:103
+#: src/Providers/Eventonomy.php:104
 #, php-format
 msgid "%1$d upcoming and %2$d past events, online and in person, with venues, organizers and RSVPs"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:141
+#: src/Providers/Eventonomy.php:142
 msgid "event categories"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:142
+#: src/Providers/Eventonomy.php:143
+#: src/Providers/Eventonomy.php:407
 msgid "venues"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:143
+#: src/Providers/Eventonomy.php:144
 msgid "organizers"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:144
+#: src/Providers/Eventonomy.php:145
+#: src/Providers/Eventonomy.php:406
 msgid "events"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:145
+#: src/Providers/Eventonomy.php:146
 msgid "event images"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:378
+#: src/Providers/Eventonomy.php:424
 msgid "Events"
 msgstr ""
 
@@ -621,258 +645,286 @@ msgid "Leaderboard"
 msgstr ""
 
 #. translators: 1: places, 2: categories
-#: src/Providers/GeoDirectory.php:111
+#: src/Providers/GeoDirectory.php:112
 #, php-format
 msgid "%1$d places in %2$d categories with photos, opening hours, map pins and reviews"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:140
+#: src/Providers/GeoDirectory.php:141
 msgid "places"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:141
+#: src/Providers/GeoDirectory.php:142
 msgid "place photos"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:142
-#: src/Providers/WooCommerce.php:116
+#: src/Providers/GeoDirectory.php:143
+#: src/Providers/WooCommerce.php:118
 msgid "reviews"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:146
-#: src/Providers/GeoDirectory.php:165
+#: src/Providers/GeoDirectory.php:147
+#: src/Providers/GeoDirectory.php:166
 msgid "place categories"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:150
-#: src/Providers/GeoDirectory.php:167
+#: src/Providers/GeoDirectory.php:151
+#: src/Providers/GeoDirectory.php:168
 msgid "place page details (address, phone, website, hours)"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:154
-#: src/Providers/GeoDirectory.php:166
+#: src/Providers/GeoDirectory.php:155
+#: src/Providers/GeoDirectory.php:167
 msgid "place fields (phone, website, hours)"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:219
-#: src/Providers/GeoDirectory.php:221
-#: src/Providers/GeoDirectory.php:230
+#: src/Providers/GeoDirectory.php:220
+#: src/Providers/GeoDirectory.php:222
+#: src/Providers/GeoDirectory.php:231
 msgid "Business Hours"
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:220
+#: src/Providers/GeoDirectory.php:221
 msgid "Select your business opening/operating hours."
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:302
-#: src/Providers/GeoDirectory.php:352
+#: src/Providers/GeoDirectory.php:303
+#: src/Providers/GeoDirectory.php:353
 msgid "GeoDirectory did not save it."
 msgstr ""
 
-#: src/Providers/GeoDirectory.php:617
+#: src/Providers/GeoDirectory.php:633
+msgid "places listed"
+msgstr ""
+
+#: src/Providers/GeoDirectory.php:708
 msgid "Places"
 msgstr ""
 
 #. translators: 1: categories, 2: spaces, 3: discussions
-#: src/Providers/Jetonomy.php:88
+#: src/Providers/Jetonomy.php:90
 #, php-format
 msgid "%1$d forum categories, %2$d forum spaces, %3$d discussions with replies, accepted answers, votes and ideas"
 msgstr ""
 
-#: src/Providers/Jetonomy.php:116
+#: src/Providers/Jetonomy.php:118
 msgid "forum categories"
 msgstr ""
 
-#: src/Providers/Jetonomy.php:117
+#: src/Providers/Jetonomy.php:119
 msgid "forum spaces"
 msgstr ""
 
-#: src/Providers/Jetonomy.php:118
+#: src/Providers/Jetonomy.php:120
 msgid "forum tags"
 msgstr ""
 
-#: src/Providers/Jetonomy.php:119
+#: src/Providers/Jetonomy.php:121
+#: src/Providers/Jetonomy.php:509
 msgid "discussions"
 msgstr ""
 
-#: src/Providers/Jetonomy.php:490
+#: src/Providers/Jetonomy.php:535
 msgid "Forums"
 msgstr ""
 
 #. translators: 1: jobs, 2: companies
-#: src/Providers/JobManager.php:79
+#: src/Providers/JobManager.php:80
 #, php-format
 msgid "%1$d job listings from %2$d companies, with logos, salaries and remote roles"
 msgstr ""
 
-#: src/Providers/JobManager.php:91
+#: src/Providers/JobManager.php:92
 msgid "job listings"
 msgstr ""
 
-#: src/Providers/JobManager.php:92
+#: src/Providers/JobManager.php:93
 msgid "company logos"
 msgstr ""
 
-#: src/Providers/JobManager.php:96
+#: src/Providers/JobManager.php:97
 msgid "job types"
 msgstr ""
 
-#: src/Providers/JobManager.php:99
+#: src/Providers/JobManager.php:100
 msgid "Jobs page"
 msgstr ""
 
 #. translators: 1: courses, 2: categories
-#: src/Providers/LearnDash.php:79
+#: src/Providers/LearnDash.php:80
 #, php-format
 msgid "%1$d courses in %2$d categories, with lessons, topics and students making progress"
 msgstr ""
 
-#: src/Providers/LearnDash.php:99
-#: src/Providers/Learnomy.php:110
-#: src/Providers/LifterLMS.php:184
-#: src/Providers/TutorLMS.php:133
+#: src/Providers/LearnDash.php:100
+#: src/Providers/LearnDash.php:432
+#: src/Providers/Learnomy.php:111
+#: src/Providers/Learnomy.php:529
+#: src/Providers/LifterLMS.php:185
+#: src/Providers/LifterLMS.php:555
+#: src/Providers/TutorLMS.php:134
+#: src/Providers/TutorLMS.php:479
 msgid "courses"
 msgstr ""
 
-#: src/Providers/LearnDash.php:100
-#: src/Providers/LifterLMS.php:186
-#: src/Providers/TutorLMS.php:135
+#: src/Providers/LearnDash.php:101
+#: src/Providers/LearnDash.php:433
+#: src/Providers/LifterLMS.php:187
+#: src/Providers/LifterLMS.php:556
+#: src/Providers/TutorLMS.php:136
+#: src/Providers/TutorLMS.php:480
 msgid "lessons"
 msgstr ""
 
-#: src/Providers/LearnDash.php:101
-#: src/Providers/TutorLMS.php:134
+#: src/Providers/LearnDash.php:102
+#: src/Providers/TutorLMS.php:135
 msgid "topics"
 msgstr ""
 
-#: src/Providers/LearnDash.php:102
-#: src/Providers/LifterLMS.php:188
-#: src/Providers/TutorLMS.php:136
+#: src/Providers/LearnDash.php:103
+#: src/Providers/LifterLMS.php:189
+#: src/Providers/TutorLMS.php:137
 msgid "courses with sample students"
 msgstr ""
 
-#: src/Providers/LearnDash.php:103
-#: src/Providers/LifterLMS.php:190
-#: src/Providers/TutorLMS.php:138
+#: src/Providers/LearnDash.php:104
+#: src/Providers/LifterLMS.php:191
+#: src/Providers/TutorLMS.php:139
 msgid "course photos"
 msgstr ""
 
-#: src/Providers/LearnDash.php:106
+#: src/Providers/LearnDash.php:107
 msgid "store currency (USD)"
 msgstr ""
 
-#: src/Providers/LearnDash.php:110
-#: src/Providers/Learnomy.php:109
-#: src/Providers/TutorLMS.php:142
+#: src/Providers/LearnDash.php:111
+#: src/Providers/Learnomy.php:110
+#: src/Providers/TutorLMS.php:143
 msgid "course categories"
 msgstr ""
 
-#: src/Providers/LearnDash.php:219
+#: src/Providers/LearnDash.php:220
 msgid "What you will learn"
 msgstr ""
 
-#: src/Providers/LearnDash.php:222
+#: src/Providers/LearnDash.php:223
 msgid "LearnDash did not save it."
 msgstr ""
 
 #. translators: %s: course title
-#: src/Providers/LearnDash.php:247
+#: src/Providers/LearnDash.php:248
 #, php-format
 msgid "Part of %s."
 msgstr ""
 
-#: src/Providers/LearnDash.php:403
-#: src/Providers/Learnomy.php:497
-#: src/Providers/LifterLMS.php:541
-#: src/Providers/TutorLMS.php:468
+#: src/Providers/LearnDash.php:404
+#: src/Providers/Learnomy.php:549
+#: src/Providers/LifterLMS.php:590
+#: src/Providers/TutorLMS.php:529
 msgid "Courses"
 msgstr ""
 
-#: src/Providers/Learnomy.php:74
+#: src/Providers/LearnDash.php:434
+#: src/Providers/Learnomy.php:530
+#: src/Providers/LifterLMS.php:557
+#: src/Providers/TutorLMS.php:481
+msgid "students"
+msgstr ""
+
+#. translators: %s: number of courses
+#: src/Providers/LearnDash.php:484
+#, php-format
+msgid "%s course"
+msgid_plural "%s courses"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Providers/Learnomy.php:75
 msgid "Learnomy keeps an audit log of the removal as a security record, with the sample people removed from it."
 msgstr ""
 
 #. translators: 1: courses, 2: lessons
-#: src/Providers/Learnomy.php:97
+#: src/Providers/Learnomy.php:98
 #, php-format
 msgid "%1$d courses with %2$d lessons, instructors, enrolments, progress and reviews"
 msgstr ""
 
-#: src/Providers/Learnomy.php:111
+#: src/Providers/Learnomy.php:112
 msgid "enrolments"
 msgstr ""
 
-#: src/Providers/Learnomy.php:112
+#: src/Providers/Learnomy.php:113
 msgid "course images"
 msgstr ""
 
 #. translators: 1: courses, 2: categories
-#: src/Providers/LifterLMS.php:89
+#: src/Providers/LifterLMS.php:90
 #, php-format
 msgid "%1$d courses in %2$d categories, with lessons, reviews and students making progress"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:185
+#: src/Providers/LifterLMS.php:186
 msgid "sections"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:187
+#: src/Providers/LifterLMS.php:188
 msgid "access plans"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:189
+#: src/Providers/LifterLMS.php:190
 msgid "course reviews"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:194
+#: src/Providers/LifterLMS.php:195
 msgid "course catalog, dashboard and checkout pages"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:203
+#: src/Providers/LifterLMS.php:204
 msgid "course categories and levels"
 msgstr ""
 
 #. translators: %d: minutes
-#: src/Providers/LifterLMS.php:330
+#: src/Providers/LifterLMS.php:331
 #, php-format
 msgid "%d minutes"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:341
+#: src/Providers/LifterLMS.php:342
 msgid "Lifetime access"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:341
+#: src/Providers/LifterLMS.php:342
 msgid "Free"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:349
+#: src/Providers/LifterLMS.php:350
 msgid "Buy now"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:349
+#: src/Providers/LifterLMS.php:350
 msgid "Enroll for free"
 msgstr ""
 
-#: src/Providers/LifterLMS.php:413
+#: src/Providers/LifterLMS.php:414
 msgid "LifterLMS did not enrol the student."
 msgstr ""
 
 #. translators: %d: listings
-#: src/Providers/Listora.php:93
+#: src/Providers/Listora.php:94
 #, php-format
 msgid "%d places run by the sample people, with photos, hours, map locations and reviews"
 msgstr ""
 
-#: src/Providers/Listora.php:146
+#: src/Providers/Listora.php:147
 msgid "listing categories, features and locations"
 msgstr ""
 
-#: src/Providers/Listora.php:148
+#: src/Providers/Listora.php:149
+#: src/Providers/Listora.php:452
 msgid "listings"
 msgstr ""
 
-#: src/Providers/Listora.php:149
+#: src/Providers/Listora.php:150
 msgid "listing photos"
 msgstr ""
 
@@ -894,90 +946,94 @@ msgstr ""
 msgid "Open Movie Night"
 msgstr ""
 
-#: src/Providers/MediaVerse.php:77
+#: src/Providers/MediaVerse.php:79
 msgid "WPMediaVerse keeps its usage ledger as an accounting record, with the sample people removed from it."
 msgstr ""
 
 #. translators: %d: photos
-#: src/Providers/MediaVerse.php:100
+#: src/Providers/MediaVerse.php:102
 #, php-format
 msgid "%d photos with titles and tags across the sample people, 3 albums and favorites"
 msgstr ""
 
-#: src/Providers/MediaVerse.php:127
+#: src/Providers/MediaVerse.php:129
 msgid "albums"
 msgstr ""
 
-#: src/Providers/MediaVerse.php:280
+#: src/Providers/MediaVerse.php:282
 msgid "Places I keep going back to"
 msgstr ""
 
-#: src/Providers/MediaVerse.php:280
+#: src/Providers/MediaVerse.php:282
 msgid "Landscapes from the last year of trips."
 msgstr ""
 
-#: src/Providers/MediaVerse.php:281
+#: src/Providers/MediaVerse.php:283
 msgid "Lines and light"
 msgstr ""
 
-#: src/Providers/MediaVerse.php:281
+#: src/Providers/MediaVerse.php:283
 msgid "Buildings, glass and the shapes cities make."
 msgstr ""
 
-#: src/Providers/MediaVerse.php:282
+#: src/Providers/MediaVerse.php:284
 msgid "Food we loved"
 msgstr ""
 
-#: src/Providers/MediaVerse.php:282
+#: src/Providers/MediaVerse.php:284
 msgid "Dishes worth travelling for."
 msgstr ""
 
-#: src/Providers/MediaVerse.php:407
+#: src/Providers/MediaVerse.php:435
+msgid "photos shared"
+msgstr ""
+
+#: src/Providers/MediaVerse.php:451
 msgid "Media"
 msgstr ""
 
 #. translators: %d: number of blog posts
-#: src/Providers/Pages.php:82
+#: src/Providers/Pages.php:83
 #, php-format
 msgid "About, Join, FAQ and Blog pages and %d blog posts by the sample people, so the demo is a complete website"
 msgstr ""
 
-#: src/Providers/Pages.php:95
-#: src/Providers/Pages.php:108
+#: src/Providers/Pages.php:96
+#: src/Providers/Pages.php:109
 msgid "blog categories"
 msgstr ""
 
-#: src/Providers/Pages.php:96
-#: src/Providers/Pages.php:109
+#: src/Providers/Pages.php:97
+#: src/Providers/Pages.php:110
 msgid "blog posts"
 msgstr ""
 
-#: src/Providers/Pages.php:98
-#: src/Providers/Pages.php:110
+#: src/Providers/Pages.php:99
+#: src/Providers/Pages.php:111
 msgid "page, post and category images"
 msgstr ""
 
-#: src/Providers/Pages.php:241
+#: src/Providers/Pages.php:242
 msgid "From the blog"
 msgstr ""
 
-#: src/Providers/Pages.php:273
+#: src/Providers/Pages.php:274
 msgid "Latest posts"
 msgstr ""
 
-#: src/Providers/PeepSo.php:88
+#: src/Providers/PeepSo.php:89
 msgid "A stream of member posts and link shares, with comments and reactions"
 msgstr ""
 
-#: src/Providers/PeepSo.php:118
+#: src/Providers/PeepSo.php:119
 msgid "PeepSo member profiles"
 msgstr ""
 
-#: src/Providers/PeepSo.php:119
+#: src/Providers/PeepSo.php:120
 msgid "stream posts"
 msgstr ""
 
-#: src/Providers/PeepSo.php:121
+#: src/Providers/PeepSo.php:122
 msgid "posts with reactions"
 msgstr ""
 
@@ -1026,85 +1082,102 @@ msgid "Roadmap"
 msgstr ""
 
 #. translators: %d: services
-#: src/Providers/SellServices.php:84
+#: src/Providers/SellServices.php:85
 #, php-format
 msgid "%d services from sample freelancers with packages, completed orders from buyers and reviews"
 msgstr ""
 
-#: src/Providers/SellServices.php:116
+#: src/Providers/SellServices.php:117
 msgid "service categories"
 msgstr ""
 
-#: src/Providers/SellServices.php:117
+#: src/Providers/SellServices.php:118
+#: src/Providers/SellServices.php:469
 msgid "services"
 msgstr ""
 
-#: src/Providers/SellServices.php:118
+#: src/Providers/SellServices.php:119
 msgid "orders"
 msgstr ""
 
-#: src/Providers/SellServices.php:119
+#: src/Providers/SellServices.php:120
 msgid "service images"
 msgstr ""
 
-#: src/Providers/SellServices.php:439
+#: src/Providers/SellServices.php:499
 msgid "Services"
 msgstr ""
 
-#: src/Providers/Theme.php:50
+#: src/Providers/Theme.php:57
 msgid "Logo, home page and menu"
 msgstr ""
 
-#: src/Providers/Theme.php:69
+#: src/Providers/Theme.php:76
 msgid "Block theme"
 msgstr ""
 
-#: src/Providers/Theme.php:70
+#: src/Providers/Theme.php:77
 msgid "Classic theme"
 msgstr ""
 
-#: src/Providers/Theme.php:81
+#: src/Providers/Theme.php:89
 msgid "menu"
 msgstr ""
 
-#: src/Providers/Theme.php:82
+#: src/Providers/Theme.php:90
+msgid "home page and Try the demo page"
+msgstr ""
+
+#: src/Providers/Theme.php:90
 msgid "Try the demo page"
 msgstr ""
 
-#: src/Providers/Theme.php:85
+#: src/Providers/Theme.php:95
+msgid "logo, site icon and home page photo"
+msgstr ""
+
+#: src/Providers/Theme.php:95
 msgid "logo and site icon"
 msgstr ""
 
-#: src/Providers/Theme.php:216
-#: src/Providers/Theme.php:280
+#: src/Providers/Theme.php:95
+msgid "home page photo"
+msgstr ""
+
+#: src/Providers/Theme.php:284
+msgid "Home"
+msgstr ""
+
+#: src/Providers/Theme.php:375
+#: src/Providers/Theme.php:439
 msgid "Try the demo"
 msgstr ""
 
-#: src/Providers/Theme.php:257
+#: src/Providers/Theme.php:416
 msgid "Demo menu"
 msgstr ""
 
 #. translators: %d: number
-#: src/Providers/Theme.php:261
+#: src/Providers/Theme.php:420
 #, php-format
 msgid "Demo menu %d"
 msgstr ""
 
 #. translators: 1: courses, 2: categories
-#: src/Providers/TutorLMS.php:82
+#: src/Providers/TutorLMS.php:83
 #, php-format
 msgid "%1$d courses in %2$d categories, with lessons, ratings and students making progress"
 msgstr ""
 
-#: src/Providers/TutorLMS.php:137
+#: src/Providers/TutorLMS.php:138
 msgid "course ratings"
 msgstr ""
 
-#: src/Providers/TutorLMS.php:214
+#: src/Providers/TutorLMS.php:215
 msgid "Tutor LMS did not save it."
 msgstr ""
 
-#: src/Providers/TutorLMS.php:365
+#: src/Providers/TutorLMS.php:366
 msgid "Tutor LMS did not enrol the student."
 msgstr ""
 
@@ -1131,30 +1204,41 @@ msgid "WC Vendors did not make the vendor."
 msgstr ""
 
 #. translators: 1: products, 2: categories
-#: src/Providers/WooCommerce.php:84
+#: src/Providers/WooCommerce.php:86
 #, php-format
 msgid "A store with %1$d products in %2$d categories, sale prices, stock and reviews"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:114
+#: src/Providers/WooCommerce.php:116
+#: src/Providers/WooCommerce.php:432
 msgid "products"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:115
+#: src/Providers/WooCommerce.php:117
 msgid "product photos"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:120
+#: src/Providers/WooCommerce.php:122
+#: src/Providers/WooCommerce.php:433
 msgid "product categories"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:205
+#: src/Providers/WooCommerce.php:207
 msgid "WooCommerce did not save it."
 msgstr ""
 
-#: src/Providers/WooCommerce.php:345
+#: src/Providers/WooCommerce.php:347
 msgid "Shop"
 msgstr ""
+
+#. translators: %d: number of products.
+#: src/Providers/WooCommerce.php:412
+#: assets/js/wizard.js:327
+#, php-format,js-format
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/Providers/WooSellServices.php:31
 msgid "Woo Sell Services"
@@ -1169,7 +1253,7 @@ msgid "Site check"
 msgstr ""
 
 #: assets/js/wizard.js:42
-#: assets/js/wizard.js:320
+#: assets/js/wizard.js:327
 msgid "Starting point"
 msgstr ""
 
@@ -1178,7 +1262,7 @@ msgid "Products"
 msgstr ""
 
 #: assets/js/wizard.js:42
-#: assets/js/wizard.js:428
+#: assets/js/wizard.js:435
 msgid "Home page"
 msgstr ""
 
@@ -1217,7 +1301,7 @@ msgid "Back"
 msgstr ""
 
 #: assets/js/wizard.js:59
-#: assets/js/wizard.js:464
+#: assets/js/wizard.js:471
 msgid "Continue"
 msgstr ""
 
@@ -1292,7 +1376,7 @@ msgid "will install"
 msgstr ""
 
 #: assets/js/wizard.js:118
-#: assets/js/wizard.js:263
+#: assets/js/wizard.js:266
 msgid "Your site will have"
 msgstr ""
 
@@ -1326,446 +1410,454 @@ msgstr ""
 msgid "Choose a starting point myself"
 msgstr ""
 
-#: assets/js/wizard.js:162
+#: assets/js/wizard.js:163
 msgid "Active"
 msgstr ""
 
-#: assets/js/wizard.js:162
+#: assets/js/wizard.js:163
 msgid "Installed, not active"
 msgstr ""
 
-#: assets/js/wizard.js:162
+#: assets/js/wizard.js:163
 msgid "Not installed"
 msgstr ""
 
-#: assets/js/wizard.js:163
+#: assets/js/wizard.js:164
 msgid "Pro add-on installed, not active"
 msgstr ""
 
-#: assets/js/wizard.js:163
+#: assets/js/wizard.js:164
 msgid "Pro add-on needs a licence: install it from your account"
 msgstr ""
 
-#: assets/js/wizard.js:167
+#: assets/js/wizard.js:168
 msgid "Activating"
 msgstr ""
 
-#: assets/js/wizard.js:167
+#: assets/js/wizard.js:168
 msgid "Installing"
 msgstr ""
 
-#. translators: %s: product name.
 #. translators: %s: product names.
-#: assets/js/wizard.js:171
-#: assets/js/wizard.js:294
+#: assets/js/wizard.js:172
+#: assets/js/wizard.js:297
+#: assets/js/wizard.js:301
 #, js-format
 msgid "Install %s"
 msgstr ""
 
 #. translators: 1: where to get it, 2: Reign add-on names.
-#: assets/js/wizard.js:174
+#: assets/js/wizard.js:175
 #, js-format
 msgid "Not on WordPress.org: get it from %1$s and upload it under Plugins. Needed by %2$s."
 msgstr ""
 
 #. translators: %s: Reign add-on names.
-#: assets/js/wizard.js:175
+#: assets/js/wizard.js:177
+#, js-format
+msgid "Free from WordPress.org. Gives %s its members: profiles, groups and an activity feed."
+msgstr ""
+
+#. translators: %s: Reign add-on names.
+#: assets/js/wizard.js:178
 #, js-format
 msgid "Free from WordPress.org. Needed by %s."
 msgstr ""
 
-#: assets/js/wizard.js:176
+#: assets/js/wizard.js:179
 msgid "Free theme. Switches your theme; Finish demo does not switch it back."
 msgstr ""
 
-#: assets/js/wizard.js:176
+#: assets/js/wizard.js:179
+msgid "Free. Its blocks build your home page and the About, Blog and FAQ pages, and you edit them like any block."
+msgstr ""
+
+#: assets/js/wizard.js:179
 msgid "Your account or this site does not allow installing here."
 msgstr ""
 
 #. translators: %d: number of products.
-#: assets/js/wizard.js:183
+#: assets/js/wizard.js:186
 #, js-format
 msgid "All %d product is active"
 msgid_plural "All %d products are active"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:186
+#: assets/js/wizard.js:189
 msgid "Community set, used by every Wbcom starting point"
 msgstr ""
 
-#: assets/js/wizard.js:187
+#: assets/js/wizard.js:190
 msgid "Plugins your Reign add-ons are built for"
 msgstr ""
 
-#: assets/js/wizard.js:188
+#: assets/js/wizard.js:191
 msgid "Add more products"
 msgstr ""
 
-#: assets/js/wizard.js:189
+#: assets/js/wizard.js:192
 msgid "Theme"
 msgstr ""
 
-#: assets/js/wizard.js:190
+#: assets/js/wizard.js:193
 msgid "Free versions from wbcomdesigns.com and WordPress.org, the same releases you get as updates."
 msgstr ""
 
 #. translators: %d: number of products.
-#: assets/js/wizard.js:190
+#: assets/js/wizard.js:193
 #, js-format
 msgid "Install and activate %d product"
 msgid_plural "Install and activate %d products"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:190
+#: assets/js/wizard.js:193
 msgid "Install selected"
 msgstr ""
 
-#: assets/js/wizard.js:207
+#: assets/js/wizard.js:210
 msgid "It could not be installed."
 msgstr ""
 
 #. translators: 1: starting point, 2: audience.
-#: assets/js/wizard.js:247
+#: assets/js/wizard.js:250
 #, js-format
 msgid "Preselected: %1$s. %2$s"
 msgstr ""
 
-#: assets/js/wizard.js:248
+#: assets/js/wizard.js:251
 msgid "Preselected: the products this idea uses, with the reason for each. Switch any of them off or on."
 msgstr ""
 
 #. translators: 1: site name, 2: tagline.
-#: assets/js/wizard.js:250
+#: assets/js/wizard.js:253
 #, js-format
 msgid "The header shows \"%1$s\" and the tagline \"%2$s\" in place of the sample logo; the menu links every product you chose."
 msgstr ""
 
 #. translators: 1: site name, 2: tagline.
-#: assets/js/wizard.js:251
+#: assets/js/wizard.js:254
 #, js-format
 msgid "The header shows \"%1$s\" and the tagline \"%2$s\"; the menu links every product you chose."
 msgstr ""
 
 #. translators: %s: site name.
-#: assets/js/wizard.js:253
+#: assets/js/wizard.js:256
 #, js-format
 msgid "From your idea: %s"
 msgstr ""
 
-#: assets/js/wizard.js:253
-#: assets/js/wizard.js:275
+#: assets/js/wizard.js:256
+#: assets/js/wizard.js:278
 msgid "Use no idea"
 msgstr ""
 
-#: assets/js/wizard.js:264
+#: assets/js/wizard.js:267
 msgid "When you choose Build"
 msgstr ""
 
 #. translators: %s: AI connector names.
-#: assets/js/wizard.js:265
+#: assets/js/wizard.js:268
 #, js-format
 msgid "Your AI connector (%s) writes the text for this site, product by product: people's bios, spaces, posts, discussions, courses, events, pages and blog posts. Each product shows on the progress screen as it is written."
 msgstr ""
 
-#: assets/js/wizard.js:265
+#: assets/js/wizard.js:268
 msgid "The demo is built with that text and photos from the installer's library, in the counts below."
 msgstr ""
 
-#: assets/js/wizard.js:265
+#: assets/js/wizard.js:268
 msgid "A product whose text does not pass our check uses the sample text, and the build carries on. Finish demo removes everything, as with any demo."
 msgstr ""
 
 #. translators: %d: number of products.
-#: assets/js/wizard.js:275
+#: assets/js/wizard.js:278
 #, js-format
 msgid "this idea needs %d more product. It is ticked below: install it, then continue."
 msgid_plural "this idea needs %d more products. They are ticked below: install them, then continue."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:275
+#: assets/js/wizard.js:278
 msgid "everything this idea needs is active."
 msgstr ""
 
-#: assets/js/wizard.js:275
+#: assets/js/wizard.js:278
 msgid "Continue with this idea"
 msgstr ""
 
-#: assets/js/wizard.js:282
+#: assets/js/wizard.js:285
 msgid "Theme. The home page, menu and logo can be set up for you."
 msgstr ""
 
-#: assets/js/wizard.js:282
+#: assets/js/wizard.js:285
 msgid "Theme. The home page and menu can be set up for you."
 msgstr ""
 
-#: assets/js/wizard.js:282
+#: assets/js/wizard.js:285
 msgid "Ready"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:283
+#: assets/js/wizard.js:286
 #, js-format
 msgid "%d supported product ready"
 msgid_plural "%d supported products ready"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:283
+#: assets/js/wizard.js:286
 msgid "Supported"
 msgstr ""
 
-#: assets/js/wizard.js:283
+#: assets/js/wizard.js:286
 msgid "None yet"
 msgstr ""
 
-#: assets/js/wizard.js:284
+#: assets/js/wizard.js:287
 msgid "Update this product to include it in the demo."
 msgstr ""
 
-#: assets/js/wizard.js:284
+#: assets/js/wizard.js:287
 msgid "Not supported yet"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:285
+#: assets/js/wizard.js:288
 #, js-format
 msgid "%1$s user, %2$s posts and pages"
 msgid_plural "%1$s users, %2$s posts and pages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:285
+#: assets/js/wizard.js:288
 msgid "Yours. They are not changed or removed."
 msgstr ""
 
-#: assets/js/wizard.js:285
+#: assets/js/wizard.js:288
 msgid "Untouched"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:287
+#: assets/js/wizard.js:290
 #, js-format
 msgid "Demo content from %s is still on this site. Remove it from that product first so the two demos do not mix."
 msgstr ""
 
 #. translators: %s: what the site already has, e.g. "3 other members, 12 blog posts".
-#: assets/js/wizard.js:288
+#: assets/js/wizard.js:291
 #, js-format
 msgid "This site already has %s."
 msgstr ""
 
-#: assets/js/wizard.js:288
+#: assets/js/wizard.js:291
 msgid "The demo is made for a fresh site you use to show or try the products. On a site people use, sample people appear next to your real members until you finish the demo. Use a staging copy or a fresh install."
 msgstr ""
 
 #. translators: %d: memory limit in MB.
-#: assets/js/wizard.js:289
+#: assets/js/wizard.js:292
 #, js-format
 msgid "PHP memory is limited to %d MB."
 msgstr ""
 
-#: assets/js/wizard.js:289
+#: assets/js/wizard.js:292
 msgid "With all products active, WordPress needs about 165 MB before the demo adds anything, so a build step can stop. Ask your host to raise memory_limit to 256 MB, or add define( 'WP_MEMORY_LIMIT', '256M' ); to wp-config.php."
 msgstr ""
 
-#: assets/js/wizard.js:294
+#: assets/js/wizard.js:297
 msgid "No supported product is active yet. Install the plugins your Reign add-ons are built for, ticked below, to start."
 msgstr ""
 
-#: assets/js/wizard.js:294
+#: assets/js/wizard.js:297
 msgid "No supported product is active yet. Install the community set below, or activate a supported plugin such as BuddyPress, WooCommerce or LearnDash."
 msgstr ""
 
+#. translators: %s: Reign add-on names.
+#: assets/js/wizard.js:301
+#, js-format
+msgid "%s needs its plugin before the demo can show it. It is ticked below."
+msgstr ""
+
 #. translators: %s: starting point name.
-#: assets/js/wizard.js:296
+#: assets/js/wizard.js:303
 #, js-format
 msgid "The products the %s starting point needs are ticked below. Install them, then the wizard returns to Starting point with it chosen."
 msgstr ""
 
-#: assets/js/wizard.js:298
+#: assets/js/wizard.js:305
 msgid "Let's see what you have"
 msgstr ""
 
-#: assets/js/wizard.js:299
+#: assets/js/wizard.js:306
 msgid "We only read your site on this step. Nothing changes until you click Build."
 msgstr ""
 
-#: assets/js/wizard.js:301
+#: assets/js/wizard.js:308
 msgid "Skip, I will add my own content"
 msgstr ""
 
-#: assets/js/wizard.js:318
+#: assets/js/wizard.js:325
 msgid "Your starting point"
 msgstr ""
 
-#: assets/js/wizard.js:318
+#: assets/js/wizard.js:325
 msgid "What kind of site are you building?"
 msgstr ""
 
-#: assets/js/wizard.js:319
+#: assets/js/wizard.js:326
 msgid "Chosen by your idea. Continue to see the products it uses."
 msgstr ""
 
-#: assets/js/wizard.js:319
+#: assets/js/wizard.js:326
 msgid "Pick the closest one. You can change every product on the next step."
 msgstr ""
 
-#: assets/js/wizard.js:320
+#: assets/js/wizard.js:327
 msgid "Choose a different starting point"
 msgstr ""
 
-#: assets/js/wizard.js:320
+#: assets/js/wizard.js:327
 msgid "Best for evaluating"
 msgstr ""
 
-#. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:320
-#, js-format
-msgid "%d product"
-msgid_plural "%d products"
-msgstr[0] ""
-msgstr[1] ""
-
-#: assets/js/wizard.js:321
+#: assets/js/wizard.js:328
 msgid "More starting points, installed for you"
 msgstr ""
 
 #. translators: %s: product names.
-#: assets/js/wizard.js:321
+#: assets/js/wizard.js:328
 #, js-format
 msgid "Installs %s"
 msgstr ""
 
-#: assets/js/wizard.js:331
+#: assets/js/wizard.js:338
 msgid "Without WPMediaVerse: no photo posts, albums or messages"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:331
+#: assets/js/wizard.js:338
 #, js-format
 msgid "Include %s"
 msgstr ""
 
-#: assets/js/wizard.js:334
+#: assets/js/wizard.js:341
 msgid "Choose what to include"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:335
+#: assets/js/wizard.js:342
 #, js-format
 msgid "The same %d sample people appear across every product you include, so the site feels like one place."
 msgstr ""
 
-#: assets/js/wizard.js:336
+#: assets/js/wizard.js:343
 msgid "Will create"
 msgstr ""
 
-#: assets/js/wizard.js:343
+#: assets/js/wizard.js:350
 msgid "Home page and menu"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:344
+#: assets/js/wizard.js:351
 #, js-format
 msgid "%s can open on your demo from the first visit."
 msgstr ""
 
-#: assets/js/wizard.js:346
+#: assets/js/wizard.js:353
 msgid "Use the community home page, menu and logo"
 msgstr ""
 
-#: assets/js/wizard.js:346
+#: assets/js/wizard.js:353
 msgid "Use the demo home page and menu"
 msgstr ""
 
-#: assets/js/wizard.js:346
+#: assets/js/wizard.js:353
 msgid "The home page opens on the main product you chose, and the menu links every product."
 msgstr ""
 
-#: assets/js/wizard.js:346
+#: assets/js/wizard.js:353
 msgid "Recommended for a new site"
 msgstr ""
 
-#: assets/js/wizard.js:347
+#: assets/js/wizard.js:354
 msgid "Keep my home page, menu and logo"
 msgstr ""
 
-#: assets/js/wizard.js:347
+#: assets/js/wizard.js:354
 msgid "Sample content is added. Your home page, menu and theme settings stay exactly as they are."
 msgstr ""
 
-#: assets/js/wizard.js:349
+#: assets/js/wizard.js:356
 msgid "We save your current home page, menu and logo first, so you can put them back when you finish the demo. A menu you already have is never edited: the demo adds its own Demo menu."
 msgstr ""
 
-#: assets/js/wizard.js:357
+#: assets/js/wizard.js:364
 msgid "Shared"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:357
+#: assets/js/wizard.js:364
 #, js-format
 msgid "%d sample people"
 msgstr ""
 
-#: assets/js/wizard.js:357
+#: assets/js/wizard.js:364
 msgid "home page, menu and logo"
 msgstr ""
 
-#: assets/js/wizard.js:357
+#: assets/js/wizard.js:364
 msgid "home page and menu"
 msgstr ""
 
-#: assets/js/wizard.js:360
+#: assets/js/wizard.js:367
 msgid "Ready to build"
 msgstr ""
 
-#: assets/js/wizard.js:361
+#: assets/js/wizard.js:368
 msgid "This is what will be created."
 msgstr ""
 
-#: assets/js/wizard.js:362
-#: assets/js/wizard.js:453
+#: assets/js/wizard.js:369
+#: assets/js/wizard.js:460
 msgid "Product"
 msgstr ""
 
-#: assets/js/wizard.js:362
+#: assets/js/wizard.js:369
 msgid "Creates"
 msgstr ""
 
-#: assets/js/wizard.js:365
+#: assets/js/wizard.js:372
 msgid "Site name"
 msgstr ""
 
-#: assets/js/wizard.js:366
+#: assets/js/wizard.js:373
 msgid "Tagline"
 msgstr ""
 
-#: assets/js/wizard.js:367
+#: assets/js/wizard.js:374
 msgid "A new site name shows in the header in place of the sample logo. Remove everything puts your current name and tagline back."
 msgstr ""
 
-#: assets/js/wizard.js:367
+#: assets/js/wizard.js:374
 msgid "The header shows this name. Remove everything puts your current name and tagline back."
 msgstr ""
 
-#: assets/js/wizard.js:369
+#: assets/js/wizard.js:376
 msgid "Nothing is emailed."
 msgstr ""
 
-#: assets/js/wizard.js:369
+#: assets/js/wizard.js:376
 msgid "Sample people never get mail, now or later."
 msgstr ""
 
-#: assets/js/wizard.js:369
+#: assets/js/wizard.js:376
 msgid "Your own users and content"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:369
+#: assets/js/wizard.js:376
 #, js-format
 msgid "(%1$s user, %2$s posts and pages) are not changed."
 msgid_plural "(%1$s users, %2$s posts and pages) are not changed."
@@ -1773,49 +1865,49 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:369
+#: assets/js/wizard.js:376
 #, js-format
 msgid "About %d minute."
 msgid_plural "About %d minutes."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:369
+#: assets/js/wizard.js:376
 msgid "Dates are spread over the last two months."
 msgstr ""
 
 #. translators: %s: what the site already has.
-#: assets/js/wizard.js:370
+#: assets/js/wizard.js:377
 #, js-format
 msgid "This site already has %s. I understand the demo is made for a fresh site, and I want sample content added here."
 msgstr ""
 
-#: assets/js/wizard.js:371
+#: assets/js/wizard.js:378
 msgid "Build my demo"
 msgstr ""
 
-#: assets/js/wizard.js:382
+#: assets/js/wizard.js:389
 msgid "You can leave this page. It keeps going and picks up where it stopped when you come back."
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:384
+#: assets/js/wizard.js:391
 #, js-format
 msgid "Working on %s"
 msgstr ""
 
-#: assets/js/wizard.js:384
+#: assets/js/wizard.js:391
 msgid "Finishing up…"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:384
+#: assets/js/wizard.js:391
 #, js-format
 msgid "%1$d of %2$d steps"
 msgstr ""
 
 #. translators: 1: number of items, 2: product names.
-#: assets/js/wizard.js:403
+#: assets/js/wizard.js:410
 #, js-format
 msgid "%1$s item is waiting for %2$s. Activate it, then continue removing."
 msgid_plural "%1$s items are waiting for %2$s. Activate them, then continue removing."
@@ -1823,239 +1915,239 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of items.
-#: assets/js/wizard.js:404
+#: assets/js/wizard.js:411
 #, js-format
 msgid "%s item could not be removed."
 msgid_plural "%s items could not be removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:404
+#: assets/js/wizard.js:411
 msgid "Continue removing"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:413
+#: assets/js/wizard.js:420
 #, js-format
 msgid "%d item could not be created"
 msgid_plural "%d items could not be created"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:416
 #: assets/js/wizard.js:423
+#: assets/js/wizard.js:430
 msgid "Your demo"
 msgstr ""
 
-#: assets/js/wizard.js:417
+#: assets/js/wizard.js:424
 msgid "The sample content is gone"
 msgstr ""
 
 #. translators: %s: number of items.
-#: assets/js/wizard.js:418
+#: assets/js/wizard.js:425
 #, js-format
 msgid "%s setup item from the demo is still tracked: a setting, page, menu or category. Remove it too, or keep it as yours."
 msgid_plural "%s setup items from the demo are still tracked: settings, pages, menus and categories. Remove them too, or keep them as yours."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:419
+#: assets/js/wizard.js:426
 msgid "What is still tracked"
 msgstr ""
 
-#: assets/js/wizard.js:420
+#: assets/js/wizard.js:427
 msgid "Remove them too"
 msgstr ""
 
-#: assets/js/wizard.js:420
+#: assets/js/wizard.js:427
 msgid "Keep them as mine"
 msgstr ""
 
-#: assets/js/wizard.js:424
+#: assets/js/wizard.js:431
 msgid "Your demo is built, with problems"
 msgstr ""
 
-#: assets/js/wizard.js:424
+#: assets/js/wizard.js:431
 msgid "Your site is ready"
 msgstr ""
 
-#: assets/js/wizard.js:425
+#: assets/js/wizard.js:432
 msgid "Some products could not finish their part. The list below says which and why."
 msgstr ""
 
-#: assets/js/wizard.js:425
+#: assets/js/wizard.js:432
 msgid "Take a look around, then make it yours."
 msgstr ""
 
-#: assets/js/wizard.js:426
+#: assets/js/wizard.js:433
 msgid "Demo active"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:426
+#: assets/js/wizard.js:433
 #, js-format
 msgid "%s items"
 msgstr ""
 
-#: assets/js/wizard.js:426
-#: assets/js/wizard.js:454
-#: assets/js/wizard.js:472
+#: assets/js/wizard.js:433
+#: assets/js/wizard.js:461
 #: assets/js/wizard.js:479
-#: assets/js/wizard.js:490
-#: assets/js/wizard.js:523
+#: assets/js/wizard.js:486
+#: assets/js/wizard.js:497
+#: assets/js/wizard.js:530
 msgid "Finish demo"
 msgstr ""
 
-#: assets/js/wizard.js:428
+#: assets/js/wizard.js:435
 msgid "See it"
 msgstr ""
 
-#: assets/js/wizard.js:429
+#: assets/js/wizard.js:436
 msgid "Make it yours"
 msgstr ""
 
-#: assets/js/wizard.js:429
+#: assets/js/wizard.js:436
 msgid "Logo, colours and site name"
 msgstr ""
 
-#: assets/js/wizard.js:429
+#: assets/js/wizard.js:436
 msgid "Review product settings"
 msgstr ""
 
-#: assets/js/wizard.js:430
+#: assets/js/wizard.js:437
 msgid "When you are ready"
 msgstr ""
 
-#: assets/js/wizard.js:430
+#: assets/js/wizard.js:437
 msgid "Finish the demo: remove the sample people and content and keep everything you set up."
 msgstr ""
 
-#: assets/js/wizard.js:432
+#: assets/js/wizard.js:439
 msgid "What the demo added"
 msgstr ""
 
-#: assets/js/wizard.js:434
-#: assets/js/wizard.js:503
+#: assets/js/wizard.js:441
+#: assets/js/wizard.js:510
 msgid "Visit your site"
 msgstr ""
 
-#: assets/js/wizard.js:440
+#: assets/js/wizard.js:447
 msgid "No demo data on this site"
 msgstr ""
 
-#: assets/js/wizard.js:441
+#: assets/js/wizard.js:448
 msgid "The installer is not tracking any sample content or setup here. Your own users and content are never listed."
 msgstr ""
 
-#: assets/js/wizard.js:442
+#: assets/js/wizard.js:449
 msgid "When you build a demo, this screen lets you remove all of it or choose what to remove, at any time."
 msgstr ""
 
-#: assets/js/wizard.js:443
-#: assets/js/wizard.js:506
+#: assets/js/wizard.js:450
+#: assets/js/wizard.js:513
 msgid "Go to dashboard"
 msgstr ""
 
-#: assets/js/wizard.js:443
+#: assets/js/wizard.js:450
 msgid "Set up a demo"
 msgstr ""
 
-#: assets/js/wizard.js:451
+#: assets/js/wizard.js:458
 msgid "Nothing"
 msgstr ""
 
-#: assets/js/wizard.js:453
+#: assets/js/wizard.js:460
 msgid "Remove"
 msgstr ""
 
-#: assets/js/wizard.js:453
+#: assets/js/wizard.js:460
 msgid "setup"
 msgstr ""
 
-#: assets/js/wizard.js:455
+#: assets/js/wizard.js:462
 msgid "What should stay?"
 msgstr ""
 
-#: assets/js/wizard.js:456
+#: assets/js/wizard.js:463
 msgid "Your own users and content are never touched."
 msgstr ""
 
-#: assets/js/wizard.js:458
+#: assets/js/wizard.js:465
 msgid "Keep my setup, remove sample content"
 msgstr ""
 
-#: assets/js/wizard.js:458
+#: assets/js/wizard.js:465
 msgid "Removes the sample people and everything they made. Keeps settings, pages, menus and categories."
 msgstr ""
 
-#: assets/js/wizard.js:458
+#: assets/js/wizard.js:465
 msgid "Recommended"
 msgstr ""
 
-#: assets/js/wizard.js:459
+#: assets/js/wizard.js:466
 msgid "Let me choose"
 msgstr ""
 
-#: assets/js/wizard.js:459
+#: assets/js/wizard.js:466
 msgid "Pick per product what goes and what stays."
 msgstr ""
 
-#: assets/js/wizard.js:460
+#: assets/js/wizard.js:467
 msgid "Remove everything the demo added"
 msgstr ""
 
-#: assets/js/wizard.js:460
+#: assets/js/wizard.js:467
 msgid "Also removes the sample categories, pages and setup, and puts back your previous home page, menu and logo."
 msgstr ""
 
-#: assets/js/wizard.js:462
+#: assets/js/wizard.js:469
 msgid "Some sample content stays, so the sample people who made it stay too."
 msgstr ""
 
-#: assets/js/wizard.js:463
+#: assets/js/wizard.js:470
 msgid "Will remove"
 msgstr ""
 
-#: assets/js/wizard.js:463
+#: assets/js/wizard.js:470
 msgid "Will keep"
 msgstr ""
 
-#: assets/js/wizard.js:463
+#: assets/js/wizard.js:470
 msgid "Counting…"
 msgstr ""
 
-#: assets/js/wizard.js:464
+#: assets/js/wizard.js:471
 msgid "Cancel"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:473
+#: assets/js/wizard.js:480
 #, js-format
 msgid "Remove %s sample item?"
 msgid_plural "Remove %s sample items?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:474
+#: assets/js/wizard.js:481
 msgid "This cannot be undone."
 msgstr ""
 
-#: assets/js/wizard.js:476
+#: assets/js/wizard.js:483
 msgid "Your previous home page, menu and logo will be put back. If you changed them after the build, your changes are kept."
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:477
+#: assets/js/wizard.js:484
 #, js-format
 msgid "%s is not active, so its sample content waits until you activate it again. Everything else is removed now."
 msgstr ""
 
-#: assets/js/wizard.js:478
+#: assets/js/wizard.js:485
 msgid "I understand the sample content is deleted permanently."
 msgstr ""
 
 #. translators: %s: number.
-#: assets/js/wizard.js:489
+#: assets/js/wizard.js:496
 #, js-format
 msgid "%s sample item"
 msgid_plural "%s sample items"
@@ -2063,105 +2155,105 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number.
-#: assets/js/wizard.js:489
+#: assets/js/wizard.js:496
 #, js-format
 msgid "%s setup item"
 msgid_plural "%s setup items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:491
+#: assets/js/wizard.js:498
 msgid "Your site is ready for real members"
 msgstr ""
 
-#: assets/js/wizard.js:491
+#: assets/js/wizard.js:498
 msgid "Done: everything you chose was removed"
 msgstr ""
 
-#: assets/js/wizard.js:491
+#: assets/js/wizard.js:498
 msgid "Almost done"
 msgstr ""
 
-#: assets/js/wizard.js:492
+#: assets/js/wizard.js:499
 msgid "We checked: nothing from the demo was left behind."
 msgstr ""
 
-#: assets/js/wizard.js:492
+#: assets/js/wizard.js:499
 msgid "Here is what is still on the site from the demo."
 msgstr ""
 
-#: assets/js/wizard.js:494
+#: assets/js/wizard.js:501
 msgid "Items removed"
 msgstr ""
 
-#: assets/js/wizard.js:495
+#: assets/js/wizard.js:502
 msgid "Kept by your choice"
 msgstr ""
 
-#: assets/js/wizard.js:496
+#: assets/js/wizard.js:503
 msgid "Sample people left"
 msgstr ""
 
-#: assets/js/wizard.js:496
+#: assets/js/wizard.js:503
 msgid "They stay while content they made is kept."
 msgstr ""
 
-#: assets/js/wizard.js:497
+#: assets/js/wizard.js:504
 msgid "Chosen items not removed yet"
 msgstr ""
 
-#: assets/js/wizard.js:500
+#: assets/js/wizard.js:507
 msgid "You changed your home page, menu or logo after the build, so we kept your version."
 msgstr ""
 
-#: assets/js/wizard.js:502
+#: assets/js/wizard.js:509
 msgid "These are records the products keep on purpose; they are not sample content and are not shown on the site."
 msgstr ""
 
-#: assets/js/wizard.js:503
+#: assets/js/wizard.js:510
 msgid "Next"
 msgstr ""
 
-#: assets/js/wizard.js:503
+#: assets/js/wizard.js:510
 msgid "Invite your first members"
 msgstr ""
 
-#: assets/js/wizard.js:504
+#: assets/js/wizard.js:511
 msgid "Installer no longer needed"
 msgstr ""
 
-#: assets/js/wizard.js:504
+#: assets/js/wizard.js:511
 msgid "You can deactivate and delete it. Nothing you kept depends on it."
 msgstr ""
 
-#: assets/js/wizard.js:505
+#: assets/js/wizard.js:512
 msgid "Keep the installer for now"
 msgstr ""
 
-#: assets/js/wizard.js:505
+#: assets/js/wizard.js:512
 msgid "It still tracks what the demo left, so you can remove it later from Appearance > Set up your site. Once only setup is left you can keep it as yours."
 msgstr ""
 
-#: assets/js/wizard.js:506
+#: assets/js/wizard.js:513
 msgid "Remove more"
 msgstr ""
 
-#: assets/js/wizard.js:519
+#: assets/js/wizard.js:526
 msgid "Building your demo"
 msgstr ""
 
-#: assets/js/wizard.js:523
+#: assets/js/wizard.js:530
 msgid "Removing sample content"
 msgstr ""
 
-#: assets/js/wizard.js:529
+#: assets/js/wizard.js:536
 msgid "Try again"
 msgstr ""
 
-#: assets/js/wizard.js:555
+#: assets/js/wizard.js:562
 msgid "The server stopped answering. Your progress is saved: click Try again to continue where it stopped."
 msgstr ""
 
-#: assets/js/wizard.js:836
+#: assets/js/wizard.js:947
 msgid "The wizard could not load. Reload the page."
 msgstr ""
