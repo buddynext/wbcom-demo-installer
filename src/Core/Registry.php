@@ -105,6 +105,7 @@ final class Registry {
 			Providers\CareerBoard::class,
 			Providers\JobManager::class,
 			Providers\Listora::class,
+			Providers\GeoDirectory::class,
 			Providers\SellServices::class,
 			Providers\WooSellServices::class,
 			Providers\Gamification::class,

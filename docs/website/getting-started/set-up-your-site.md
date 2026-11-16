@@ -92,6 +92,11 @@ To edit them, open the page in the block editor:
 - With WP Job Manager: 8 job listings from 3 companies run by sample people, with logos, job types, salaries and
   remote roles (each company's first job is featured). If there is no Jobs page yet, the demo adds one; Remove
   everything takes it away again.
+- With GeoDirectory: 24 places in Philadelphia (GeoDirectory's default city) across 8 categories, run by sample
+  people, each with a photo, address and map pin, phone, website and opening hours, and 56 star-rated reviews. The
+  place page shows the address, phone, website and hours under the description, and GeoDirectory's location page
+  (search, categories, map and the newest places) is offered as the home page. Remove everything takes the categories,
+  the phone, website and hours fields and those place page details away again.
 - Your home page, menu and logo, if you chose them.
 - Each product's own setup finished and its pages shown without sidebars, so there are no setup wizards or
   setup reminders waiting for you.
