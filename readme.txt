@@ -24,7 +24,7 @@ Wbcom Demo Installer sets up a believable demo of every Wbcom product you have a
 
 When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report shows what was removed and what is still on the site.
 
-Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap and WB Gamification (with their Pro add-ons active), on BuddyX, BuddyX Pro, Reign or any theme.
+Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and Wbcom Essential (with their Pro add-ons active); BuddyPress, BuddyBoss Platform and PeepSo; WooCommerce, Dokan, WCFM Marketplace, WC Vendors, LearnDash, Tutor LMS, LifterLMS, Sensei LMS, GeoDirectory and WP Job Manager, with the Reign add-on for each. Themes: Reign, BuddyX, BuddyX Pro or any theme. Paid plugins (Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo, Pro add-ons) are bought, installed and licensed by you; the installer sets up the free ones.
 
 = For developers =
 

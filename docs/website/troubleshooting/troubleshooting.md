@@ -41,3 +41,14 @@ run `wp wbcom-demo verify` to see what is left.
 
 These are real owner tasks, not demo problems. Connect a payment method and map your own Terms page in that
 product's settings.
+
+## Still stuck?
+
+Open a support ticket at [wbcomdesigns.com/support](https://wbcomdesigns.com/support/#submit-ticket-section) and
+include:
+
+1. The installer version (under **Plugins**) and what the **Site check** step shows. A screenshot of that step is
+   enough.
+2. Your theme's system status. On Reign: **Reign Settings > Tools**. On other themes: **Tools > Site Health > Info**,
+   then **Copy site info to clipboard**.
+3. Which demo or starting point you chose, the step where it stopped, and the exact message on screen.
