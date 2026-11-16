@@ -457,7 +457,8 @@ final class Command {
 	 */
 	public function install( $args, $assoc ): void {
 		$this->as_admin();
-		$ids = isset( $assoc['all'] ) ? array_values( array_diff( array_keys( Installer::catalog() ), array( 'buddyx' ) ) ) : array_map( 'sanitize_key', $args );
+		// --all: every product the installer can download (not the theme, not the ones uploaded by hand).
+		$ids = isset( $assoc['all'] ) ? array_keys( array_filter( Installer::catalog(), static fn( array $e, string $id ): bool => 'buddyx' !== $id && ( isset( $e['wporg'] ) || isset( $e['item_id'] ) ), ARRAY_FILTER_USE_BOTH ) ) : array_map( 'sanitize_key', $args );
 		if ( ! $ids ) {
 			WP_CLI::error( 'Name the products to install, or pass --all.' );
 		}
@@ -470,15 +471,27 @@ final class Command {
 	 * @param string[] $ids Catalog ids.
 	 */
 	private function install_ids( array $ids ): void {
-		$states = array_column( Installer::overview(), 'state', 'id' );
+		$catalog = Installer::catalog();
 		foreach ( $ids as $id ) {
-			if ( ! isset( $states[ $id ] ) ) {
-				WP_CLI::error( sprintf( '"%s" is not a product this installer can add. Products: %s', $id, implode( ', ', array_keys( Installer::catalog() ) ) ) );
+			// The whole catalog, as the demo cards use it: the site check's list hides a Reign add-on's plugin
+			// until the add-on is active.
+			if ( ! isset( $catalog[ $id ] ) ) {
+				WP_CLI::error( sprintf( '"%s" is not a product this installer can add. Products: %s', $id, implode( ', ', array_keys( $catalog ) ) ) );
 			}
-			if ( 'active' === $states[ $id ] ) {
+			$state = Installer::status( $id )['state'];
+			if ( 'active' === $state ) {
 				continue;
 			}
-			WP_CLI::log( sprintf( '%s %s...', 'inactive' === $states[ $id ] ? 'Activating' : 'Installing', $id ) );
+			WP_CLI::log(
+				sprintf(
+					'%s %s...',
+					array(
+						'inactive' => 'Activating',
+						'outdated' => 'Updating',
+					)[ $state ] ?? 'Installing',
+					$id
+				)
+			);
 			$done = Installer::install( $id );
 			if ( is_wp_error( $done ) ) {
 				WP_CLI::error( sprintf( '%s: %s', $id, $done->get_error_message() ) );
