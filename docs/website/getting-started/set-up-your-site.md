@@ -87,6 +87,9 @@ To edit them, open the page in the block editor:
 - With LearnDash: 5 courses in 4 categories, each with lessons, topics and a photo, the first lesson open as a free
   preview, and sample students part way through (one finishes each course). Paid courses show in US dollars when
   the site has no currency set yet.
+- With Tutor LMS: the same 5 courses, each with topics, lessons, a photo, level and duration, sample instructors,
+  and sample students part way through (one finishes each course); the first two students in each course rate it.
+  Course ratings and the enrolled count are switched on; Remove everything puts Tutor's settings back.
 - With Dokan (and WooCommerce): 4 stores run by the sample vendors, each with a photo, banner, address and phone,
   selling the sample products of their category.
 - With WP Job Manager: 8 job listings from 3 companies run by sample people, with logos, job types, salaries and
