@@ -96,6 +96,9 @@ To edit them, open the page in the block editor:
   paid courses show their price; Remove everything takes both away again.
 - With Dokan (and WooCommerce): 4 stores run by the sample vendors, each with a photo, banner, address and phone,
   selling the sample products of their category.
+- With WCFM Marketplace (and WooCommerce): the same 4 stores, with a photo, banner, address and phone, selling the
+  sample products of their category. If there is no Stores page yet, the demo adds one; Remove everything takes it
+  away again.
 - With WP Job Manager: 8 job listings from 3 companies run by sample people, with logos, job types, salaries and
   remote roles (each company's first job is featured). If there is no Jobs page yet, the demo adds one; Remove
   everything takes it away again.

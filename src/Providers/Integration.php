@@ -93,6 +93,8 @@ final class Integration extends Provider {
 				return function_exists( 'wc_get_page_permalink' );
 			case 'dokan':
 				return function_exists( 'dokan_get_navigation_url' );
+			case 'wcfm':
+				return function_exists( 'get_wcfm_url' ) && function_exists( 'wcfmmp_get_store_url' );
 			case 'jobmanager':
 				return defined( 'JOB_MANAGER_VERSION' );
 			case 'tribeevents':
@@ -214,6 +216,17 @@ final class Integration extends Provider {
 						'dashboard' => (string) dokan_get_navigation_url(),
 					),
 					array( 'dokan' => admin_url( 'admin.php?page=dokan' ) ),
+				);
+			case 'wcfm':
+				return array(
+					array(
+						'stores'    => self::page( WCFM::stores_page() ),
+						'dashboard' => (string) get_wcfm_url(),
+					),
+					array(
+						'vendors'  => (string) get_wcfm_vendors_url(),
+						'settings' => (string) get_wcfm_settings_url(),
+					),
 				);
 			case 'jobmanager':
 				return array( array( 'jobs' => self::page( (int) get_option( 'job_manager_jobs_page_id' ) ) ), array( 'jobs' => admin_url( 'edit.php?post_type=job_listing' ) ) );

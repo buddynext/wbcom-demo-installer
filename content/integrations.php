@@ -100,6 +100,24 @@ return array(
 			array( 'store', 'Multi-vendor marketplace', 'Vendors sell from their own stores with Dokan.' ),
 		),
 	),
+	'wcfm'        => array(
+		'name'         => 'WCFM Marketplace',
+		'tab'          => 'Marketplace',
+		'member_label' => 'As a vendor',
+		'owner_points' => array( 'Vendors and their stores', 'Commissions and withdrawals', 'Products and orders' ),
+		'roles'        => array( 'vendor' => array( 'Vendor', array( 'A store with products', 'Orders and earnings', 'A store manager dashboard' ) ) ),
+		'member'       => array(
+			'stores'    => array( 'store', 'Browse the stores', 'Every vendor with a banner, address and products.', 'Open the stores' ),
+			'dashboard' => array( 'chart', 'Run a store', 'As a vendor, manage products, orders and store settings.', 'Open the store manager' ),
+		),
+		'owner'        => array(
+			'vendors'  => array( 'users', 'Vendors', 'Every store, its products and earnings.', 'Open vendors' ),
+			'settings' => array( 'settings', 'Marketplace settings', 'Commissions, store pages and vendor rules.', 'Open settings' ),
+		),
+		'highlights'   => array(
+			array( 'store', 'Multi-vendor marketplace', 'Vendors sell from their own stores with WCFM Marketplace.' ),
+		),
+	),
 	'jobmanager'  => array(
 		'name'         => 'WP Job Manager',
 		'tab'          => 'Jobs',

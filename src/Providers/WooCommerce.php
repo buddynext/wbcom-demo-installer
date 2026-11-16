@@ -9,6 +9,7 @@
 namespace WbcomDemo\Providers;
 
 use WbcomDemo\Core\Context;
+use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
 
 defined( 'ABSPATH' ) || exit;
@@ -261,6 +262,41 @@ final class WooCommerce extends Provider {
 				\WC_Comments::clear_transients( $product_id );
 			}
 		}
+	}
+
+	/**
+	 * Share the sample products out among marketplace stores (Dokan, WCFM, WC Vendors): the stores follow the
+	 * sample categories in order (apparel, accessories, home, books), and a product in no matched category goes
+	 * round. Each product's author becomes its store's person, which is how these marketplaces tell a product's
+	 * vendor.
+	 *
+	 * @param Context $ctx    Context.
+	 * @param int[]   $stores Store owners' user ids, in content order.
+	 * @return array<int,int> Product id => store owner id.
+	 */
+	public static function share_products( Context $ctx, array $stores ): array {
+		$stores = array_values( $stores );
+		if ( ! $stores ) {
+			return array();
+		}
+		$by_term = array();
+		foreach ( array_values( (array) $ctx->get( 'woocommerce', 'categories', array() ) ) as $k => $term_id ) {
+			$by_term[ (int) $term_id ] = $stores[ $k % count( $stores ) ];
+		}
+		$out = array();
+		foreach ( Ledger::ids( 'woocommerce', 'product' ) as $n => $product_id ) {
+			$terms = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
+			$term  = is_array( $terms ) && $terms ? (int) $terms[0] : 0;
+			$owner = $by_term[ $term ] ?? $stores[ $n % count( $stores ) ];
+			wp_update_post(
+				array(
+					'ID'          => $product_id,
+					'post_author' => $owner,
+				)
+			);
+			$out[ $product_id ] = $owner;
+		}
+		return $out;
 	}
 
 	/**

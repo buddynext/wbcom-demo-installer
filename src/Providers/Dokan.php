@@ -185,30 +185,12 @@ final class Dokan extends Provider {
 	}
 
 	/**
-	 * Give each store the WooCommerce sample products of its category: the stores follow the WooCommerce sample
-	 * categories in order (apparel, accessories, home, books). A product in no matched category goes round.
+	 * Give each store the WooCommerce sample products of its category.
 	 *
 	 * @param Context $ctx Context.
 	 */
 	private function products( Context $ctx ): void {
-		$stores = Ledger::ids( $this->id(), 'store' );
-		if ( ! $stores ) {
-			return;
-		}
-		$by_term = array();
-		foreach ( array_values( (array) $ctx->get( 'woocommerce', 'categories', array() ) ) as $k => $term_id ) {
-			$by_term[ (int) $term_id ] = $stores[ $k % count( $stores ) ];
-		}
-		foreach ( Ledger::ids( 'woocommerce', 'product' ) as $n => $product_id ) {
-			$terms = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
-			$term  = is_array( $terms ) && $terms ? (int) $terms[0] : 0;
-			wp_update_post(
-				array(
-					'ID'          => $product_id,
-					'post_author' => $by_term[ $term ] ?? $stores[ $n % count( $stores ) ],
-				)
-			);
-		}
+		WooCommerce::share_products( $ctx, Ledger::ids( $this->id(), 'store' ) );
 	}
 
 	/**

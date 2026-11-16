@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T06:11:43+00:00\n"
+"POT-Creation-Date: 2026-11-16T09:28:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -62,7 +62,7 @@ msgid "Demo data"
 msgstr ""
 
 #: src/Admin/Page.php:133
-#: src/Rest/Controller.php:214
+#: src/Rest/Controller.php:234
 msgid "Only site administrators can set up or remove demo content."
 msgstr ""
 
@@ -163,31 +163,31 @@ msgid "Every product named is already in the demo or not available here."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:427
+#: src/Core/Engine.php:430
 #, php-format
 msgid "%s: a step stopped the request twice (often the PHP memory limit), so the rest of this product was skipped."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:492
+#: src/Core/Engine.php:495
 #, php-format
 msgid "the text for %s"
 msgstr ""
 
-#: src/Core/Engine.php:512
+#: src/Core/Engine.php:515
 msgid "sample content"
 msgstr ""
 
 #: src/Core/Finisher.php:112
-#: src/Core/Finisher.php:262
+#: src/Core/Finisher.php:263
 msgid "There is no demo to finish."
 msgstr ""
 
-#: src/Core/Finisher.php:248
+#: src/Core/Finisher.php:249
 msgid "Nothing is waiting to be removed."
 msgstr ""
 
-#: src/Core/Finisher.php:265
+#: src/Core/Finisher.php:266
 msgid "Remove the sample content first. Only settings, pages, menus and categories can be kept as yours."
 msgstr ""
 
@@ -510,15 +510,18 @@ msgstr ""
 
 #. translators: %d: stores
 #: src/Providers/Dokan.php:92
+#: src/Providers/WCFM.php:119
 #, php-format
 msgid "A marketplace of %d stores with photos, banners and addresses, selling the sample products"
 msgstr ""
 
 #: src/Providers/Dokan.php:103
+#: src/Providers/WCFM.php:130
 msgid "stores"
 msgstr ""
 
 #: src/Providers/Dokan.php:104
+#: src/Providers/WCFM.php:131
 msgid "store banners"
 msgstr ""
 
@@ -526,7 +529,9 @@ msgstr ""
 msgid "Dokan did not make the store."
 msgstr ""
 
-#: src/Providers/Dokan.php:246
+#: src/Providers/Dokan.php:228
+#: src/Providers/WCFM.php:176
+#: src/Providers/WCFM.php:319
 msgid "Stores"
 msgstr ""
 
@@ -938,33 +943,41 @@ msgstr ""
 msgid "Demo menu %d"
 msgstr ""
 
+#: src/Providers/WCFM.php:134
+msgid "Stores page"
+msgstr ""
+
+#: src/Providers/WCFM.php:206
+msgid "WCFM did not make the store."
+msgstr ""
+
 #. translators: 1: products, 2: categories
-#: src/Providers/WooCommerce.php:83
+#: src/Providers/WooCommerce.php:84
 #, php-format
 msgid "A store with %1$d products in %2$d categories, sale prices, stock and reviews"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:113
+#: src/Providers/WooCommerce.php:114
 msgid "products"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:114
+#: src/Providers/WooCommerce.php:115
 msgid "product photos"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:115
+#: src/Providers/WooCommerce.php:116
 msgid "reviews"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:119
+#: src/Providers/WooCommerce.php:120
 msgid "product categories"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:204
+#: src/Providers/WooCommerce.php:205
 msgid "WooCommerce did not save it."
 msgstr ""
 
-#: src/Providers/WooCommerce.php:302
+#: src/Providers/WooCommerce.php:338
 msgid "Shop"
 msgstr ""
 
