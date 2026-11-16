@@ -34,10 +34,13 @@ then remove the sample content in one step when you are ready.
 
 1. Go to **Appearance > Set up your site**.
 2. **Site check** shows your theme, the products that are ready, and your own users and posts, which are never changed.
-3. **Starting point**: pick a demo. See [Pick a demo](#pick-a-demo) below for what each one needs.
-   - **Theme demos** (for example "Reign demos") build a whole site: a community and the products around it.
-   - **Reign add-on demos** build a demo around one Reign add-on and the plugin it presents.
-   - **Starting points** build from the Wbcom products you have active.
+3. **Starting point** asks **What is your site for?** and shows one demo for each purpose: Community, Learning,
+   Events, Jobs, Directory, Services and Shop. See [Pick a demo](#pick-a-demo) below for what each one needs.
+   - Each card shows our own product for that purpose, unless your site already has a plugin for it. A Reign add-on
+     you uploaded puts its demo first, marked **Your add-on**; an active plugin (for example BuddyPress) puts its
+     demo in that purpose's place, marked **On your site**.
+   - **See every combination** opens the rest: whole-site theme demos, every Reign add-on demo and the starting points
+     built from the products you have active.
    Each demo card shows what you still have to upload (with a **Get it** link) and how many free plugins it sets up
    for you. **Set up and use this demo** installs, updates or switches on what is missing and moves you to the next
    step. **Live preview** opens the same demo on our sandbox.
@@ -47,7 +50,11 @@ then remove the sample content in one step when you are ready.
    the sample logo, and Remove everything puts your current ones back. Then choose **Build my demo**.
 7. Wait for the progress bar. You can leave the page; the build continues where it stopped when you come back.
 
-When you are done, see [Finish the demo](finish-demo.md). You can also open it any time under **Tools > Demo data**.
+When the build finishes, the wizard names your demo and links to every page. Under **Done exploring?** you choose
+what happens next: **Start my real site** removes the sample people and content and keeps the pages, menu and
+settings; **Remove everything** puts the site back as it was; **Try a different demo** removes everything and takes
+you back to pick another one. Each one shows what will be removed and asks you to confirm first. See
+[Finish the demo](finish-demo.md); it is also under **Tools > Demo data** at any time.
 
 ## Pick a demo
 
@@ -55,9 +62,29 @@ Every demo adds the 20 sample people, a designed home page and Wbcom Essential's
 "Installed for you" means free plugins the card installs, updates or switches on in one click. "You install" means
 paid plugins you buy, upload under **Plugins > Add New** and license yourself.
 
+### What is your site for?
+
+The first cards you see, on any theme. Members come from the community plugin you already run (BuddyPress,
+BuddyBoss Platform or PeepSo); on a site without one they come from BuddyNext with WPMediaVerse, Jetonomy and WB
+Gamification, all installed for you.
+
+| Purpose | Demo | Installed for you | You install |
+|---|---|---|---|
+| Community | BuddyNext community | BuddyNext, WPMediaVerse, Jetonomy, Product Roadmap, WB Gamification, Wbcom Essential | |
+| Learning | Learnomy courses | Learnomy, MediaShield, the members, Wbcom Essential | |
+| Events | Eventonomy events | Eventonomy, the members, Wbcom Essential | |
+| Jobs | WP Career Board jobs | WP Career Board, the members, Wbcom Essential | |
+| Directory | WB Listora directory | WB Listora, the members, Wbcom Essential | |
+| Services | WP Sell Services marketplace | WP Sell Services, the members, Wbcom Essential | |
+| Shop | WooCommerce store | WooCommerce, Wbcom Essential | |
+
+When your site already has a plugin for a purpose, that plugin's demo from the tables below takes the card: a Reign
+add-on you uploaded (for example the Reign LearnDash Addon puts **Reign LearnDash** under Learning), or an active
+plugin such as BuddyPress or Dokan.
+
 ### Reign add-on demos
 
-Shown when Reign is your active theme. Members come from BuddyPress, or from the community plugin you already run
+Under **See every combination**, or on top when you uploaded the add-on. Shown when Reign is your active theme. Members come from BuddyPress, or from the community plugin you already run
 (BuddyBoss Platform, PeepSo or BuddyNext).
 
 | Demo | You install | Installed for you | Best for |
@@ -74,7 +101,7 @@ Shown when Reign is your active theme. Members come from BuddyPress, or from the
 
 ### Theme demos
 
-Shown for the active theme. Wbcom products install as their free versions; add your Pro add-ons yourself if you
+Under **See every combination**, shown for the active theme. Wbcom products install as their free versions; add your Pro add-ons yourself if you
 have them. Add-ons marked optional make the demo look better but are not needed to build it.
 
 | Demo | You install | Installed for you | Best for |
@@ -97,7 +124,7 @@ have them. Add-ons marked optional make the demo look better but are not needed 
 
 ### Starting points
 
-Below the demos, starting points build from the Wbcom products on your site, on any theme. All of them use the free
+Under **See every combination**, starting points build from the Wbcom products on your site, on any theme. All of them use the free
 versions; the one marked in **Needs** is installed for you when you choose it.
 
 | Starting point | Needs | Also uses | Best for |
