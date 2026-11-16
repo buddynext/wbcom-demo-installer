@@ -83,6 +83,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * New      - Install and activate the free Wbcom products from the site check.
 * New      - The site check installs the free plugin each active Reign add-on is built for, and every starting point can install the product it needs.
 * New      - Demo data entry under Tools, and your own site name and tagline on the Review step.
+* Improve  - After Remove everything, Try a different demo goes straight back to the site check to build another starting point.
 * Improve  - Wbcom Essential is ticked on the site check, as its blocks build the home page and the regular pages.
 * Improve  - The site check says when a Reign add-on still needs its plugin, even when other products are ready.
 * Improve  - Sites without BuddyNext open on their community, shop or directory home page and show the site name in the header.

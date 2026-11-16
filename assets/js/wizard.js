@@ -510,7 +510,7 @@
 			<div class="wdi-tiles"><div class="wdi-tile"><h2>${ ic( 'users' ) }${ esc( __( 'Next', 'wbcom-demo-installer' ) ) }</h2><ul><li><a class="wdi-link" href="${ esc( cfg.users ) }">${ esc( __( 'Invite your first members', 'wbcom-demo-installer' ) ) }</a></li><li><a class="wdi-link" href="${ esc( cfg.home ) }">${ esc( __( 'Visit your site', 'wbcom-demo-installer' ) ) }</a></li></ul></div>${ empty
 				? `<div class="wdi-tile"><h2>${ ic( 'trash' ) }${ esc( __( 'Installer no longer needed', 'wbcom-demo-installer' ) ) }</h2><span class="wdi-muted">${ esc( __( 'You can deactivate and delete it. Nothing you kept depends on it.', 'wbcom-demo-installer' ) ) }</span></div>`
 				: `<div class="wdi-tile"><h2>${ ic( 'shield' ) }${ esc( __( 'Keep the installer for now', 'wbcom-demo-installer' ) ) }</h2><span class="wdi-muted">${ esc( __( 'It still tracks what the demo left, so you can remove it later from Appearance > Set up your site. Once only setup is left you can keep it as yours.', 'wbcom-demo-installer' ) ) }</span></div>` }</div>`,
-			`<div class="wdi-card__foot">${ kept || r.left ? `<button type="button" class="wdi-btn" data-go="finish">${ esc( __( 'Remove more', 'wbcom-demo-installer' ) ) }</button>` : '' }<span class="wdi-spacer"></span><a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.dashboard ) }">${ esc( __( 'Go to dashboard', 'wbcom-demo-installer' ) ) }</a></div>`
+			`<div class="wdi-card__foot">${ kept || r.left ? `<button type="button" class="wdi-btn" data-go="finish">${ esc( __( 'Remove more', 'wbcom-demo-installer' ) ) }</button>` : '' }${ empty ? `<button type="button" class="wdi-btn" data-go="again">${ esc( __( 'Try a different demo', 'wbcom-demo-installer' ) ) }</button>` : '' }<span class="wdi-spacer"></span><a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.dashboard ) }">${ esc( __( 'Go to dashboard', 'wbcom-demo-installer' ) ) }</a></div>`
 		);
 	}
 
@@ -878,6 +878,11 @@
 			S.name = undefined;
 			S.tagline = undefined;
 			render();
+		} else if ( 'again' === to ) {
+			// Everything from the last demo is gone: back to the site check to pick another starting point.
+			S.recipe = '';
+			S.view = 'check';
+			refresh().catch( stalled );
 		} else if ( 'install' === to ) {
 			installPicked();
 		} else if ( 'retry' === to ) {
