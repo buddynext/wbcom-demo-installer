@@ -50,7 +50,7 @@ final class MediaShield extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.4.1';
+		return '1.4.2'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -65,6 +65,13 @@ final class MediaShield extends Provider {
 	 */
 	public function order(): int {
 		return 70;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_skip_keys(): array {
+		return array( 'videos' ); // Real open films: titles and descriptions describe them.
 	}
 
 	/**
@@ -135,6 +142,7 @@ final class MediaShield extends Provider {
 					'post_title'   => $title,
 					'post_content' => wpautop( $desc ),
 					'post_author'  => $author,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'    => get_date_from_gmt( $ctx->date( $i, 4, 40 ) ),
 				),
 				true
@@ -188,9 +196,36 @@ final class MediaShield extends Provider {
 	 * @param object $row Ledger row.
 	 */
 	public function remove( object $row ): bool {
-		if ( get_post( (int) $row->object_id ) ) {
-			wp_delete_post( (int) $row->object_id, true );
+		return self::delete_post( (int) $row->object_id );
+	}
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		$t      = $this->content()['guide'];
+		$lesson = null;
+		// A lesson that plays a protected video, preview lessons first (Learnomy orders them so), when Learnomy is here.
+		if ( class_exists( '\\Learnomy\\Models\\Lesson' ) ) {
+			foreach ( get_posts(
+				array(
+					'post_type'   => 'mediashield_video',
+					'post_status' => 'publish',
+					'fields'      => 'ids',
+					'numberposts' => 20,
+				)
+			) as $video ) {
+				$lessons = \Learnomy\Models\Lesson::for_mediashield_video( (int) $video );
+				if ( $lessons && ! empty( $lessons[0]->is_preview ) ) {
+					$lesson = (string) \Learnomy\Models\Lesson::get_permalink( $lessons[0] );
+					break;
+				}
+			}
 		}
-		return true;
+		return array(
+			'name'       => $t['name'],
+			'member'     => self::guide_steps( $t['member'], array( 'watch' => $lesson ), array( 'watch' => array( 'public' => true ) ) ),
+			'owner'      => self::guide_steps( $t['owner'], array( 'protect' => admin_url( 'admin.php?page=mediashield' ) ) ),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
 	}
 }

@@ -46,6 +46,61 @@ abstract class Provider {
 		return $this->content;
 	}
 
+	/**
+	 * Pages besides the menu items that get the theme's full-width, no-sidebar layout (the Theme provider applies
+	 * it), for example content pages that are not in the menu.
+	 *
+	 * @return int[] Page ids.
+	 */
+	public function layout_pages(): array {
+		return array();
+	}
+
+	/**
+	 * This provider's part of the designed home page, built once its content exists. All keys are optional:
+	 * - 'hero': title, text, image (a media path), buttons (label, link), closing (the heading over the last
+	 *   call to action) and cta (its button; the first button when not set) when this is the site's main product;
+	 * - 'stats': counts to show under the hero, as [ count, label ];
+	 * - 'sections': block markup, one entry per home page section, in order.
+	 *
+	 * @param Context $ctx Context.
+	 * @return array{hero?:array{title:string,text:string,image:string,buttons:array<int,array{0:string,1:string}>,closing?:string,cta?:array{0:string,1:string}},stats?:array<int,array{0:int,1:string}>,sections?:string[]}
+	 */
+	public function home( Context $ctx ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- the contract passes it for providers that record what they add.
+		return array();
+	}
+
+	/**
+	 * Whether home() adds to the designed home page (for exact Review counts before anything is built).
+	 */
+	public function offers_home(): bool {
+		return false;
+	}
+
+	/**
+	 * A community platform (members, groups, activity): its home section follows the products' sections.
+	 */
+	public function community(): bool {
+		return false;
+	}
+
+	/**
+	 * Post types whose archive, taxonomy archives and single pages the theme shows without sidebars, on themes
+	 * that keep a layout per type (Reign). A directory or catalogue brings its own columns, filters and map.
+	 *
+	 * @return string[] Post type names.
+	 */
+	public function full_width_archives(): array {
+		return array();
+	}
+
+	/**
+	 * Read the content again on next use (a content pack was added during this request).
+	 */
+	public function forget_content(): void {
+		$this->content = null;
+	}
+
 	/** Bump when the contract changes; the registry skips providers on another version. */
 	public const CONTRACT = 1;
 
@@ -160,6 +215,63 @@ abstract class Provider {
 	}
 
 	/**
+	 * How a visitor tries this product on the "Try the demo" page (Core\Guide). Keys: name, member_label,
+	 * owner_points (3 strings), roles ([ key, user, label, points ]), member and owner (tour steps from
+	 * guide_steps(); a member step's `as` names a role key), highlights (from guide_highlights()). Empty: no guide.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function guide(): array {
+		return array();
+	}
+
+	/**
+	 * Tour steps from a content `guide` list (key => [ icon, title, text, button ]) and their links. A key whose
+	 * link is null is left out; `$extra` adds per-step keys (as, public, highlight).
+	 *
+	 * @param array<string,array<int,string>>   $text  Step text by key.
+	 * @param array<string,string|null>         $links Step URL by key.
+	 * @param array<string,array<string,mixed>> $extra Extra step keys by key.
+	 * @return array<int,array<string,mixed>>
+	 */
+	protected static function guide_steps( array $text, array $links, array $extra = array() ): array {
+		$out = array();
+		foreach ( $text as $key => $t ) {
+			if ( array_key_exists( $key, $links ) && null === $links[ $key ] ) {
+				continue;
+			}
+			$out[] = array_merge(
+				array(
+					'icon'  => (string) ( $t[0] ?? 'arrow' ),
+					'title' => (string) ( $t[1] ?? '' ),
+					'text'  => (string) ( $t[2] ?? '' ),
+					'go'    => (string) ( $t[3] ?? '' ),
+					'url'   => (string) ( $links[ $key ] ?? '' ),
+				),
+				$extra[ $key ] ?? array()
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Highlights from a content `guide` list ([ icon, title, text ]).
+	 *
+	 * @param array<int,array<int,string>> $items Items.
+	 * @return array<int,array<string,string>>
+	 */
+	protected static function guide_highlights( array $items ): array {
+		return array_map(
+			static fn( array $i ): array => array(
+				'icon'  => (string) ( $i[0] ?? 'tick' ),
+				'title' => (string) ( $i[1] ?? '' ),
+				'text'  => (string) ( $i[2] ?? '' ),
+			),
+			$items
+		);
+	}
+
+	/**
 	 * Page id this product would make a good front page, 0 for none.
 	 */
 	public function front_page(): int {
@@ -185,6 +297,35 @@ abstract class Provider {
 	public function handover( array $kept, int $owner_id ): void {}
 
 	/**
+	 * Records the product keeps on purpose after the demo is removed (an accounting ledger, a security
+	 * audit log), named in the finish report so the owner is not surprised. The installer never deletes
+	 * product rows directly; empty when the product keeps none.
+	 */
+	public function keeps_logs(): string {
+		return '';
+	}
+
+	/**
+	 * Content keys whose values the AI must not rewrite for this provider (on top of the shared list in
+	 * Ai\Pack: slugs, images, types and similar).
+	 *
+	 * @return string[]
+	 */
+	public function ai_skip_keys(): array {
+		return array();
+	}
+
+	/**
+	 * Exact content values the AI must not rewrite: enums the product or this provider branches on, and text
+	 * that must match fixed data (an address that matches map coordinates).
+	 *
+	 * @return string[]
+	 */
+	public function ai_keep(): array {
+		return array();
+	}
+
+	/**
 	 * Settings that present this product at its best in a demo, applied before its content.
 	 * Option name => value; an array value is merged into an array option; "transient:<name>" => null
 	 * clears a one-time activation redirect. "Keep my setup" keeps
@@ -194,6 +335,17 @@ abstract class Provider {
 	 */
 	public function settings(): array {
 		return array();
+	}
+
+	/**
+	 * Whether this provider's settings need a fresh request before its content steps (a product that loads a
+	 * component's code only on the request after it is turned on). WP-CLI, which runs the whole build in one
+	 * process, starts a new one after such a settings step; the wizard runs each step in its own request anyway.
+	 *
+	 * @return bool
+	 */
+	public function reload_after_settings(): bool {
+		return false;
 	}
 
 	/**
@@ -253,8 +405,26 @@ abstract class Provider {
 		$term = '' !== $taxonomy ? get_term( $id, $taxonomy ) : null;
 		if ( $term instanceof \WP_Term && 0 === (int) $term->count ) {
 			wp_delete_term( $id, $taxonomy );
+			clean_term_cache( $id, $taxonomy );
+			return ! term_exists( $id, $taxonomy );
 		}
+		// Gone already, or in use by the owner's content since the build: either way not ours to delete.
 		return true;
+	}
+
+	/**
+	 * Delete a post or attachment the demo made; true only when it is gone afterwards.
+	 *
+	 * @param int  $id         Post id.
+	 * @param bool $attachment Delete as an attachment (files too).
+	 */
+	protected static function delete_post( int $id, bool $attachment = false ): bool {
+		if ( ! get_post( $id ) ) {
+			return true;
+		}
+		$attachment ? wp_delete_attachment( $id, true ) : wp_delete_post( $id, true );
+		clean_post_cache( $id );
+		return false === get_post_status( $id ); // Read again after the delete.
 	}
 
 	/**

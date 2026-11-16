@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -51,7 +52,7 @@ final class CareerBoard extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.8.2';
+		return '1.8.4'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -66,6 +67,15 @@ final class CareerBoard extends Provider {
 	 */
 	public function order(): int {
 		return 50;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_keep(): array {
+		// Job type and experience level: the provider branches on "Contract", and they read as fixed labels.
+		$jobs = (array) ( $this->content()['jobs'] ?? array() );
+		return array_values( array_unique( array_merge( array_column( $jobs, 3 ), array_column( $jobs, 5 ) ) ) );
 	}
 
 	/**
@@ -184,6 +194,7 @@ final class CareerBoard extends Provider {
 					'post_title'   => $name,
 					'post_content' => wpautop( $tagline . '. ' . sprintf( 'Based in %s, %s people.', $hq, $size ) ),
 					'post_author'  => $owner,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'    => get_date_from_gmt( $ctx->date( $i, 6, 70 ) ),
 				),
 				true
@@ -229,6 +240,7 @@ final class CareerBoard extends Provider {
 					'post_title'   => $title,
 					'post_content' => wpautop( $body ),
 					'post_author'  => $owner,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'    => get_date_from_gmt( $ctx->date( $i, count( $this->content()['jobs'] ), 30 ) ),
 				),
 				true
@@ -326,18 +338,14 @@ final class CareerBoard extends Provider {
 			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
 		if ( get_post( $id ) ) {
 			// Career Board links a company to its HQ location term outside the post type's
 			// registered taxonomies, so wp_delete_post() leaves that link behind.
 			wp_delete_object_term_relationships( $id, array( 'wcb_location' ) );
-			wp_delete_post( $id, true );
 		}
-		return true;
+		return self::delete_post( $id );
 	}
 
 	/**
@@ -345,6 +353,122 @@ final class CareerBoard extends Provider {
 	 */
 	public function late_types(): array {
 		return array( 'term' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		if ( ! class_exists( '\\WCB\\Admin\\Pages' ) ) {
+			return array();
+		}
+		$page = static function ( string $key ): string {
+			$id = (int) \WCB\Admin\Pages::get_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$jobs = $page( 'jobs_archive_page' );
+		if ( '' === $jobs ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		return array(
+			'name'       => $t['name'],
+			'tab'        => $t['tab'],
+			'roles'      => array(
+				array(
+					'key'    => 'candidate',
+					'user'   => People::user_id( 'candidate' ),
+					'label'  => $t['roles']['candidate'][0],
+					'points' => $t['roles']['candidate'][1],
+				),
+				array(
+					'key'    => 'employer',
+					'user'   => People::user_id( 'employer' ),
+					'label'  => $t['roles']['employer'][0],
+					'points' => $t['roles']['employer'][1],
+				),
+			),
+			'member'     => self::guide_steps(
+				$t['member'],
+				array(
+					'jobs'  => $jobs,
+					'apply' => $page( 'candidate_dashboard_page' ),
+					'post'  => $page( 'post_job_page' ),
+				),
+				array(
+					'jobs'  => array(
+						'public' => true,
+						'as'     => 'candidate',
+					),
+					'apply' => array( 'as' => 'candidate' ),
+					'post'  => array(
+						'as'        => 'employer',
+						'highlight' => true,
+					),
+				)
+			),
+			'owner'      => self::guide_steps(
+				$t['owner'],
+				array(
+					'jobs'         => $admin( 'wcb-jobs' ),
+					'applications' => $admin( 'wcb-applications' ),
+				)
+			),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A job board: the hero, job and company counts, the job search and the featured jobs in WP Career Board's
+	 * own blocks.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! class_exists( '\WCB\Admin\Pages' ) ) {
+			return array();
+		}
+		$page     = static function ( string $key ): string {
+			$id = (int) \WCB\Admin\Pages::get_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$h        = (array) ( $this->content()['home'] ?? array() );
+		$jobs     = $page( 'jobs_archive_page' );
+		$post     = $page( 'post_job_page' );
+		$featured = array(
+			'perPage' => 3,
+			'title'   => (string) $h['featured'],
+		);
+		$buttons  = array_values( array_filter( array( $jobs ? array( (string) $h['browse'], $jobs ) : null, $post ? array( (string) $h['post'], $post ) : null ) ) );
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+				'cta'     => $post ? array( (string) $h['post'], $post ) : ( $buttons[0] ?? array() ),
+			),
+			'stats'    => array(
+				array( (int) ( wp_count_posts( 'wcb_job' )->publish ?? 0 ), __( 'open jobs', 'wbcom-demo-installer' ) ),
+				array( (int) ( wp_count_posts( 'wcb_company' )->publish ?? 0 ), __( 'companies hiring', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array(
+				Blocks::heading( (string) $h['search'][0] ) . Blocks::paragraph( (string) $h['search'][1] )
+					. get_comment_delimited_block_content( 'wp-career-board/job-search-hero', array(), '' ),
+				get_comment_delimited_block_content( 'wp-career-board/featured-jobs', $featured, '' ),
+			),
+		);
 	}
 
 	/**

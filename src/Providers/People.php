@@ -21,13 +21,24 @@ final class People extends Provider {
 	/** User meta flag holding the build id. */
 	public const FLAG = 'wbcom_demo_user';
 
+	/** User meta holding the profile photo's attachment ID on sites without BuddyNext (issue #2). */
+	public const AVATAR = 'wbcom_demo_avatar';
+
 	/**
 	 * Roster.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
 	public static function roster(): array {
-		return require WBCOM_DEMO_DIR . 'content/people.php';
+		/** This filter is documented in src/Core/Provider.php */
+		return (array) apply_filters( 'wbcom_demo_content', (array) require WBCOM_DEMO_DIR . 'content/people.php', 'people' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_skip_keys(): array {
+		return array( 'name', 'topics' ); // Names match the people's photos; topics are interest slugs.
 	}
 
 	/**
@@ -38,6 +49,53 @@ final class People extends Provider {
 	 */
 	public static function indexes( string $role ): array {
 		return array_keys( array_filter( self::roster(), static fn( $p ) => in_array( $role, (array) ( $p['roles'] ?? array() ), true ) ) );
+	}
+
+	/**
+	 * Billing name, email, city and country (from "City, CC" in the roster) and a sample street on a sample person,
+	 * so a visitor who tries a checkout as them is not asked to type an address first. The standard billing_* user meta, which store
+	 * plugins pre-fill from; removed with the user.
+	 *
+	 * @param int                 $user_id User id.
+	 * @param array<string,mixed> $person  Roster entry.
+	 */
+	public static function billing( int $user_id, array $person ): void {
+		$location = (string) ( $person['location'] ?? '' );
+		$country  = strtoupper( trim( (string) substr( (string) strrchr( $location, ',' ), 1 ) ) );
+		// Street and postcode are sample values: some checkouts (Learnomy) require a full address for every purchase.
+		$meta = array(
+			'billing_first_name' => (string) strtok( (string) $person['name'], ' ' ),
+			'billing_last_name'  => trim( (string) strstr( (string) $person['name'], ' ' ) ),
+			'billing_email'      => $person['login'] . '@' . QuietMode::DOMAIN,
+			'billing_country'    => 2 === strlen( $country ) ? $country : '',
+			'billing_city'       => trim( (string) strtok( $location, ',' ) ),
+			'billing_address_1'  => '12 Market Street',
+			'billing_postcode'   => '10001',
+		);
+		foreach ( array_filter( $meta ) as $key => $value ) {
+			update_user_meta( $user_id, $key, $value );
+		}
+	}
+
+	/**
+	 * User id of the first sample person with a role who exists on this site, 0 when none does.
+	 *
+	 * @param string $role  Role tag.
+	 * @param int    $index Roster index to prefer (for example the seller of a product's first item).
+	 */
+	public static function user_id( string $role, int $index = -1 ): int {
+		$roster = self::roster();
+		$order  = self::indexes( $role );
+		if ( $index >= 0 ) {
+			array_unshift( $order, $index );
+		}
+		foreach ( $order as $i ) {
+			$user = isset( $roster[ $i ]['login'] ) ? get_user_by( 'login', 'demo.' . $roster[ $i ]['login'] ) : false;
+			if ( $user ) {
+				return (int) $user->ID;
+			}
+		}
+		return 0;
 	}
 
 	/**
@@ -86,7 +144,12 @@ final class People extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
-		return array( 'user' => array( count( self::roster() ), 'sample', __( 'sample people', 'wbcom-demo-installer' ) ) );
+		$plan = array( 'user' => array( count( self::roster() ), 'sample', __( 'sample people', 'wbcom-demo-installer' ) ) );
+		if ( ! self::buddynext_active() ) {
+			// BuddyNext stores the photos itself; elsewhere the installer adds them to the media library.
+			$plan['attachment'] = array( count( self::roster() ), 'sample', __( 'profile photos', 'wbcom-demo-installer' ) );
+		}
+		return $plan;
 	}
 
 	/**
@@ -115,23 +178,35 @@ final class People extends Provider {
 			}
 			$user_id = wp_insert_user(
 				array(
-					'user_login'      => $login,
-					'user_email'      => $person['login'] . '@' . QuietMode::DOMAIN,
-					'user_pass'       => wp_generate_password( 32, true, true ),
-					'display_name'    => $person['name'],
-					'first_name'      => strtok( $person['name'], ' ' ),
-					'last_name'       => trim( (string) strstr( $person['name'], ' ' ) ),
-					'nickname'        => $person['name'],
-					'description'     => sprintf( '%s based in %s. Into %s.', $person['job'], $person['location'], $person['note'] ),
-					'role'            => 'subscriber',
-					'user_registered' => $ctx->date( $i, 20, 120 ),
+					'user_login'           => $login,
+					'user_email'           => $person['login'] . '@' . QuietMode::DOMAIN,
+					'user_pass'            => wp_generate_password( 32, true, true ),
+					// Profile URLs and @handles read the nicename: show "@lucia-moretti", not the "demo." login prefix. Core adds -2 on a clash.
+					'user_nicename'        => sanitize_title( str_replace( '.', '-', $person['login'] ) ),
+					'display_name'         => $person['name'],
+					'first_name'           => strtok( $person['name'], ' ' ),
+					'last_name'            => trim( (string) strstr( $person['name'], ' ' ) ),
+					'nickname'             => $person['name'],
+					'description'          => sprintf( '%s based in %s. Into %s.', $person['job'], $person['location'], $person['note'] ),
+					'role'                 => 'subscriber',
+					// Members see the site, not the WordPress toolbar, as on member sign-up in our products.
+					'show_admin_bar_front' => 'false',
+					'user_registered'      => $ctx->date( $i, 20, 120 ),
 				)
 			);
 			if ( is_wp_error( $user_id ) ) {
 				continue;
 			}
 			update_user_meta( $user_id, self::FLAG, $ctx->build_id() );
+			self::billing( (int) $user_id, $person );
 			$ctx->record( $this->id(), 'user', (int) $user_id );
+			// BuddyNext saves the photos when it is part of this build; otherwise core avatars need them.
+			if ( ! ( $ctx->includes( 'buddynext' ) && self::buddynext_active() ) ) {
+				$photo = $ctx->attachment( 'avatars/' . $person['login'] . '.jpg', (int) $user_id, $this->id() );
+				if ( $photo ) {
+					update_user_meta( $user_id, self::AVATAR, $photo );
+				}
+			}
 			$people[] = array(
 				'id'       => (int) $user_id,
 				'index'    => $i,
@@ -147,8 +222,9 @@ final class People extends Provider {
 				'field'    => $person['field'] ?? '',
 				'topics'   => $person['topics'] ?? array(),
 				'roles'    => array_merge( array( 'member' ), $person['roles'] ),
-				'avatar'   => sprintf( 'avatars/avatar-%02d.png', ( $i % 12 ) + 1 ),
-				'cover'    => sprintf( 'covers/cover-%02d.png', ( $i % 8 ) + 1 ),
+				// One photo per person, named by login, so no two people share a face.
+				'avatar'   => 'avatars/' . $person['login'] . '.jpg',
+				'cover'    => sprintf( 'covers/cover-%02d.jpg', ( $i % 8 ) + 1 ),
 			);
 		}
 		$ctx->state->set( 'people', $people );
@@ -160,6 +236,9 @@ final class People extends Provider {
 	 * @param object $row Ledger row.
 	 */
 	public function remove( object $row ): bool {
+		if ( 'attachment' === $row->object_type ) {
+			return self::delete_post( (int) $row->object_id, true );
+		}
 		$user_id = (int) $row->object_id;
 		$user    = get_userdata( $user_id );
 		if ( ! $user ) {
@@ -169,11 +248,20 @@ final class People extends Provider {
 		if ( ! get_user_meta( $user_id, self::FLAG, true ) ) {
 			return true;
 		}
-		if ( function_exists( 'buddynext_remove_member' ) ) {
-			return (bool) buddynext_remove_member( $user_id );
-		}
 		require_once ABSPATH . 'wp-admin/includes/user.php';
-		return wp_delete_user( $user_id );
+		// Anything still credited to the person after their sample content is gone is the owner's
+		// (written by the owner as them, or kept): give it to the admin running Finish, never delete it.
+		$owner = (int) get_current_user_id();
+		if ( ! is_multisite() ) {
+			// deleted_user still fires, so BuddyNext and the other products purge their own rows.
+			wp_delete_user( $user_id, $owner && $owner !== $user_id ? $owner : null );
+		} elseif ( function_exists( 'buddynext_remove_member' ) ) {
+			buddynext_remove_member( $user_id );
+		} else {
+			wp_delete_user( $user_id, $owner && $owner !== $user_id ? $owner : null );
+		}
+		clean_user_cache( $user_id );
+		return ! get_userdata( $user_id ) || ! is_user_member_of_blog( $user_id );
 	}
 
 	/**
@@ -190,5 +278,58 @@ final class People extends Provider {
 			)
 		);
 		return $left ? array( __( 'Sample people are still on the site.', 'wbcom-demo-installer' ) ) : array();
+	}
+
+	/**
+	 * Whether BuddyNext will store the photos (it has its own avatar service).
+	 */
+	private static function buddynext_active(): bool {
+		return defined( 'BUDDYNEXT_VERSION' ) && class_exists( '\BuddyNext\Profile\AvatarService' );
+	}
+
+	/**
+	 * Serve a sample person's profile photo through core avatars when no other plugin already set one.
+	 *
+	 * @param array<string, mixed> $args        Avatar data.
+	 * @param mixed                $id_or_email User ID, email, WP_User, WP_Post or WP_Comment.
+	 * @return array<string, mixed>
+	 */
+	public static function avatar_data( array $args, $id_or_email ): array {
+		if ( ! empty( $args['url'] ) ) {
+			return $args;
+		}
+		$user_id = 0;
+		if ( is_numeric( $id_or_email ) ) {
+			$user_id = (int) $id_or_email;
+		} elseif ( $id_or_email instanceof \WP_User ) {
+			$user_id = (int) $id_or_email->ID;
+		} elseif ( $id_or_email instanceof \WP_Post ) {
+			$user_id = (int) $id_or_email->post_author;
+		} elseif ( $id_or_email instanceof \WP_Comment ) {
+			$user_id = (int) $id_or_email->user_id;
+		} elseif ( is_string( $id_or_email ) && is_email( $id_or_email ) ) {
+			$user    = get_user_by( 'email', $id_or_email );
+			$user_id = $user ? (int) $user->ID : 0;
+		}
+		$photo = $user_id ? (int) get_user_meta( $user_id, self::AVATAR, true ) : 0;
+		if ( ! $photo ) {
+			return $args;
+		}
+		$size = max( 1, (int) ( $args['size'] ?? 96 ) );
+		$url  = wp_get_attachment_image_url( $photo, array( $size, $size ) );
+		if ( $url ) {
+			$args['url']          = $url;
+			$args['found_avatar'] = true;
+		}
+		return $args;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The Finish screen already groups these under "Sample people", so the row reads "accounts".
+	 */
+	public function type_labels(): array {
+		return array( 'user' => __( 'accounts', 'wbcom-demo-installer' ) ) + parent::type_labels();
 	}
 }

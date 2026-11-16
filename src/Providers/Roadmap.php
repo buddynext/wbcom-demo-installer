@@ -185,6 +185,7 @@ final class Roadmap extends Provider {
 					'post_title'   => $title,
 					'post_content' => wpautop( $desc ),
 					'post_author'  => $author,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'    => get_date_from_gmt( $ctx->date( $i, count( $this->content()['items'] ), 75 ) ),
 				),
 				true
@@ -243,8 +244,8 @@ final class Roadmap extends Provider {
 		if ( 'term' === $row->object_type ) {
 			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
-		if ( get_post( $id ) ) {
-			wp_delete_post( $id, true );
+		if ( ! self::delete_post( $id ) ) {
+			return false;
 		}
 		// Product Roadmap keeps votes when an item is deleted (card filed). Remove only this item's votes.
 		global $wpdb;

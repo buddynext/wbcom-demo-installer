@@ -50,6 +50,19 @@ final class QuietMode {
 		// In-app notifications between sample people make their bells and notification pages look lived in;
 		// nothing reaches a real user, and mail stays held by filter_mail().
 		add_filter( 'buddynext_notification_should_send', array( self::class, 'only_sample_recipients' ), 999, 2 );
+		add_filter( 'learnomy_suppress_notifications', array( self::class, 'suppress_unless_sample' ), 999, 3 );
+	}
+
+	/**
+	 * Learnomy: keep in-app notifications for sample people only (a new review notified the site's admin and
+	 * the course author, and those rows outlived Remove everything).
+	 *
+	 * @param mixed  $suppress Suppress already.
+	 * @param string $type     Notification type.
+	 * @param mixed  $user_id  Recipient.
+	 */
+	public static function suppress_unless_sample( $suppress, $type, $user_id ): bool {
+		return (bool) $suppress || ! (bool) get_user_meta( (int) $user_id, \WbcomDemo\Providers\People::FLAG, true );
 	}
 
 	/**
@@ -63,6 +76,9 @@ final class QuietMode {
 			array(
 				'jetonomy_notification_should_send' => false,
 				'wb_gam_email_enabled'              => false,
+				// BuddyPress sends its own emails (friendship requests, group invites) through BP_PHPMailer, past
+				// pre_wp_mail; routed through wp_mail() they reach filter_mail() like every other message.
+				'bp_email_use_wp_mail'              => true,
 			)
 		);
 	}

@@ -4,7 +4,7 @@ Tags: demo content, sample data, community, setup wizard, buddynext
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Wbcom Demo Installer sets up a believable demo of every Wbcom product you have a
 * Works with any mix of free products and Pro add-ons.
 * Your own users and content are never changed. On a site that already has other members, blog posts or comments, the build waits for your explicit confirmation.
 
-When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report confirms nothing was left behind.
+When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report shows what was removed and what is still on the site.
 
 Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap and WB Gamification (with their Pro add-ons active), on BuddyX, BuddyX Pro, Reign or any theme.
 
@@ -60,6 +60,57 @@ That product's sample content waits, and the sample people who made it stay, unt
 Yes. Nothing you kept depends on it. If sample content is still on the site, uninstalling keeps the plugin's record of it so reinstalling can still finish the demo.
 
 == Changelog ==
+
+= 1.1.0 - November 2026 =
+
+Set up a demo with Reign and its add-ons, describe your site to AI, and give visitors a guided tour of it.
+
+* New      - Sample content for BuddyPress and BuddyBoss Platform: member photos, groups, friendships and a mixed, dated feed.
+* New      - Sample content for PeepSo: a dated stream of member posts and link shares with comments and reactions.
+* New      - Sample content for WooCommerce: a store with product photos, sale prices, stock and reviews.
+* New      - Sample content for Dokan: sample vendors become stores that sell the sample products.
+* New      - Sample content for LearnDash: courses with lessons, topics, photos and students part way through.
+* New      - Sample content for WP Job Manager: job listings from sample companies with logos and salaries.
+* New      - Sample content for GeoDirectory: places with photos, map pins, opening hours and reviews.
+* New      - Sample content for TutorLMS and LifterLMS: courses with lessons, instructors and students making progress.
+* New      - Sample content for Sensei LMS: courses with modules, lessons, teachers, students making progress and Reign course ratings.
+* New      - Sample content for WCFM Marketplace and WC Vendors: sample vendors become stores that sell the sample products.
+* New      - A designed home page for every combination: a hero, the site's numbers, each product's own sections (places and map, courses, jobs, stores, events, services, discussions) and the members with their activity, then a call to action.
+* New      - The home page uses Wbcom Essential's hero, stats, call to action, members, activity and groups blocks, so every piece is edited like any block.
+* New      - Reign add-ons are offered BuddyPress for their members, profiles, groups and activity when the site has no community plugin.
+* New      - Try the demo page with role cards, a guided tour and one-click switching between sample accounts.
+* New      - Describe your site in one sentence and get three ready ideas through the AI connector set up in Settings > Connectors.
+* New      - About, Join, FAQ and Blog pages built with Wbcom Essential.
+* New      - Install and activate the free Wbcom products from the site check.
+* New      - The site check installs the free plugin each active Reign add-on is built for, and every starting point can install the product it needs.
+* New      - Demo data entry under Tools, and your own site name and tagline on the Review step.
+* Improve  - After Remove everything, Try a different demo goes straight back to the site check to build another starting point.
+* Improve  - The demo is built on the latest releases: an older Wbcom product, Reign or Reign add-on is ticked on the site check and updated in place, settings kept (Reign through its licence, as Dashboard > Updates does).
+* Improve  - Free Wbcom products with a public repository install from their latest GitHub release, with the store as the fallback.
+* Improve  - Wbcom Essential is ticked on the site check, as its blocks build the home page and the regular pages.
+* Improve  - The site check says when a Reign add-on still needs its plugin, even when other products are ready.
+* Improve  - Sites without BuddyNext open on their community, shop or directory home page and show the site name in the header.
+* Improve  - A site that already runs BuddyPress, BuddyBoss or PeepSo is no longer offered the BuddyNext set by default.
+* Improve  - Keep my setup leaves the kept pages, menu and categories removable until you choose Keep them as mine.
+* Improve  - The site check warns when PHP memory is too low for a build.
+* Improve  - A failed build step can be retried from the wizard.
+* Improve  - Back and Continue stay in view on long wizard steps.
+* Fix      - A product too old for the installer is no longer listed on Review and then left out of the build without a word.
+* Fix      - Every sample forum discussion has replies that answer it, and tags that fit it.
+* Fix      - BuddyPress replies show real mentions instead of placeholder text.
+* Fix      - Review counts spaces and sub-spaces together, as the spaces directory shows them.
+* Fix      - Remove everything leaves a WooCommerce store exactly as it was: no Cart page revision, no store-is-live note, and a fresh site stays marked fresh.
+* Fix      - Learnomy in-app notifications from the demo go to sample people only, never the site's admin.
+* Fix      - Remove everything no longer leaves sample groups behind on a fresh BuddyPress site.
+* Fix      - A plugin the wizard installs that finishes its own setup only on an admin page, such as GeoDirectory, now builds its demo without errors.
+* Fix      - Remove everything puts back settings that other plugins also change, such as GeoDirectory's and the theme's menu locations, instead of reporting them as kept.
+* Fix      - The Finish screen names every item in plain words, and member photos are removed with their sample people.
+* Fix      - Removing sample product categories also clears them from the WooCommerce analytics lookup.
+* Fix      - A Try the demo link opened after switching accounts returns to the tour instead of acting as the wrong person.
+* Security - Learnomy sample settings never switch a site in live payment mode to the test gateway.
+* Dev      - WP-CLI commands ideas, install and adopt, plus build --add, --describe, --idea, --name and --tagline.
+* Dev      - REST routes POST /ideas and POST /add, and the provider methods full_width_archives(), settings(), home(), offers_home() and community().
+* Compat   - Ships with Wbcom Essential 4.7.2 and Reign 8.1.0. Install both updates together.
 
 = 1.0.0 - November 2026 =
 

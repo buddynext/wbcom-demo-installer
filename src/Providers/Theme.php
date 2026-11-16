@@ -7,7 +7,10 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
+use WbcomDemo\Core\Guide;
+use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
 use WbcomDemo\Core\Registry;
 use WbcomDemo\Core\Snapshot;
@@ -19,6 +22,12 @@ defined( 'ABSPATH' ) || exit;
  * Every option it changes goes through Snapshot so "Remove everything" can put it back.
  */
 final class Theme extends Provider {
+
+	/** Post meta on the designed home page: its layout and the core-block parts Wbcom Essential blocks replace. */
+	private const HOME_META = '_wbcom_demo_home';
+
+	/** The Wbcom Essential blocks the wizard puts on the designed home page. */
+	public const ESSENTIAL = array( 'wbcom-essential/hero', 'wbcom-essential/stats-counter', 'wbcom-essential/cta' );
 
 	/**
 	 * {@inheritDoc}
@@ -73,10 +82,20 @@ final class Theme extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
-		return array(
-			'attachment' => array( 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
-			'menu'       => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
+		// BuddyX and BuddyX Pro also get the light-text logo for dark mode.
+		$dark   = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
+		$home   = (bool) array_filter( Registry::all(), static fn( Provider $p ): bool => $p->available() && $p->offers_home() );
+		$plan   = array(
+			'menu' => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
+			'page' => $home ? array( 2, 'setup', __( 'home page and Try the demo page', 'wbcom-demo-installer' ) ) : array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
 		);
+		$brand  = self::branded() ? ( $dark ? 3 : 2 ) : 0;
+		$photos = $brand + ( $home ? 1 : 0 );
+		if ( $photos ) {
+			$label = $brand ? ( $home ? __( 'logo, site icon and home page photo', 'wbcom-demo-installer' ) : __( 'logo and site icon', 'wbcom-demo-installer' ) ) : __( 'home page photo', 'wbcom-demo-installer' );
+			$plan  = array( 'attachment' => array( $photos, 'setup', $label ) ) + $plan;
+		}
+		return $plan;
 	}
 
 	/**
@@ -85,7 +104,7 @@ final class Theme extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		return array( 'logo', 'home', 'menu' );
+		return array( 'logo', 'home', 'guide', 'menu' );
 	}
 
 	/**
@@ -97,11 +116,20 @@ final class Theme extends Provider {
 	public function run( string $step, Context $ctx ): void {
 		match ( $step ) {
 			'logo'  => $this->logo( $ctx ),
-			'home'  => $this->home( $ctx ),
+			'home'  => $this->home_step( $ctx ),
+			'guide' => $this->guide_step( $ctx ),
 			'menu'  => $this->menu( $ctx ),
 			'pages' => $this->pages( $ctx ),
 			default => null,
 		};
+	}
+
+	/**
+	 * Whether the BuddyNext brand pack fits this site: BuddyNext is active.
+	 */
+	public static function branded(): bool {
+		$p = Registry::get( 'buddynext' );
+		return $p && $p->available();
 	}
 
 	/**
@@ -110,14 +138,31 @@ final class Theme extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function logo( Context $ctx ): void {
+		// The brand pack is the BuddyNext wordmark and icon: on a site without BuddyNext (BuddyPress, PeepSo, a
+		// shop, a directory) it would brand the owner's site as a product they do not use, so the header keeps the
+		// site name instead.
+		if ( ! self::branded() ) {
+			return;
+		}
 		$admin = (int) get_current_user_id();
-		$logo  = $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
+		// The sample logo is a wordmark; an owner who typed their own site name sees that name in the header instead.
+		$logo = $ctx->state->get( 'own_name' ) ? 0 : $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
 		if ( $logo && current_theme_supports( 'custom-logo' ) ) {
 			Snapshot::write( 'theme_mod:custom_logo', $logo );
 			// The logo carries the name, so the site title beside it repeats it and crowds the menu. BuddyX shows
-			// both unless its "Display Site Title and Tagline" setting is off; BuddyX Pro and Reign already hide it.
+			// both unless "Display Site Title and Tagline" is off; BuddyX Pro and Reign already hide it. That core
+			// checkbox stores header_textcolor 'blank' (BuddyX then hides the text visually, still read by screen
+			// readers), so write that: the owner sees the box unticked and can tick it to bring the title back.
 			if ( 'BuddyX' === self::theme_family() ) {
-				Snapshot::write( 'theme_mod:display_header_text', false );
+				Snapshot::write( 'theme_mod:header_textcolor', 'blank' );
+			}
+			// Both BuddyX themes swap to dark_mode_logo (a URL) in dark mode; without it an owner's old dark logo, or the
+			// navy wordmark on a near-black header, would show there.
+			if ( in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true ) ) {
+				$dark = $ctx->attachment( 'brand/site-logo-dark.png', $admin, $this->id(), 'setup' );
+				if ( $dark ) {
+					Snapshot::write( 'theme_mod:dark_mode_logo', (string) wp_get_attachment_url( $dark ) );
+				}
 			}
 		}
 		$icon = $ctx->attachment( 'brand/site-icon.png', $admin, $this->id(), 'setup' );
@@ -131,15 +176,232 @@ final class Theme extends Provider {
 	 *
 	 * @param Context $ctx Context.
 	 */
-	private function home( Context $ctx ): void {
-		foreach ( $this->included( $ctx ) as $p ) {
+	private function home_step( Context $ctx ): void {
+		$page = $this->designed_home( $ctx );
+		foreach ( $page ? array() : $this->included( $ctx ) as $p ) {
 			$page = $p->front_page();
 			if ( $page ) {
-				Snapshot::write( 'show_on_front', 'page' );
-				Snapshot::write( 'page_on_front', $page );
-				return;
+				break;
 			}
 		}
+		if ( $page ) {
+			Snapshot::write( 'show_on_front', 'page' );
+			Snapshot::write( 'page_on_front', $page );
+		}
+	}
+
+	/**
+	 * The designed home page: a hero from the site's main product, its numbers, one section per product, the
+	 * community's members, and a closing call to action, in core and product blocks the owner can edit.
+	 * Full width. Returns the page id, or 0 when no included product offers a part of it.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function designed_home( Context $ctx ): int {
+		$hero     = array();
+		$fallback = array();
+		$stats    = array();
+		$crowd    = array();
+		$sections = array();
+		$people   = array();
+		$parts    = array();
+		$lead     = -1;
+		foreach ( array_values( $this->included( $ctx ) ) as $p ) {
+			$part = $p->home( $ctx );
+			if ( ! $part ) {
+				continue;
+			}
+			$parts[] = array( $p, $part );
+			if ( ! empty( $part['hero'] ) ) {
+				if ( $p->community() ) {
+					$fallback = $fallback ? $fallback : $part['hero'];
+				} elseif ( ! $hero ) {
+					$hero = $part['hero'];
+					$lead = count( $parts ) - 1;
+				}
+			}
+		}
+		if ( $lead > 0 ) {
+			array_unshift( $parts, $parts[ $lead ] ); // The product the hero is about leads its numbers and sections too.
+			unset( $parts[ $lead + 1 ] );
+		}
+		foreach ( $parts as list( $p, $part ) ) {
+			if ( $p->community() ) {
+				$crowd  = array_merge( $crowd, (array) ( $part['stats'] ?? array() ) );
+				$people = array_merge( $people, (array) ( $part['sections'] ?? array() ) );
+			} else {
+				$stats    = array_merge( $stats, (array) ( $part['stats'] ?? array() ) );
+				$sections = array_merge( $sections, (array) ( $part['sections'] ?? array() ) );
+			}
+		}
+		if ( ! $sections && ! $people ) {
+			return 0;
+		}
+		$hero   = $hero ? $hero : $fallback;
+		$stats  = array_merge( $stats, $crowd ); // The product's numbers lead, the community's follow.
+		$admin  = (int) get_current_user_id();
+		$layout = array();
+		$parts  = array();
+		$body   = '';
+		if ( $hero ) {
+			$inner          = Blocks::heading( (string) $hero['title'], 1, true ) . Blocks::paragraph( (string) $hero['text'] ) . ( ! empty( $hero['buttons'] ) ? Blocks::buttons( $hero['buttons'] ) : '' );
+			$photo          = ! empty( $hero['image'] ) ? $ctx->attachment( (string) $hero['image'], $admin, $this->id(), 'setup' ) : 0;
+			$parts['hero']  = $photo ? Blocks::cover( $photo, $inner ) : Blocks::section( $inner );
+			$layout['hero'] = array(
+				'title'   => (string) $hero['title'],
+				'text'    => (string) $hero['text'],
+				'buttons' => array_slice( $hero['buttons'], 0, 2 ),
+				'image'   => $photo ? array(
+					'id'  => $photo,
+					'url' => (string) wp_get_attachment_image_url( $photo, 'full' ),
+					'alt' => '',
+				) : null,
+			);
+			$body          .= $parts['hero'];
+		}
+		if ( $stats ) {
+			// The four that matter most: products list theirs first, the community's follow.
+			$stats           = array_slice( $stats, 0, 4 );
+			$cols            = array_map( static fn( array $s ): string => Blocks::heading( number_format_i18n( (int) $s[0] ), 3 ) . Blocks::paragraph( (string) $s[1] ), $stats );
+			$parts['stats']  = Blocks::section( Blocks::columns( $cols ) );
+			$layout['stats'] = array_map( static fn( array $s ): array => array( (int) $s[0], (string) $s[1] ), $stats );
+			$body           .= $parts['stats'];
+		}
+		foreach ( array_merge( $sections, $people ) as $section ) {
+			$body .= Blocks::section( (string) $section );
+		}
+		if ( $hero && ! empty( $hero['buttons'] ) ) {
+			$cta           = ! empty( $hero['cta'] ) ? $hero['cta'] : $hero['buttons'][0];
+			$heading       = (string) ( $hero['closing'] ?? $hero['title'] );
+			$parts['cta']  = Blocks::section( Blocks::heading( $heading ) . Blocks::buttons( array( $cta ) ) );
+			$layout['cta'] = array( $heading, $cta );
+			$body         .= $parts['cta'];
+		}
+		$id = wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => __( 'Home', 'wbcom-demo-installer' ),
+				'post_name'    => 'home',
+				'post_content' => $body,
+				'post_author'  => $admin,
+			),
+			true
+		);
+		if ( is_wp_error( $id ) ) {
+			$ctx->warn( $this->id(), 'home page', $id );
+			return 0;
+		}
+		$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
+		self::no_sidebar( (int) $id );
+		// The hero, numbers and closing are core blocks here (valid on every path, WP-CLI too). When Wbcom Essential
+		// is active the wizard swaps them for its hero, stats counter and call to action, built by those blocks' own
+		// code in the browser so the editor accepts them (see home_upgrade()).
+		update_post_meta(
+			(int) $id,
+			self::HOME_META,
+			array(
+				'layout' => $layout,
+				'parts'  => $parts,
+			)
+		);
+		return (int) $id;
+	}
+
+	/**
+	 * The designed home page still waiting for its Wbcom Essential blocks, for the wizard: page id, the core-block
+	 * parts to replace and what goes in their place. Empty when done, not ours, or Wbcom Essential is not active.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public static function home_upgrade(): array {
+		$id   = (int) get_option( 'page_on_front' );
+		$data = $id ? get_post_meta( $id, self::HOME_META, true ) : '';
+		if ( ! is_array( $data ) || empty( $data['parts'] ) ) {
+			return array();
+		}
+		$registry = \WP_Block_Type_Registry::get_instance();
+		foreach ( self::ESSENTIAL as $block ) {
+			if ( ! $registry->is_registered( $block ) ) {
+				return array();
+			}
+		}
+		$content = (string) get_post_field( 'post_content', $id );
+		$parts   = array_filter( (array) $data['parts'], static fn( $markup ): bool => is_string( $markup ) && str_contains( $content, $markup ) );
+		return $parts ? array(
+			'id'        => $id,
+			'parts'     => $parts,
+			'layout'    => $data['layout'],
+			'essential' => defined( 'WBCOM_ESSENTIAL_VERSION' ) ? (string) WBCOM_ESSENTIAL_VERSION : '',
+		) : array();
+	}
+
+	/**
+	 * The "Try the demo" page (Core\Guide): member and site-owner steps for every product in the demo, with
+	 * one-click account switching. Made whenever an included product offers a guide.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function guide_step( Context $ctx ): void {
+		$offers = array_filter( $this->included( $ctx ), static fn( Provider $p ) => (bool) $p->guide() );
+		if ( ! $offers ) {
+			return;
+		}
+		$id = self::guide_page();
+		if ( $id ) {
+			$ctx->record( $this->id(), 'page', $id, 'setup' );
+		}
+	}
+
+	/**
+	 * Id of the guide page, made when missing (also used by `wp wbcom-demo guide` on a site built earlier).
+	 */
+	public static function guide_page(): int {
+		$found = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => '_wbcom_demo_guide', // phpcs:ignore WordPress.DB.SlowDBQuery -- one page, read once per build.
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		if ( $found ) {
+			return (int) $found[0];
+		}
+		$id = wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => __( 'Try the demo', 'wbcom-demo-installer' ),
+				'post_name'    => 'try-the-demo',
+				'post_content' => Guide::page_content(),
+				'post_author'  => (int) get_current_user_id(),
+				'meta_input'   => array( '_wbcom_demo_guide' => 1 ),
+			),
+			true
+		);
+		if ( is_wp_error( $id ) ) {
+			return 0;
+		}
+		self::no_sidebar( (int) $id );
+		self::hide_title( (int) $id );
+		return (int) $id;
+	}
+
+	/**
+	 * Hide the page title on Reign: the guide page opens with its own headline, so the title would repeat it.
+	 *
+	 * @param int $id Page id.
+	 */
+	public static function hide_title( int $id ): void {
+		if ( 'Reign' !== self::theme_family() ) {
+			return;
+		}
+		$data                          = (array) get_post_meta( $id, 'reign_wbcom_metabox_data', true );
+		$data['layout']['site_layout'] = 'full_width';
+		$data['layout']['title_style'] = 'hidden'; // Reign 8.1+ hides the page title per page this way.
+		Snapshot::write( 'post_meta:' . $id . ':reign_wbcom_metabox_data', $data );
 	}
 
 	/**
@@ -152,11 +414,11 @@ final class Theme extends Provider {
 		if ( ! $locations ) {
 			return;
 		}
-		$name = __( 'Community menu', 'wbcom-demo-installer' );
+		$name = __( 'Demo menu', 'wbcom-demo-installer' );
 		$i    = 2;
 		while ( wp_get_nav_menu_object( $name ) ) {
 			/* translators: %d: number */
-			$name = sprintf( __( 'Community menu %d', 'wbcom-demo-installer' ), $i++ );
+			$name = sprintf( __( 'Demo menu %d', 'wbcom-demo-installer' ), $i++ );
 		}
 		$menu_id = wp_create_nav_menu( $name );
 		if ( is_wp_error( $menu_id ) ) {
@@ -167,7 +429,23 @@ final class Theme extends Provider {
 		// icons, card 10480406536), which is undefined in a REST request. Loading the screen API makes it return null.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 		require_once ABSPATH . 'wp-admin/includes/screen.php';
-		$pos = 1;
+		$pos   = 1;
+		$guide = array_map( 'intval', Ledger::ids( $this->id(), 'page' ) );
+		if ( $guide ) {
+			// First, so a visitor sees how to try the demo before anything else.
+			wp_update_nav_menu_item(
+				(int) $menu_id,
+				0,
+				array(
+					'menu-item-title'     => __( 'Try the demo', 'wbcom-demo-installer' ),
+					'menu-item-status'    => 'publish',
+					'menu-item-position'  => $pos++,
+					'menu-item-object'    => 'page',
+					'menu-item-object-id' => max( $guide ),
+					'menu-item-type'      => 'post_type',
+				)
+			);
+		}
 		foreach ( $this->included( $ctx ) as $p ) {
 			foreach ( $p->menu_items() as $item ) {
 				$args = array(
@@ -209,8 +487,18 @@ final class Theme extends Provider {
 			Snapshot::write( 'buddyx_demo_setup_state', 'dismissed' );
 		}
 		foreach ( $this->included( $ctx ) as $p ) {
+			// Reign keeps a layout per archive type and falls back to a right sidebar with the default widgets.
+			if ( 'Reign' === self::theme_family() ) {
+				foreach ( $p->full_width_archives() as $type ) {
+					Snapshot::write( 'theme_mod:reign_' . sanitize_key( $type ) . '_archive_layout', 'full_width' );
+					Snapshot::write( 'theme_mod:reign_' . sanitize_key( $type ) . '_single_layout', 'full_width' );
+				}
+			}
+			$ids = $p->layout_pages();
 			foreach ( $p->menu_items() as $item ) {
-				$id = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );
+				$ids[] = ! empty( $item['page_id'] ) ? (int) $item['page_id'] : url_to_postid( strtok( (string) ( $item['url'] ?? '' ), '?' ) );
+			}
+			foreach ( array_unique( array_map( 'intval', $ids ) ) as $id ) {
 				if ( $id && 'page' === get_post_type( $id ) ) {
 					self::no_sidebar( $id );
 				}
@@ -288,22 +576,16 @@ final class Theme extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'attachment' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_attachment( $id, true );
-			}
-			return true;
+			return self::delete_post( $id, true );
 		}
 		if ( 'menu' === $row->object_type ) {
 			if ( wp_get_nav_menu_object( $id ) ) {
 				wp_delete_nav_menu( $id );
 			}
-			return true;
+			return ! wp_get_nav_menu_object( $id );
 		}
 		if ( 'page' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_post( $id, true );
-			}
-			return true;
+			return self::delete_post( $id );
 		}
 		return true;
 	}

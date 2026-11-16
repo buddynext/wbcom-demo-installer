@@ -171,8 +171,19 @@ final class Context {
 			return 0;
 		}
 		update_post_meta( $id, '_wbcom_demo', $this->build_id() );
+		// Every image needs alt text for screen readers: the curated file names describe the photos.
+		update_post_meta( $id, '_wp_attachment_image_alt', self::alt_text( $rel ) );
 		$this->record( $provider, 'attachment', (int) $id, $kind );
 		return (int) $id;
+	}
+
+	/**
+	 * Alt text for a media file: its file name in words ("photos/sunlit-forest-trail.jpg" becomes "Sunlit forest trail").
+	 *
+	 * @param string $rel Path under media/.
+	 */
+	public static function alt_text( string $rel ): string {
+		return ucfirst( str_replace( array( '-', '_' ), ' ', (string) preg_replace( '/\.[a-z0-9]+$/i', '', basename( $rel ) ) ) );
 	}
 
 	/**

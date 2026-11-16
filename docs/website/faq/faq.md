@@ -40,10 +40,21 @@ categories and settings. "Remove everything" also puts back your previous home p
 
 ## Can I run it again?
 
-Yes, once the current demo is finished. After "Keep my setup", a new build reuses the spaces and categories you
-kept.
+Yes, once the current demo is finished. After "Keep my setup", choose **Keep them as mine** first; a new build then
+reuses the spaces and categories you kept, and adds its own Demo menu without changing yours.
 
 ## Does it work with my theme?
 
 It works with any theme. BuddyX, BuddyX Pro and Reign also get the community home page, menu, logo and product
 pages without sidebars.
+
+## Do I have to install every product first?
+
+No. The site check lists the free Wbcom products and installs and activates the ones you tick, using the same
+releases you get as updates. Pro add-ons need your licence, so install them from your account.
+
+## Does it need an AI service?
+
+No. Without one everything works with the installer's sample content. With an AI connector set up in Settings >
+Connectors (WordPress 7.0 or later), you can describe your site and get three ideas; the one you pick is built with text
+written for it. The installer has no AI service or key of its own.

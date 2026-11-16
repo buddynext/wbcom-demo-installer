@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -50,7 +51,7 @@ final class Learnomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '2.2.0';
+		return '2.3.0'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -65,6 +66,13 @@ final class Learnomy extends Provider {
 	 */
 	public function order(): int {
 		return 40;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function keeps_logs(): string {
+		return __( 'Learnomy keeps an audit log of the removal as a security record, with the sample people removed from it.', 'wbcom-demo-installer' );
 	}
 
 	/**
@@ -206,7 +214,7 @@ final class Learnomy extends Provider {
 				'category_id'   => $categories[ $c['category'] ] ?? 0,
 				'status'        => 'published',
 				'difficulty'    => $c['difficulty'],
-				'thumbnail_url' => $this->thumbnail( $i, $instructor, $ctx ),
+				'thumbnail_url' => $this->thumbnail( $c['image'], $instructor, $ctx ),
 			),
 			$instructor
 		);
@@ -254,13 +262,11 @@ final class Learnomy extends Provider {
 	/**
 	 * Course thumbnail from the photo pack.
 	 *
-	 * @param int     $i      Course index.
+	 * @param string  $file   Photo path under media/, from the course content.
 	 * @param int     $author Instructor.
 	 * @param Context $ctx    Context.
 	 */
-	private function thumbnail( int $i, int $author, Context $ctx ): string {
-		$files = array( 'creative-studio-portrait.jpg', 'developer-desk.jpg', 'festival-friends.jpg', 'tech-workspace.jpg', 'misty-forest-path.jpg' );
-		$file  = 'photos/' . $files[ $i % count( $files ) ];
+	private function thumbnail( string $file, int $author, Context $ctx ): string {
 		if ( ! is_readable( $ctx->media( $file ) ) ) {
 			return '';
 		}
@@ -338,8 +344,10 @@ final class Learnomy extends Provider {
 		$id = (int) $row->object_id;
 		switch ( $row->object_type ) {
 			case 'course':
-				( new \Learnomy\Services\Course_Service() )->delete( $id );
-				return true;
+				if ( \Learnomy\Models\Course::find( $id ) ) {
+					( new \Learnomy\Services\Course_Service() )->delete( $id );
+				}
+				return ! \Learnomy\Models\Course::find( $id );
 			case 'enrollment':
 				// Certificates are kept by Learnomy on purpose; a sample person's certificate goes with them.
 				$cert = \Learnomy\Models\Certificate::find_active_for_user_course( (int) ( $row->meta['user'] ?? 0 ), (int) ( $row->meta['course'] ?? 0 ) );
@@ -349,17 +357,16 @@ final class Learnomy extends Provider {
 				if ( \Learnomy\Models\Enrollment::find( $id ) ) {
 					( new \Learnomy\Services\Enrollment_Service() )->remove_by_admin( $id );
 				}
-				return true;
+				// Learnomy keeps an ended enrolment as history (removed with the person); ended is done.
+				$after = \Learnomy\Models\Enrollment::find( $id );
+				return ! $after || ! in_array( (string) $after->status, \Learnomy\Models\Enrollment::current_statuses(), true );
 			case 'category':
 				if ( \Learnomy\Models\Category::find( $id ) ) {
 					\Learnomy\Models\Category::delete( $id );
 				}
-				return true;
+				return ! \Learnomy\Models\Category::find( $id );
 			case 'attachment':
-				if ( get_post( $id ) ) {
-					wp_delete_attachment( $id, true );
-				}
-				return true;
+				return self::delete_post( $id, true );
 		}
 		return true;
 	}
@@ -380,9 +387,20 @@ final class Learnomy extends Provider {
 		$settings = array(
 			'learnomy_setup_complete'       => true,
 			'learnomy_onboarding_dismissed' => true,
+			'learnomy_settings'             => array(),
 		);
+		// The test payment method, so a visitor can buy a paid sample course without a real gateway. Never on a
+		// site already taking live payments: that would let real buyers check out for free.
+		$current = (array) get_option( 'learnomy_settings', array() );
+		if ( 'live' !== ( $current['payment_mode'] ?? '' ) ) {
+			$settings['learnomy_settings']['enable_test_gateway'] = true;
+			$settings['learnomy_settings']['payment_mode']        = 'sandbox';
+		}
 		if ( in_array( Theme::theme_family(), array( 'BuddyX', 'BuddyX Pro', 'Reign' ), true ) ) {
-			$settings['learnomy_settings'] = array( 'container_width' => 'none' );
+			$settings['learnomy_settings']['container_width'] = 'none';
+		}
+		if ( ! $settings['learnomy_settings'] ) {
+			unset( $settings['learnomy_settings'] );
 		}
 		return $settings;
 	}
@@ -390,6 +408,137 @@ final class Learnomy extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		if ( ! function_exists( '\\Learnomy\\route_url' ) || ! class_exists( '\\Learnomy\\Models\\Course' ) ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$route = static fn( string $name, array $args = array() ): string => (string) \Learnomy\route_url( $name, $args );
+		// The demo's first course, else the paid course with the most students, so "buy it" has something to buy.
+		$course = null;
+		$built  = Ledger::ids( $this->id(), 'course' );
+		$pool   = $built ? \Learnomy\Models\Course::find_published_in( array( (int) min( $built ) ) ) : \Learnomy\Models\Course::list_published( 1, 100 );
+		foreach ( $pool as $row ) {
+			if ( $built || ( 'paid' === ( $row->access_type ?? '' ) && ( ! $course || (int) $row->student_count > (int) $course->student_count ) ) ) {
+				$course = $row;
+			}
+		}
+		$course_url = $course ? $route( 'course', array( 'slug' => (string) $course->slug ) ) : $route( 'catalog' );
+		$student    = People::user_id( 'student' );
+		$instructor = People::user_id( 'instructor' );
+		$admin      = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
+		return array(
+			'name'         => $t['name'],
+			'tab'          => $t['tab'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'student',
+					'user'   => $student,
+					'label'  => $t['roles']['student'][0],
+					'points' => $t['roles']['student'][1],
+				),
+				array(
+					'key'    => 'instructor',
+					'user'   => $instructor,
+					'label'  => $t['roles']['instructor'][0],
+					'points' => $t['roles']['instructor'][1],
+				),
+			),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'catalog' => $route( 'catalog' ),
+					'course'  => $course_url,
+					'pay'     => $course ? add_query_arg( 'course_id', (int) $course->id, $route( 'enroll' ) ) : $course_url,
+					'account' => $route( 'student-dashboard' ),
+					'teach'   => $route( 'instructor-grading' ),
+				),
+				array(
+					'catalog' => array(
+						'public' => true,
+						'as'     => 'student',
+					),
+					'course'  => array(
+						'public' => true,
+						'as'     => 'student',
+					),
+					'pay'     => array(
+						'as'        => 'student',
+						'highlight' => true,
+					),
+					'account' => array( 'as' => 'student' ),
+					'teach'   => array( 'as' => 'instructor' ),
+				)
+			),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'courses'      => $admin( 'learnomy-courses' ),
+					'students'     => $admin( 'learnomy-students' ),
+					'memberships'  => $admin( 'learnomy-memberships' ),
+					'transactions' => $admin( 'learnomy-transactions' ),
+				)
+			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A learning site: the hero, course and student counts, popular courses and the instructors, in Learnomy's
+	 * own blocks.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( '\\Learnomy\\route_url' ) || ! class_exists( '\\Learnomy\\Models\\Course' ) || ! class_exists( '\\Learnomy\\Models\\Enrollment' ) ) {
+			return array();
+		}
+		$h       = (array) ( $this->content()['home'] ?? array() );
+		$catalog = (string) \Learnomy\route_url( 'catalog' );
+		$courses = array(
+			'count'   => 6,
+			'columns' => 3,
+		);
+		$people  = array(
+			'count'   => 4,
+			'columns' => 4,
+		);
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => array( array( (string) $h['browse'], $catalog ) ),
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => array(
+				array( \Learnomy\Models\Course::count_published( 0 ), __( 'courses', 'wbcom-demo-installer' ) ),
+				array( \Learnomy\Models\Enrollment::count_distinct_students(), __( 'students', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array(
+				Blocks::heading( (string) $h['courses'][0] ) . Blocks::paragraph( (string) $h['courses'][1] )
+					. get_comment_delimited_block_content( 'learnomy/course-grid', $courses, '' )
+					. Blocks::button( (string) $h['all'], $catalog ),
+				Blocks::heading( (string) $h['teachers'][0] ) . Blocks::paragraph( (string) $h['teachers'][1] )
+					. get_comment_delimited_block_content( 'learnomy/instructor-grid', $people, '' ),
+			),
+		);
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */

@@ -172,6 +172,22 @@ final class Ledger {
 	}
 
 	/**
+	 * Ledger rows by id (provider and type only; the finish report names what waits).
+	 *
+	 * @param int[] $ids Ledger row ids.
+	 * @return array<int,object{provider:string,object_type:string}>
+	 */
+	public static function rows( array $ids ): array {
+		global $wpdb;
+		$ids = array_slice( array_filter( array_map( 'absint', $ids ) ), 0, 1000 );
+		if ( ! $ids ) {
+			return array();
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- one %d per id, built above.
+		return (array) $wpdb->get_results( $wpdb->prepare( 'SELECT DISTINCT provider, object_type FROM %i WHERE id IN (' . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ')', self::table(), ...array_values( $ids ) ) );
+	}
+
+	/**
 	 * Delete ledger rows by id.
 	 *
 	 * @param int[] $ids Ledger row ids.

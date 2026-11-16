@@ -114,8 +114,9 @@ final class Finisher {
 		$mode = in_array( $mode, array( 'keep', 'custom', 'all' ), true ) ? $mode : 'keep';
 		$sel  = self::selection( $mode, $custom );
 		// Put the previous look back first, while the demo menu and logo still exist,
-		// so deleting them cannot be mistaken for an owner change.
-		$kept_options = 'all' === $mode ? Snapshot::restore() : array();
+		// so deleting them cannot be mistaken for an owner change. Product settings wait until complete():
+		// removing content can need them (BuddyPress deletes groups only while Groups is active).
+		$kept_options = 'all' === $mode ? Snapshot::restore( false ) : array();
 		$state->set( 'status', State::FINISHING )
 			->set( 'queue', array() )
 			->set(
@@ -159,6 +160,12 @@ final class Finisher {
 	public static function step( State $state ): void {
 		$f   = (array) $state->get( 'finish' );
 		$ctx = new Context( $state );
+		if ( ! empty( $f['trying'] ) ) {
+			// The last request died while removing this row (a fatal error in the product): skip it, report it.
+			$f['skip'][] = (int) $f['trying'];
+			unset( $f['trying'] );
+			$state->set( 'finish', $f )->save();
+		}
 		foreach ( Registry::all() as $p ) {
 			$p->boot( $ctx );
 		}
@@ -207,11 +214,14 @@ final class Finisher {
 					$f['waiting'][] = (int) $row->id;
 					continue;
 				}
+				$f['trying'] = (int) $row->id;
+				$state->set( 'finish', $f )->save();
 				try {
 					$ok = $p->remove( $row );
 				} catch ( \Throwable $e ) {
 					$ok = false;
 				}
+				unset( $f['trying'] );
 				if ( $ok ) {
 					$done[] = (int) $row->id;
 				} else {
@@ -224,6 +234,61 @@ final class Finisher {
 			return;
 		}
 		self::complete( $state, $f );
+	}
+
+	/**
+	 * Continue the last finish: remove what it was asked to remove and could not (a product was inactive,
+	 * or a remove failed), with the same choices.
+	 *
+	 * @return array<string,mixed>|\WP_Error
+	 */
+	public static function resume() {
+		$report = (array) ( new State() )->get( 'report' );
+		$keys   = array_values( array_filter( (array) ( $report['remove'] ?? array() ), 'is_string' ) );
+		if ( ! $keys || ! self::count_keys( $keys ) ) {
+			return new \WP_Error( 'wbcom_demo_nothing_waiting', __( 'Nothing is waiting to be removed.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
+		}
+		return self::start( 'custom', array_fill_keys( $keys, true ) );
+	}
+
+	/**
+	 * The owner keeps what the demo left as their own: the installer stops tracking it and the demo ends.
+	 * Only once no sample content is left, so sample people and their content can never be orphaned.
+	 *
+	 * @return array<string,mixed>|\WP_Error
+	 */
+	public static function adopt() {
+		$state = new State();
+		if ( State::BUILT !== $state->get( 'status' ) ) {
+			return new \WP_Error( 'wbcom_demo_none', __( 'There is no demo to finish.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
+		}
+		if ( Ledger::total( 'sample' ) ) {
+			return new \WP_Error( 'wbcom_demo_sample_left', __( 'Remove the sample content first. Only settings, pages, menus and categories can be kept as yours.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
+		}
+		$keys = array();
+		foreach ( Ledger::counts() as $row ) {
+			$keys[] = $row->provider . ':' . $row->object_type;
+		}
+		Ledger::handover( $keys );
+		Snapshot::forget();
+		$state->reset();
+		return Engine::status();
+	}
+
+	/**
+	 * Products that keep records on purpose after the demo is removed (accounting ledger, audit log). The
+	 * installer does not touch product tables, so it names them.
+	 *
+	 * @return string[]
+	 */
+	private static function product_logs(): array {
+		$found = array();
+		foreach ( Registry::all() as $p ) {
+			if ( $p->available() && $p->keeps_logs() ) {
+				$found[] = $p->keeps_logs();
+			}
+		}
+		return $found;
 	}
 
 	/**
@@ -264,21 +329,14 @@ final class Finisher {
 	private static function complete( State $state, array $f ): void {
 		$kept_options = (array) ( $f['kept_options'] ?? array() );
 		if ( 'all' === $f['mode'] ) {
-			self::restore_fresh_site( $state );
-		}
-		if ( 'all' !== $f['mode'] && ! $f['waiting'] && ! $f['skip'] ) {
-			// Kept setup now belongs to the owner.
-			$setup_keys = array();
-			foreach ( Ledger::counts() as $row ) {
-				if ( 'setup' === $row->kind ) {
-					$setup_keys[] = $row->provider . ':' . $row->object_type;
-				}
+			// Product settings go back only once nothing chosen is left: a retry may still need them on.
+			if ( ! Ledger::next_batch( $f['remove'], array(), 1 ) ) {
+				$kept_options = array_merge( $kept_options, Snapshot::restore( true ) );
 			}
-			Ledger::handover( $setup_keys );
-			if ( ! Ledger::total( 'sample' ) ) {
-				Snapshot::forget();
-			}
+			self::restore_fresh_site( $state ); // Last: restoring a setting can turn it off again.
 		}
+		// Kept items stay in the ledger (owner, 10 November 2026): they can still be removed later, until the
+		// owner says they are theirs (adopt()).
 
 		$issues = array();
 		foreach ( Registry::all() as $id => $p ) {
@@ -289,16 +347,35 @@ final class Finisher {
 				$issues = array_merge( $issues, $p->verify() );
 			}
 		}
-		$left = 0;
+		$left        = 0;
+		$kept_sample = 0;
+		$kept_setup  = 0;
 		foreach ( Ledger::counts() as $row ) {
 			if ( in_array( $row->provider . ':' . $row->object_type, $f['remove'], true ) ) {
 				$left += $row->n;
+			} elseif ( 'sample' === $row->kind ) {
+				$kept_sample += $row->n;
+			} else {
+				$kept_setup += $row->n;
 			}
+		}
+		$waiting_products = array();
+		foreach ( Ledger::rows( array_map( 'intval', $f['waiting'] ) ) as $row ) {
+			if ( 'people' === $row->provider ) {
+				continue; // They wait for the product, not for activation of their own.
+			}
+			$p                                  = Registry::get( $row->provider );
+			$waiting_products[ $row->provider ] = $p ? $p->label() : $row->provider;
 		}
 		$report = array(
 			'mode'         => $f['mode'],
+			'remove'       => $f['remove'],
 			'removed'      => $f['removed'],
 			'left'         => $left,
+			'kept_sample'  => $kept_sample,
+			'kept_setup'   => $kept_setup,
+			'waiting_for'  => array_values( $waiting_products ),
+			'leftovers'    => self::product_logs(),
 			'waiting'      => count( $f['waiting'] ),
 			'failed'       => count( $f['skip'] ),
 			'kept'         => $f['keep'],
@@ -316,8 +393,8 @@ final class Finisher {
 		);
 		$state->set( 'report', $report );
 
-		if ( Ledger::total() > 0 && ( $left || Ledger::total( 'sample' ) ) ) {
-			// Some sample content stays (kept by choice, waiting for a product, or failed).
+		if ( Ledger::total() > 0 ) {
+			// Something stays: kept by choice, waiting for a product, or failed. It is still removable.
 			$state->set( 'status', State::BUILT )->set( 'finish', array() )->save();
 		} else {
 			$state->reset();

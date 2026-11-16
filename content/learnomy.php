@@ -17,6 +17,7 @@ return array(
 	'courses'    => array(
 		array(
 			'title'      => 'Design Systems from Scratch',
+			'image'      => 'photos/wireframe-sketches.jpg',
 			'category'   => 'design',
 			'instructor' => 0,
 			'difficulty' => 'intermediate',
@@ -43,6 +44,7 @@ return array(
 		),
 		array(
 			'title'      => 'Accessible Web Pages in a Weekend',
+			'image'      => 'photos/developer-workspace.jpg',
 			'category'   => 'development',
 			'instructor' => 1,
 			'difficulty' => 'beginner',
@@ -68,6 +70,7 @@ return array(
 		),
 		array(
 			'title'      => 'Running a Community People Come Back To',
+			'image'      => 'photos/cafe-friends.jpg',
 			'category'   => 'community',
 			'instructor' => 10,
 			'difficulty' => 'beginner',
@@ -93,6 +96,7 @@ return array(
 		),
 		array(
 			'title'      => 'Data Visualisation for Busy People',
+			'image'      => 'photos/developer-desk.jpg',
 			'category'   => 'development',
 			'instructor' => 4,
 			'difficulty' => 'intermediate',
@@ -111,6 +115,7 @@ return array(
 		),
 		array(
 			'title'      => 'Calm Focus: Ten Minutes a Day',
+			'image'      => 'photos/misty-forest-path.jpg',
 			'category'   => 'wellbeing',
 			'instructor' => 14,
 			'difficulty' => 'beginner',
@@ -134,5 +139,46 @@ return array(
 		array( 5, 'Finally made it click', 'I have read about this topic for years. This is the first time I actually did it.' ),
 		array( 5, 'Short lessons, big results', 'Each lesson takes ten minutes and changes something real.' ),
 		array( 4, 'Recommended', 'Good pace and friendly tone. Worth it.' ),
+	),
+	'home'       => array(
+		'title'    => 'Learn the skills that move your career forward',
+		'text'     => 'Hands-on courses taught by working professionals. Learn at your own pace, earn a certificate and keep access on every device.',
+		'image'    => 'photos/open-books.jpg',
+		'browse'   => 'Browse all courses',
+		'closing'  => 'Your next skill is one lesson away.',
+		'courses'  => array( 'Popular courses to start with', 'Every course has preview lessons, quizzes and a certificate when you finish.' ),
+		'all'      => 'See every course',
+		'teachers' => array( 'Learn from people who do the work', 'Instructors who teach what they use every day.' ),
+	),
+	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
+	'guide'      => array(
+		'name'         => 'Learnomy',
+		'tab'          => 'Learn',
+		'member_label' => 'As a student',
+		'owner_points' => array( 'Build courses with lessons and quizzes', 'See students, revenue and certificates', 'Sell memberships and coupons' ),
+		'roles'        => array(
+			'student'    => array( 'Student', array( 'Courses in progress and certificates', 'Buy a course with Test payment', 'Notes, quizzes and progress' ) ),
+			'instructor' => array( 'Instructor', array( 'Published courses and students', 'Earnings at a glance', 'Quiz answers to grade' ) ),
+		),
+		'member'       => array(
+			'catalog' => array( 'search', 'Browse the catalog', 'Filter courses by category, level and price.', 'Open the catalog' ),
+			'course'  => array( 'play', 'Preview a course', 'Watch the free preview and read the reviews.', 'Open the course' ),
+			'pay'     => array( 'card', 'Buy it with Test payment', 'Checkout goes through at once and costs nothing.', 'Enroll now' ),
+			'account' => array( 'cap', 'Keep learning', 'Progress, notes, quiz results and certificates.', 'Open my courses' ),
+			'teach'   => array( 'check', 'Grade as the instructor', 'Switches you to the instructor to review students and grade answers.', 'Open grading' ),
+		),
+		'owner'        => array(
+			'courses'      => array( 'book', 'Build a course', 'Sections, lessons, quizzes and drip schedules.', 'Open courses' ),
+			'students'     => array( 'users', 'Follow your students', 'Progress, scores and certificates for every learner.', 'Open students' ),
+			'memberships'  => array( 'money', 'Sell memberships', 'Plans, subscriptions, coupons and gift codes.', 'Open memberships' ),
+			'transactions' => array( 'chart', 'Track revenue', 'Payments, refunds and instructor earnings.', 'Open transactions' ),
+		),
+		'highlights'   => array(
+			array( 'book', 'Course builder', 'Sections, lessons, quizzes, assignments and drip content.' ),
+			array( 'card', 'Payments built in', 'Stripe, PayPal or WooCommerce, with coupons and refunds.' ),
+			array( 'money', 'Memberships', 'Plans that unlock groups of courses.' ),
+			array( 'users', 'Many instructors', 'Applications, co-instructors and commissions.' ),
+			array( 'award', 'Certificates', 'Issued on completion and verifiable by anyone.' ),
+		),
 	),
 );

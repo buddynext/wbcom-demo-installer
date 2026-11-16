@@ -28,6 +28,7 @@ final class Page {
 		add_action( 'admin_menu', array( self::class, 'menu' ) );
 		add_action( 'admin_init', array( self::class, 'clear_redirects' ), 0 );
 		add_action( 'admin_init', array( self::class, 'takeover' ) );
+		add_action( 'admin_init', array( self::class, 'to_demo_data' ) );
 		add_action( 'admin_notices', array( self::class, 'notice' ) );
 		add_action( 'wp_ajax_wbcom_demo_dismiss', array( self::class, 'dismiss' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( WBCOM_DEMO_FILE ), array( self::class, 'links' ) );
@@ -47,6 +48,17 @@ final class Page {
 	}
 
 	/**
+	 * Asset version: the plugin version plus the file's change time, so a browser never keeps a stale copy
+	 * after an update (or a hotfix that keeps the version).
+	 *
+	 * @param string $rel Path under the plugin folder.
+	 */
+	private static function ver( string $rel ): string {
+		$time = @filemtime( WBCOM_DEMO_DIR . $rel ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a missing file falls back to the version.
+		return WBCOM_DEMO_VERSION . ( $time ? '.' . $time : '' );
+	}
+
+	/**
 	 * Menu entry.
 	 */
 	public static function menu(): void {
@@ -57,6 +69,26 @@ final class Page {
 			self::SLUG,
 			'__return_null'
 		);
+		// A permanent way back to what the demo left, after the wizard is closed (card 10483387455).
+		add_management_page(
+			__( 'Demo data', 'wbcom-demo-installer' ),
+			__( 'Demo data', 'wbcom-demo-installer' ),
+			Plugin::CAP,
+			self::SLUG . '-data',
+			'__return_null'
+		);
+	}
+
+	/**
+	 * Tools > Demo data opens the wizard's Finish screen, where the owner chooses what to remove.
+	 */
+	public static function to_demo_data(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page routing.
+		if ( ! isset( $_GET['page'] ) || self::SLUG . '-data' !== $_GET['page'] || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
+			return;
+		}
+		wp_safe_redirect( self::url( 'data' ) );
+		exit;
 	}
 
 	/**
@@ -80,7 +112,7 @@ final class Page {
 	 */
 	public static function clear_redirects(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page routing.
-		if ( ! is_admin() || ! isset( $_GET['page'] ) || self::SLUG !== $_GET['page'] || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
+		if ( ! is_admin() || ! isset( $_GET['page'] ) || ! in_array( $_GET['page'], array( self::SLUG, self::SLUG . '-data' ), true ) || wp_doing_ajax() || ! current_user_can( Plugin::CAP ) ) {
 			return;
 		}
 		$providers = did_action( 'admin_init' ) || doing_action( 'admin_init' ) ? \WbcomDemo\Core\Registry::all() : \WbcomDemo\Core\Registry::builtin_providers();
@@ -100,9 +132,23 @@ final class Page {
 		if ( ! current_user_can( Plugin::CAP ) ) {
 			wp_die( esc_html__( 'Only site administrators can set up or remove demo content.', 'wbcom-demo-installer' ), 403 );
 		}
-		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), WBCOM_DEMO_VERSION );
+		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), self::ver( 'assets/css/wizard.css' ) );
 		wp_style_add_data( 'wbcom-demo', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array( 'wp-api-fetch', 'wp-i18n' ), WBCOM_DEMO_VERSION, true );
+		// Wbcom Essential's own block code, so the wizard can build its hero, stats and call to action for the
+		// designed home page exactly as the editor saves them.
+		$deps = array( 'wp-api-fetch', 'wp-i18n' );
+		foreach ( \WbcomDemo\Providers\Theme::ESSENTIAL as $name ) {
+			$type = \WP_Block_Type_Registry::get_instance()->get_registered( $name );
+			if ( $type ) {
+				$deps = array_merge( $deps, array( 'wp-blocks' ), (array) $type->editor_script_handles );
+			}
+		}
+		if ( in_array( 'wp-blocks', $deps, true ) ) {
+			// What the block editor hands its blocks from block.json (title, attributes): without it they do not register.
+			$defs = array_intersect_key( get_block_editor_server_block_settings(), array_flip( \WbcomDemo\Providers\Theme::ESSENTIAL ) );
+			wp_add_inline_script( 'wp-blocks', 'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( $defs ) . ');' );
+		}
+		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array_values( array_unique( $deps ) ), self::ver( 'assets/js/wizard.js' ), true );
 		wp_set_script_translations( 'wbcom-demo', 'wbcom-demo-installer' );
 		wp_localize_script(
 			'wbcom-demo',
@@ -113,6 +159,8 @@ final class Page {
 				'customize' => admin_url( 'customize.php' ),
 				'users'     => admin_url( 'user-new.php' ),
 				'plugins'   => admin_url( 'plugins.php' ),
+				// The Wbcom Essential block code on this page; when the wizard updates Essential it reloads first.
+				'essential' => defined( 'WBCOM_ESSENTIAL_VERSION' ) ? (string) WBCOM_ESSENTIAL_VERSION : '',
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'view'      => isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '',
 			)
@@ -132,12 +180,19 @@ final class Page {
 		if ( ! $screen || ! in_array( $screen->id, array( 'dashboard', 'plugins', 'themes' ), true ) ) {
 			return;
 		}
-		if ( State::IDLE !== ( new State() )->get( 'status' ) || ! Engine::site()['recipes'] ) {
+		if ( State::IDLE !== ( new State() )->get( 'status' ) ) {
 			return;
 		}
-		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), WBCOM_DEMO_VERSION );
+		// Show it when a demo can be built now, and also when the wizard can install what is missing (a Reign
+		// add-on's plugin): that owner has nothing supported active yet and needs the way in most.
+		$site    = Engine::site();
+		$missing = array_filter( (array) $site['catalog'], static fn( array $c ): bool => ! empty( $c['needed_by'] ) && 'active' !== $c['state'] && $c['can'] );
+		if ( ! $site['recipes'] && ! $missing ) {
+			return;
+		}
+		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), self::ver( 'assets/css/notice.css' ) );
 		wp_style_add_data( 'wbcom-demo-notice', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/js/notice.js', array(), WBCOM_DEMO_VERSION, true );
+		wp_enqueue_script( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/js/notice.js', array(), self::ver( 'assets/js/notice.js' ), true );
 		wp_localize_script(
 			'wbcom-demo-notice',
 			'wbcomDemoNotice',
@@ -149,8 +204,8 @@ final class Page {
 		?>
 		<div class="notice wbcom-demo-notice" data-wbcom-demo-notice>
 			<div class="wbcom-demo-notice__body">
-				<p class="wbcom-demo-notice__title"><?php esc_html_e( 'See your community with sample content', 'wbcom-demo-installer' ); ?></p>
-				<p><?php esc_html_e( 'Set up a believable demo of your Wbcom products with 20 sample people in a few minutes. Remove the samples whenever you like and keep your setup.', 'wbcom-demo-installer' ); ?></p>
+				<p class="wbcom-demo-notice__title"><?php esc_html_e( 'See your site with sample content', 'wbcom-demo-installer' ); ?></p>
+				<p><?php esc_html_e( 'Set up a believable demo with 20 sample people in a few minutes, and install the plugins it needs. Remove the samples whenever you like and keep your setup.', 'wbcom-demo-installer' ); ?></p>
 				<p class="wbcom-demo-notice__actions">
 					<a class="button button-primary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Set up your site', 'wbcom-demo-installer' ); ?></a>
 					<button type="button" class="button-link" data-wbcom-demo-dismiss><?php esc_html_e( 'Not now', 'wbcom-demo-installer' ); ?></button>

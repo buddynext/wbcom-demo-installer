@@ -7,10 +7,12 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
+use WbcomDemo\Core\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -53,7 +55,7 @@ final class Jetonomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '2.0.6';
+		return '2.0.7'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -223,7 +225,7 @@ final class Jetonomy extends Provider {
 			$existed = \Jetonomy\Models\Tag::exists( $slug );
 			$tid     = \Jetonomy\Models\Tag::find_or_create( $name );
 			if ( $tid > 0 ) {
-				$tags[] = $tid;
+				$tags[ $name ] = $tid;
 				if ( ! $existed ) {
 					$ctx->record( $this->id(), 'tag', $tid, 'setup' );
 				}
@@ -283,7 +285,9 @@ final class Jetonomy extends Provider {
 			}
 			$post_id = (int) $post_id;
 			$ctx->record( $this->id(), 'post', $post_id, 'sample', array( 'author' => $author ) );
-			foreach ( array_slice( $tags, $i % max( 1, count( $tags ) ), 1 + $i % 2 ) as $tid ) {
+			// Tags that fit the discussion: its own, else its space's.
+			$names = (array) ( $c['topic_tags'][ $i ] ?? $c['space_tags'][ $space ] ?? array() );
+			foreach ( array_intersect_key( $tags, array_flip( $names ) ) as $tid ) {
 				\Jetonomy\Models\Tag::attach_to_post( $post_id, (int) $tid );
 			}
 			if ( 'idea' === $type && $i % 2 ) {
@@ -395,8 +399,10 @@ final class Jetonomy extends Provider {
 				}
 				return ! is_wp_error( \Jetonomy\Models\Category::delete( $id ) );
 			case 'tag':
-				\Jetonomy\Models\Tag::delete_with_relations( $id );
-				return true;
+				if ( \Jetonomy\Models\Tag::find( $id ) ) {
+					\Jetonomy\Models\Tag::delete_with_relations( $id );
+				}
+				return ! \Jetonomy\Models\Tag::find( $id );
 		}
 		return true;
 	}
@@ -406,6 +412,119 @@ final class Jetonomy extends Provider {
 	 */
 	public function late_types(): array {
 		return array( 'tag' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		if ( ! function_exists( '\\Jetonomy\\route_url' ) || ! class_exists( '\\Jetonomy\\Models\\Post' ) ) {
+			return array();
+		}
+		$t = $this->content()['guide'];
+		// The discussion with the most replies in a public space, so a visitor lands on a lively thread.
+		$best = null;
+		foreach ( \Jetonomy\Models\Post::list_by_status( array( 'publish' ), 50 ) as $post ) {
+			$space = \Jetonomy\Models\Space::find( (int) $post->space_id );
+			if ( $space && 'public' === ( $space->visibility ?? '' ) && ( ! $best || (int) $post->reply_count > (int) $best[0]->reply_count ) ) {
+				$best = array( $post, $space );
+			}
+		}
+		$home   = (string) \Jetonomy\base_url();
+		$member = People::user_id( 'moderator' );
+		$admin  = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
+		return array(
+			'name'         => $t['name'],
+			'tab'          => $t['tab'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'member',
+					'user'   => $member,
+					'label'  => $t['roles']['member'][0],
+					'points' => $t['roles']['member'][1],
+				),
+			),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'community'     => $home,
+					'discussion'    => $best ? (string) \Jetonomy\route_url( 'post', (string) $best[1]->slug, (string) $best[0]->slug ) : $home,
+					'notifications' => (string) \Jetonomy\route_url( 'notifications' ),
+					'leaderboard'   => (string) \Jetonomy\route_url( 'leaderboard' ),
+				),
+				array(
+					'community'     => array(
+						'public' => true,
+						'as'     => 'member',
+					),
+					'discussion'    => array(
+						'public'    => true,
+						'as'        => 'member',
+						'highlight' => true,
+					),
+					'notifications' => array( 'as' => 'member' ),
+					'leaderboard'   => array(
+						'public' => true,
+						'as'     => 'member',
+					),
+				)
+			),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'spaces'     => $admin( 'jetonomy-spaces' ),
+					'content'    => $admin( 'jetonomy-content' ),
+					'moderation' => $admin( 'jetonomy-moderation' ),
+					'settings'   => $admin( 'jetonomy-settings' ),
+				)
+			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The latest discussions in Jetonomy's own block and the discussion count. Forums lead the page (the hero)
+	 * only when no community platform is in the demo; with one they are part of the community.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( '\Jetonomy\base_url' ) || ! class_exists( '\Jetonomy\Models\Post' ) ) {
+			return array();
+		}
+		$h      = (array) ( $this->content()['home'] ?? array() );
+		$forums = (string) \Jetonomy\base_url();
+		$feed   = array( 'count' => 5 );
+		$lead   = ! array_filter( Registry::all(), static fn( Provider $p ): bool => $p->community() && $ctx->includes( $p->id() ) );
+		$part   = array(
+			'stats'    => array( array( \Jetonomy\Models\Post::count_by_status( array( 'publish' ) ), __( 'discussions', 'wbcom-demo-installer' ) ) ),
+			'sections' => array(
+				Blocks::heading( (string) $h['latest'][0] ) . Blocks::paragraph( (string) $h['latest'][1] )
+					. get_comment_delimited_block_content( 'jetonomy/forum-feed', $feed, '' )
+					. Blocks::button( (string) $h['all'], $forums ),
+			),
+		);
+		if ( $lead ) {
+			$part['hero'] = array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => array( array( (string) $h['browse'], $forums ) ),
+				'closing' => (string) $h['closing'],
+			);
+		}
+		return $part;
 	}
 
 	/**

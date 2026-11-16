@@ -10,8 +10,9 @@ same step engine.
   building a provider is filed as a card in that product's Basecamp Bugs column; the provider works
   around it here and says so in a comment that names the card.
 - **Providers use product APIs only:** services, models, REST routes (`rest_do_request` as the right
-  user) and core WP functions. No raw SQL on product tables. The two narrow exceptions are documented
-  in code: BuddyNext hashtag rows by exact id, Product Roadmap votes for our own item ids.
+  user) and core WP functions. No raw SQL on product tables. The narrow exceptions are documented
+  in code: BuddyNext hashtag rows by exact id, Product Roadmap votes for our own item ids, and PeepSo post
+  followers and member rows for our own post ids and sample people (PeepSo has no delete for either).
 - **Seeder content is cherry-picked, never called:** product demo seeders are read for good content
   only. Content lives in `content/*.php` and media in `media/`.
 - **Everything created is recorded** in the ledger (`wp_wbcom_demo_ledger`) as `sample` or `setup`.
@@ -33,7 +34,8 @@ same step engine.
 
 - `src/Core/` engine: `Engine` (build steps, status), `Finisher` (selection, removal order, verify),
   `Ledger`, `State`, `Context`, `Clock`, `QuietMode`, `Snapshot` (theme/options restore), `Registry`,
-  `Recipes`, `Provider` (contract).
+  `Recipes`, `Provider` (contract), `Installer` (free products and the BuddyX theme through the store's free-key
+  channel or WordPress.org).
 - `src/Providers/` one class per product, plus `People` (shared cast) and `Theme` (logo, front page,
   menu).
 - `src/Admin/` wizard page and notice; `src/Rest/Controller.php` routes under `wbcom-demo/v1`;
@@ -44,12 +46,12 @@ same step engine.
 
 Extend `Core\Provider`: `id`, `label`, `available`, `version`/`min_version`, `summary`, `plan`
 (type => [count, kind, label]), `steps`, `run`, `remove`, optional `menu_items`, `front_page`,
-`late_types`, `handover`, `verify`, `settings` (the product's best-presentation options and its setup-complete flag,
+`late_types`, `handover`, `verify`, `guide` (member and owner steps plus switch accounts for the "Try the demo" page, `Core\Guide`), `settings` (the product's best-presentation options and its setup-complete flag,
 applied through `Snapshot` before its content so Remove everything restores them). Register in `Registry::builtin()` or from the product via the
 `wbcom_demo_register` action. Each step must finish well inside one request. Content lives in
 `content/<id>.php` and is read with `$this->content()` (filter `wbcom_demo_content`), never kept in the class.
 Third-party plugins are added the same way. Full guide: `docs/website/developer-guide/providers.md`; plan for
-Wave 2 and Wave 3: `docs/roadmap.md`.
+Wave 2 and Wave 3: `docs/roadmap.md`. Work in progress for 1.1.0: start at `docs/plans/1.1.0-handoff.md`.
 
 ## Checks before a release
 

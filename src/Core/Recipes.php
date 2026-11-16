@@ -20,42 +20,44 @@ final class Recipes {
 	 * @return array<string,array{name:string,desc:string,needs:string[],use:string[]}>
 	 */
 	public static function all(): array {
+		// BuddyNext, WPMediaVerse and Jetonomy are one set on every starting point (owner, 8 November 2026): a
+		// community without media and forums feels empty. Products that are not active are left out.
 		$recipes = array(
 			'community'  => array(
 				'name'  => __( 'Community', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Members, spaces, feed, photos and forums', 'wbcom-demo-installer' ),
 				'needs' => array( 'buddynext' ),
-				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'roadmap', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'roadmap', 'gamification', 'pages' ),
 			),
 			'learning'   => array(
 				'name'  => __( 'Learning community', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Courses with a member community around them', 'wbcom-demo-installer' ),
 				'needs' => array( 'learnomy' ),
-				'use'   => array( 'buddynext', 'mediaverse', 'learnomy', 'mediashield', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'learnomy', 'mediashield', 'gamification', 'pages' ),
 			),
 			'events'     => array(
 				'name'  => __( 'Events community', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Meetups, tickets and RSVPs for members', 'wbcom-demo-installer' ),
 				'needs' => array( 'eventonomy' ),
-				'use'   => array( 'buddynext', 'mediaverse', 'eventonomy', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'eventonomy', 'gamification', 'pages' ),
 			),
 			'jobs'       => array(
 				'name'  => __( 'Job board community', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Employers, jobs and candidate profiles', 'wbcom-demo-installer' ),
 				'needs' => array( 'careerboard' ),
-				'use'   => array( 'buddynext', 'careerboard', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'careerboard', 'gamification', 'pages' ),
 			),
 			'directory'  => array(
 				'name'  => __( 'Directory', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Listings with reviews, maps and favorites', 'wbcom-demo-installer' ),
 				'needs' => array( 'listora' ),
-				'use'   => array( 'buddynext', 'listora', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'listora', 'gamification', 'pages' ),
 			),
 			'services'   => array(
 				'name'  => __( 'Services marketplace', 'wbcom-demo-installer' ),
 				'desc'  => __( 'Freelancers selling services, with orders and reviews', 'wbcom-demo-installer' ),
 				'needs' => array( 'sellservices' ),
-				'use'   => array( 'buddynext', 'sellservices', 'gamification' ),
+				'use'   => array( 'buddynext', 'mediaverse', 'jetonomy', 'sellservices', 'gamification', 'pages' ),
 			),
 			'everything' => array(
 				'name'  => __( 'Everything I have', 'wbcom-demo-installer' ),
@@ -73,7 +75,9 @@ final class Recipes {
 	 * @return array<string,array<string,mixed>>
 	 */
 	public static function available(): array {
-		$active = array_keys( Registry::choosable() );
+		// Only products this installer can build on their active version: an older one stays on the site check with
+		// "update the product", and is never promised on Review and then dropped by the build.
+		$active = array_keys( array_filter( Registry::choosable(), static fn( Provider $p ): bool => $p->supported() ) );
 		$out    = array();
 		foreach ( self::all() as $id => $recipe ) {
 			if ( array_diff( $recipe['needs'], $active ) ) {

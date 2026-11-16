@@ -27,6 +27,32 @@ final class Engine {
 	private const LOCK = 'wbcom_demo_lock';
 
 	/**
+	 * Queue step prefix that writes one chunk of a provider's text with AI ("__ai:0").
+	 */
+	private const AI_STEP = '__ai:';
+
+	/**
+	 * The brief kept in the state, plain text only.
+	 *
+	 * @param array<string,mixed> $raw Idea and description from the wizard or WP-CLI.
+	 * @return array<string,mixed>
+	 */
+	private static function brief( array $raw ): array {
+		$text = static fn( $v, int $max ): string => mb_substr( trim( sanitize_text_field( is_scalar( $v ) ? (string) $v : '' ) ), 0, $max );
+		require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+		$all  = 'en_US' === get_locale() ? array() : wp_get_available_translations();
+		return array(
+			'description' => $text( $raw['description'] ?? '', 600 ),
+			'name'        => $text( $raw['name'] ?? '', 60 ),
+			'tagline'     => $text( $raw['tagline'] ?? '', 120 ),
+			'audience'    => $text( $raw['audience'] ?? '', 160 ),
+			'tone'        => $text( $raw['tone'] ?? '', 60 ),
+			'highlights'  => array_slice( array_filter( array_map( static fn( $h ) => $text( $h, 120 ), (array) ( $raw['highlights'] ?? array() ) ) ), 0, 6 ),
+			'language'    => (string) ( $all[ get_locale() ]['english_name'] ?? 'English' ),
+		);
+	}
+
+	/**
 	 * Signs that people already use this site: members other than the admin and sample people, blog posts
 	 * beyond "Hello world!", comments. The installer is made for a fresh demonstration site, so a build here
 	 * needs the admin's explicit consent.
@@ -48,12 +74,15 @@ final class Engine {
 			/* translators: %d: number of members. */
 			$found[] = sprintf( _n( '%d other member', '%d other members', $others, 'wbcom-demo-installer' ), $others );
 		}
-		$posts = (int) wp_count_posts( 'post' )->publish - 1; // A fresh install has "Hello world!".
+		// A fresh install has "Hello world!" (post 1) and its comment (comment 1): discount them only while they exist.
+		$hello = get_post( 1 );
+		$posts = (int) wp_count_posts( 'post' )->publish - ( $hello && 'post' === $hello->post_type && 'publish' === $hello->post_status ? 1 : 0 );
 		if ( $posts > 0 ) {
 			/* translators: %d: number of blog posts. */
 			$found[] = sprintf( _n( '%d blog post', '%d blog posts', $posts, 'wbcom-demo-installer' ), $posts );
 		}
-		$comments = (int) wp_count_comments()->approved - 1; // And one sample comment.
+		$first    = get_comment( 1 );
+		$comments = (int) wp_count_comments()->approved - ( $first && '1' === (string) $first->comment_approved ? 1 : 0 );
 		if ( $comments > 0 ) {
 			/* translators: %d: number of comments. */
 			$found[] = sprintf( _n( '%d comment', '%d comments', $comments, 'wbcom-demo-installer' ), $comments );
@@ -70,7 +99,8 @@ final class Engine {
 		$theme    = wp_get_theme();
 		$products = array();
 		foreach ( Registry::all() as $id => $p ) {
-			if ( in_array( $id, array( 'people', 'theme' ), true ) || ! $p->available() ) {
+			// A provider with nothing to build (guide only, e.g. Woo Sell Services) is not offered in the wizard.
+			if ( in_array( $id, array( 'people', 'theme' ), true ) || ! $p->available() || ! $p->plan() ) {
 				continue;
 			}
 			$products[] = array(
@@ -104,19 +134,55 @@ final class Engine {
 			}
 		}
 		return array(
-			'links'     => $links,
-			'theme'     => array(
+			'links'       => $links,
+			'theme'       => array(
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
 				'adapter' => $theme_provider ? $theme_provider->label() : '',
 			),
-			'products'  => $products,
-			'recipes'   => Recipes::available(),
-			'users'     => (int) $users['total_users'] - count( (array) ( new State() )->get( 'people' ) ),
-			'posts'     => $posts,
-			'leftovers' => self::other_demos(),
-			'live'      => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
-			'people'    => count( People::roster() ),
+			'products'    => $products,
+			'recipes'     => Recipes::available(),
+			'users'       => (int) $users['total_users'] - count( (array) ( new State() )->get( 'people' ) ),
+			'posts'       => $posts,
+			'leftovers'   => self::other_demos(),
+			'live'        => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
+			'people'      => count( People::roster() ),
+			'catalog'     => Installer::overview(),
+			// The sample logo is the BuddyNext brand pack, set only when BuddyNext is active.
+			'brand'       => \WbcomDemo\Providers\Theme::branded(),
+			// The designed home page's hero, numbers and closing, for the wizard to swap for Wbcom Essential blocks.
+			'home'        => \WbcomDemo\Providers\Theme::home_upgrade(),
+			'memory'      => self::memory(),
+			'ai'          => \WbcomDemo\Ai\Assistant::overview(),
+			// Names of every starting point, also those whose product is not installed yet (AI ideas name them).
+			'all_recipes' => array_map(
+				static fn( array $r ): array => array(
+					'name'  => $r['name'],
+					'desc'  => $r['desc'],
+					'needs' => $r['needs'],
+				),
+				Recipes::all()
+			),
+			'identity'    => array(
+				'name'    => (string) get_option( 'blogname' ),
+				'tagline' => (string) get_option( 'blogdescription' ),
+			),
+		);
+	}
+
+	/**
+	 * PHP memory for the build. The wizard runs each step over REST, so this request's limit is the one the steps
+	 * get. With all products active WordPress itself needs about 165 MB before a step starts (card 10487106723),
+	 * so under 256 MB a step can stop the request.
+	 *
+	 * @return array{limit:int,used:int,low:bool}
+	 */
+	public static function memory(): array {
+		$limit = (int) wp_convert_hr_to_bytes( (string) ini_get( 'memory_limit' ) );
+		return array(
+			'limit' => $limit,
+			'used'  => (int) memory_get_peak_usage(),
+			'low'   => $limit > 0 && $limit < 256 * MB_IN_BYTES,
 		);
 	}
 
@@ -146,13 +212,17 @@ final class Engine {
 	/**
 	 * Start a build.
 	 *
-	 * @param string   $recipe  Recipe id.
-	 * @param string[] $products Provider ids.
-	 * @param string   $look    'demo' to set home page, menu and logo; 'keep' to leave them.
-	 * @param bool     $consent The admin confirmed a build on a site that already has members or content.
+	 * @param string              $recipe  Recipe id.
+	 * @param string[]            $products Provider ids.
+	 * @param string              $look    'demo' to set home page, menu and logo; 'keep' to leave them.
+	 * @param bool                $consent The admin confirmed a build on a site that already has members or content.
+	 * @param string              $name    Site name typed on Review; empty keeps the current one.
+	 * @param string              $tagline Tagline typed on Review; empty keeps the current one.
+	 * @param array<string,mixed> $brief The AI idea the owner picked (description, name, tagline, audience,
+	 *                          tone, highlights); empty builds with the curated text.
 	 * @return array<string,mixed>|\WP_Error Status.
 	 */
-	public static function start_build( string $recipe, array $products, string $look, bool $consent = false ) {
+	public static function start_build( string $recipe, array $products, string $look, bool $consent = false, string $name = '', string $tagline = '', array $brief = array() ) {
 		$state = new State();
 		if ( State::IDLE !== $state->get( 'status' ) ) {
 			return new \WP_Error( 'wbcom_demo_exists', __( 'A demo is already on this site. Finish it before building another.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
@@ -165,6 +235,9 @@ final class Engine {
 				sprintf( __( 'This site already has %s. The demo is made for a fresh site; confirm that you want sample content added here.', 'wbcom-demo-installer' ), implode( ', ', $live ) ),
 				array( 'status' => 409 )
 			);
+		}
+		if ( ! isset( Recipes::available()[ $recipe ] ) ) {
+			return new \WP_Error( 'wbcom_demo_recipe', __( 'Choose one of the starting points shown on this site.', 'wbcom-demo-installer' ), array( 'status' => 400 ) );
 		}
 		$choosable = Registry::choosable();
 		$products  = array_values( array_filter( $products, static fn( $id ) => isset( $choosable[ $id ] ) && $choosable[ $id ]->supported() ) );
@@ -184,8 +257,30 @@ final class Engine {
 			->set( 'people', array() )
 			->set( 'refs', array() );
 
+		// The owner's own name and tagline, through the snapshot so Remove everything puts the old ones back.
+		$name    = trim( sanitize_text_field( $name ) );
+		$tagline = trim( sanitize_text_field( $tagline ) );
+		if ( '' !== $name && get_option( 'blogname' ) !== $name ) {
+			Snapshot::write( 'blogname', $name );
+			$state->set( 'own_name', true ); // The theme shows this name instead of the sample logo.
+		}
+		if ( '' !== $tagline && get_option( 'blogdescription' ) !== $tagline ) {
+			Snapshot::write( 'blogdescription', $tagline );
+		}
+		$brief = $brief && \WbcomDemo\Ai\Assistant::available() ? self::brief( $brief ) : array();
+		$state->set( 'brief', $brief )->set( 'ai_maps', array() );
 		$ctx   = new Context( $state );
 		$queue = array();
+		if ( $brief ) {
+			// The text is written first, so every content step already reads it.
+			foreach ( Registry::all() as $id => $p ) {
+				if ( ( 'people' === $id || in_array( $id, $products, true ) ) && $p->available() ) {
+					for ( $n = 0, $chunks = \WbcomDemo\Ai\Pack::chunks( $id ); $n < $chunks; $n++ ) {
+						$queue[] = array( $id, self::AI_STEP . $n );
+					}
+				}
+			}
+		}
 		foreach ( Registry::all() as $id => $p ) {
 			if ( 'people' !== $id && 'theme' !== $id && ! in_array( $id, $products, true ) ) {
 				continue;
@@ -207,22 +302,83 @@ final class Engine {
 	}
 
 	/**
+	 * Add products to a demo that is already built: their steps run on the same build and ledger, so Finish removes
+	 * them with the rest. The original build window is kept, so a provider can find what that build stamped.
+	 *
+	 * @param string[] $products Provider ids.
+	 * @return array<string,mixed>|\WP_Error Status.
+	 */
+	public static function add_products( array $products ) {
+		$state = new State();
+		if ( State::BUILT !== $state->get( 'status' ) ) {
+			return new \WP_Error( 'wbcom_demo_not_built', __( 'There is no finished demo to add to. Build one first.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
+		}
+		$current   = (array) $state->get( 'include' );
+		$choosable = Registry::choosable();
+		$new       = array_values( array_filter( array_unique( $products ), static fn( $id ) => isset( $choosable[ $id ] ) && $choosable[ $id ]->supported() && ! in_array( $id, $current, true ) ) );
+		if ( ! $new ) {
+			return new \WP_Error( 'wbcom_demo_nothing', __( 'Every product named is already in the demo or not available here.', 'wbcom-demo-installer' ), array( 'status' => 400 ) );
+		}
+		$state->set( 'include', array_merge( $current, $new ) );
+		$ctx   = new Context( $state );
+		$queue = array();
+		foreach ( Registry::all() as $id => $p ) {
+			if ( ! in_array( $id, $new, true ) || ! $p->available() ) {
+				continue;
+			}
+			if ( $p->settings() || $p->activation_redirects() ) {
+				$queue[] = array( $id, self::SETTINGS_STEP );
+			}
+			foreach ( $p->steps( $ctx ) as $step ) {
+				$queue[] = array( $id, $step );
+			}
+		}
+		$queue[] = array( 'theme', 'pages' );
+		$state->set( 'status', State::BUILDING )
+			->set( 'queue', $queue )
+			->set( 'total', count( $queue ) )
+			->set( 'done', 0 )
+			->set( 'errors', array() )
+			->set( 'warnings', array() )
+			->set( 'failed', array() )
+			->save();
+		return self::status();
+	}
+
+	/**
 	 * Run the next build or finish step.
 	 *
 	 * @return array<string,mixed> Status after the step.
 	 */
 	public static function step(): array {
-		if ( ! add_option( self::LOCK, time(), '', false ) ) {
-			if ( time() - (int) get_option( self::LOCK ) < 120 ) {
+		// The lock holds "<time>|<token>": only the request that owns the token releases it, and a lock older
+		// than two minutes belongs to a request that died, so it is taken over.
+		$token = wp_generate_uuid4();
+		$mine  = time() . '|' . $token;
+		if ( ! add_option( self::LOCK, $mine, '', false ) ) {
+			wp_cache_delete( self::LOCK, 'options' );
+			$held = (string) get_option( self::LOCK );
+			if ( time() - (int) strtok( $held, '|' ) < 120 ) {
 				return self::status() + array( 'busy' => true );
 			}
-			update_option( self::LOCK, time(), false );
+			update_option( self::LOCK, $mine, false );
 		}
+		$release = static function () use ( $mine ): void {
+			wp_cache_delete( self::LOCK, 'options' );
+			if ( get_option( self::LOCK ) === $mine ) {
+				delete_option( self::LOCK );
+			}
+		};
+		// A fatal error (memory, a product bug) skips finally; shutdown still runs, so the next request is not held.
+		register_shutdown_function( $release );
 		try {
 			QuietMode::on();
 			if ( function_exists( 'set_time_limit' ) ) {
 				@set_time_limit( 120 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			}
+			// A step with several large products active (a store, a marketplace, an LMS) can pass 128 MB; WordPress
+			// raises admin work to WP_MAX_MEMORY_LIMIT (256 MB by default), and a build step is admin work.
+			wp_raise_memory_limit( 'admin' );
 			$state = new State();
 			if ( State::BUILDING === $state->get( 'status' ) ) {
 				self::build_step( $state );
@@ -230,7 +386,7 @@ final class Engine {
 				Finisher::step( $state );
 			}
 		} finally {
-			delete_option( self::LOCK );
+			$release();
 		}
 		return self::status();
 	}
@@ -249,9 +405,12 @@ final class Engine {
 				continue;
 			}
 			if ( is_array( $value ) && ! str_contains( $name, ':' ) ) {
-				$value = array_merge( (array) get_option( $name, array() ), $value );
+				// Merge into the current list only when it is one: a never-saved option ('' or false) cast to an array
+				// becomes array( 0 => '' ) and would drop the product's own defaults.
+				$current = get_option( $name, array() );
+				$value   = array_merge( is_array( $current ) ? $current : array(), $value );
 			}
-			Snapshot::write( $name, $value );
+			Snapshot::write( $name, $value, true );
 		}
 	}
 
@@ -271,10 +430,40 @@ final class Engine {
 			list( $id, $step ) = $item;
 			$provider          = Registry::get( $id );
 			$failed            = (array) $state->get( 'failed' );
+			// A request that dies inside a step (memory, a fatal error) never returns, so the same step would
+			// run again forever. Count attempts on the queue head; the third ends that product's build.
+			$trying   = (array) $state->get( 'trying' );
+			$attempts = ( $trying['item'] ?? null ) === $item ? (int) $trying['n'] + 1 : 1;
+			if ( $provider && $attempts > 2 && ! in_array( $id, $failed, true ) ) {
+				$failed[] = $id;
+				$errors   = (array) $state->get( 'errors' );
+				/* translators: %s: product name. */
+				$errors[] = sprintf( __( '%s: a step stopped the request twice (often the PHP memory limit), so the rest of this product was skipped.', 'wbcom-demo-installer' ), $provider->label() );
+				$state->set( 'failed', $failed )->set( 'errors', $errors );
+			}
+			$state->set(
+				'trying',
+				array(
+					'item' => $item,
+					'n'    => $attempts,
+				)
+			)->save();
 			if ( $provider && ! in_array( $id, $failed, true ) ) {
 				try {
-					if ( self::SETTINGS_STEP === $step ) {
+					if ( str_starts_with( (string) $step, self::AI_STEP ) ) {
+						// AI never stops a build: a chunk that fails keeps the curated text and says so.
+						$why = \WbcomDemo\Ai\Pack::write( $provider, (int) substr( (string) $step, strlen( self::AI_STEP ) ), $state );
+						if ( '' !== $why ) {
+							$warnings   = (array) $state->get( 'warnings' );
+							$warnings[] = sprintf( '%s: %s', $provider->label(), $why );
+							$state->set( 'warnings', array_values( array_unique( $warnings ) ) );
+						}
+					} elseif ( self::SETTINGS_STEP === $step ) {
 						self::apply_settings( $provider );
+						// WP-CLI runs the build in one process: tell it to carry on in a fresh one (Cli\Command::run_steps()).
+						if ( defined( 'WP_CLI' ) && WP_CLI && $provider->reload_after_settings() && array() !== $provider->settings() ) {
+							$state->set( 'reload', true );
+						}
 					} else {
 						$provider->run( $step, $ctx );
 					}
@@ -285,7 +474,7 @@ final class Engine {
 					$state->set( 'failed', $failed )->set( 'errors', $errors );
 				}
 			}
-			$state->set( 'queue', $queue )->set( 'done', (int) $state->get( 'done' ) + 1 );
+			$state->set( 'queue', $queue )->set( 'done', (int) $state->get( 'done' ) + 1 )->set( 'trying', array() );
 		}
 		if ( ! $queue ) {
 			$state->set( 'status', State::BUILT )->set( 'built_at', current_time( 'mysql', true ) );
@@ -312,6 +501,10 @@ final class Engine {
 		if ( $next ) {
 			$p     = Registry::get( $next[0] );
 			$label = $p ? $p->label() : $next[0];
+			if ( str_starts_with( (string) $next[1], self::AI_STEP ) ) {
+				/* translators: %s: product name. */
+				$label = sprintf( __( 'the text for %s', 'wbcom-demo-installer' ), $label );
+			}
 		}
 		$counts = array();
 		foreach ( Ledger::counts() as $row ) {
@@ -360,7 +553,16 @@ final class Engine {
 		if ( ! $p ) {
 			return $type;
 		}
-		$labels = $p->type_labels();
+		$labels = $p->type_labels() + array(
+			// Types a provider records without a plan row on this site (a category that already existed, a reused
+			// image): plain words on the Finish screen, never the raw type.
+			'term'       => __( 'categories', 'wbcom-demo-installer' ),
+			'attachment' => __( 'images', 'wbcom-demo-installer' ),
+			'page'       => __( 'pages', 'wbcom-demo-installer' ),
+			'user'       => __( 'accounts', 'wbcom-demo-installer' ),
+			'currency'   => __( 'store currency setting', 'wbcom-demo-installer' ),
+			'comment'    => __( 'comments', 'wbcom-demo-installer' ),
+		);
 		return $labels[ $type ] ?? str_replace( '_', ' ', $type );
 	}
 }

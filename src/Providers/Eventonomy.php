@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -50,7 +51,7 @@ final class Eventonomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.9.1';
+		return '1.9.1'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -68,6 +69,25 @@ final class Eventonomy extends Provider {
 	}
 
 	/**
+	 * The sample events: content `events`, or the whole content when a pack passes a plain list.
+	 *
+	 * @return array<int,array<int,mixed>>
+	 */
+	private function events(): array {
+		$c = $this->content();
+		return isset( $c['events'] ) ? array_values( (array) $c['events'] ) : array_values( array_filter( $c, 'is_int', ARRAY_FILTER_USE_KEY ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_keep(): array {
+		// Address and city stay with their country code.
+		$rows = $this->events();
+		return array_values( array_unique( array_merge( array_column( $rows, 3 ), array_column( $rows, 4 ) ) ) );
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function pro_label(): string {
@@ -78,11 +98,11 @@ final class Eventonomy extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function summary(): string {
-		$past = count( array_filter( $this->content(), static fn( $e ) => $e[7] < 0 ) );
+		$past = count( array_filter( $this->events(), static fn( $e ) => $e[7] < 0 ) );
 		return sprintf(
 			/* translators: 1: upcoming events, 2: past events */
 			__( '%1$d upcoming and %2$d past events, online and in person, with venues, organizers and RSVPs', 'wbcom-demo-installer' ),
-			count( $this->content() ) - $past,
+			count( $this->events() ) - $past,
 			$past
 		);
 	}
@@ -110,7 +130,7 @@ final class Eventonomy extends Provider {
 		$venues     = array();
 		$organizers = array();
 		$cats       = array();
-		foreach ( $this->content() as $e ) {
+		foreach ( $this->events() as $e ) {
 			if ( ! $e[10] && '' !== $e[2] ) {
 				$venues[ $e[2] ] = true;
 			}
@@ -119,10 +139,11 @@ final class Eventonomy extends Provider {
 		}
 		// One venue per place and one organizer per sample person, as Eventonomy creates them.
 		return array(
-			'category'  => array( self::missing_terms( array( 'evnm_event_category' => $cats ) ), 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),
-			'venue'     => array( count( $venues ), 'setup', __( 'venues', 'wbcom-demo-installer' ) ),
-			'organizer' => array( count( $organizers ), 'setup', __( 'organizers', 'wbcom-demo-installer' ) ),
-			'event'     => array( count( $this->content() ), 'sample', __( 'events', 'wbcom-demo-installer' ) ),
+			'category'   => array( self::missing_terms( array( 'evnm_event_category' => $cats ) ), 'setup', __( 'event categories', 'wbcom-demo-installer' ) ),
+			'venue'      => array( count( $venues ), 'setup', __( 'venues', 'wbcom-demo-installer' ) ),
+			'organizer'  => array( count( $organizers ), 'setup', __( 'organizers', 'wbcom-demo-installer' ) ),
+			'event'      => array( count( $this->events() ), 'sample', __( 'events', 'wbcom-demo-installer' ) ),
+			'attachment' => array( count( $this->events() ), 'sample', __( 'event images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -150,9 +171,9 @@ final class Eventonomy extends Provider {
 		$svc    = evnm( \Eventonomy\Services\EventService::class );
 		$repo   = evnm( \Eventonomy\Contracts\EventRepositoryInterface::class );
 		$tz     = wp_timezone_string();
-		foreach ( array_slice( $this->content(), $offset, 5, true ) as $i => $e ) {
-			$i = (int) $i; // content/eventonomy.php is a list.
-			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual ) = $e;
+		foreach ( array_slice( $this->events(), $offset, 5, true ) as $i => $e ) {
+			$i = (int) $i; // The events are a list.
+			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual, $image ) = $e;
 			$organizer = $ctx->person( $who );
 			if ( function_exists( 'evnm_grant_organizer_role' ) ) {
 				evnm_grant_organizer_role( $organizer );
@@ -170,8 +191,14 @@ final class Eventonomy extends Provider {
 				'organizer'   => array( 'name' => (string) ( $ctx->profile( $organizer )['name'] ?? '' ) ),
 				'is_virtual'  => $virtual ? 1 : 0,
 			);
+			$input['settings']   = array();
+			// Eventonomy reads the cover from settings.image (a URL), the same field its importers fill.
+			$photo = $ctx->attachment( $image, $organizer, $this->id() );
+			if ( $photo ) {
+				$input['settings']['image'] = (string) wp_get_attachment_url( $photo );
+			}
 			if ( $virtual ) {
-				$input['settings'] = array( 'join_url' => 'https://meet.example.com/' . sanitize_title( $title ) );
+				$input['settings']['join_url'] = 'https://meet.example.com/' . sanitize_title( $title );
 			} else {
 				$input['city']    = $city;
 				$input['country'] = $country;
@@ -270,6 +297,8 @@ final class Eventonomy extends Provider {
 				return true;
 			case 'category':
 				return self::remove_unused_term( $id, 'evnm_event_category' );
+			case 'attachment':
+				return self::delete_post( $id, true );
 		}
 		return true;
 	}
@@ -279,6 +308,110 @@ final class Eventonomy extends Provider {
 	 */
 	public function late_types(): array {
 		return array( 'venue', 'organizer', 'category' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		$t = $this->content()['guide'] ?? array();
+		if ( ! $t || ! function_exists( 'evnm_events_page_url' ) || ! function_exists( 'evnm_dashboard_url' ) ) {
+			return array();
+		}
+		$events = (string) evnm_events_page_url();
+		$admin  = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
+		$role   = static fn( string $key ): array => array(
+			'key'    => $key,
+			'user'   => People::user_id( $key ),
+			'label'  => $t['roles'][ $key ][0],
+			'points' => $t['roles'][ $key ][1],
+		);
+		return array(
+			'name'         => $t['name'],
+			'tab'          => $t['tab'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array( $role( 'attendee' ), $role( 'organizer' ) ),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'browse'   => '' !== $events ? $events : null,
+					'calendar' => function_exists( 'evnm_public_calendar_url' ) ? (string) evnm_public_calendar_url() : null,
+					'tickets'  => (string) evnm_dashboard_url( 'attending' ),
+					'host'     => (string) evnm_dashboard_url( 'create' ),
+				),
+				array(
+					'browse'   => array(
+						'public' => true,
+						'as'     => 'attendee',
+					),
+					'calendar' => array(
+						'public' => true,
+						'as'     => 'attendee',
+					),
+					'tickets'  => array( 'as' => 'attendee' ),
+					'host'     => array(
+						'as'        => 'organizer',
+						'highlight' => true,
+					),
+				)
+			),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'events'    => $admin( 'eventonomy-events' ),
+					'attendees' => $admin( 'eventonomy-attendees' ),
+					'reports'   => $admin( 'eventonomy-reports' ),
+					'settings'  => $admin( 'eventonomy-settings' ),
+				)
+			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * An events site: the hero, event and venue counts and the coming events in Eventonomy's own block.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( 'evnm_events_page_url' ) || ! evnm_events_page_url() ) {
+			return array();
+		}
+		$h      = (array) ( $this->content()['home'] ?? array() );
+		$events = (string) evnm_events_page_url();
+		$host   = function_exists( 'evnm_dashboard_url' ) ? (string) evnm_dashboard_url( 'create' ) : '';
+		$list   = array( 'perPage' => 6 );
+		// Eventonomy keeps events in its own tables with no public count; these are the events and venues on this site.
+		$counts = array( count( Ledger::ids( $this->id(), 'event' ) ), count( Ledger::ids( $this->id(), 'venue' ) ) );
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $host ? array( array( (string) $h['browse'], $events ), array( (string) $h['host'], $host ) ) : array( array( (string) $h['browse'], $events ) ),
+				'closing' => (string) $h['closing'],
+				'cta'     => $host ? array( (string) $h['host'], $host ) : array(),
+			),
+			'stats'    => array(
+				array( $counts[0], __( 'events', 'wbcom-demo-installer' ) ),
+				array( $counts[1], __( 'venues', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array(
+				Blocks::heading( (string) $h['coming'][0] ) . Blocks::paragraph( (string) $h['coming'][1] )
+					. get_comment_delimited_block_content( 'eventonomy/events-list', $list, '' )
+					. Blocks::button( (string) $h['all'], $events ),
+			),
+		);
 	}
 
 	/**

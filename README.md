@@ -7,13 +7,19 @@ remove the samples and keep their setup.
   include, review the exact counts, build. One shared cast of 20 sample people is used across every product, dates
   are spread over recent weeks, and nothing is emailed.
 - **Finish demo**: keep your settings, pages, menus and structure, remove the sample people and content (or choose
-  per product, or remove everything and restore your previous home page and menu). A verify report confirms nothing
-  is left behind.
+  per product, or remove everything and restore your previous home page and menu). A verify report shows what was
+  removed, what you kept and anything still waiting.
 - Existing users and content are never changed.
 
 Supports the Wbcom product family (BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board,
-WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and their Pro add-ons) with the BuddyX, BuddyX Pro and Reign themes. Third-party
-plugins used by the Reign add-ons follow in a later release.
+WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and their Pro add-ons) with the BuddyX, BuddyX Pro and Reign themes.
+Third-party plugins are added one at a time: BuddyPress or BuddyBoss Platform (member photos, groups, friendships and
+a feed), PeepSo (stream posts), WooCommerce (a store with products, photos, sale prices and reviews), LearnDash
+(courses with lessons, topics and students part way through), Tutor LMS (courses with topics, lessons, ratings and
+students part way through), LifterLMS (courses with sections, lessons, access plans, reviews and students part way
+through), Sensei LMS (courses with modules, lessons, teachers and students part way through), Dokan, WCFM Marketplace and WC Vendors (stores selling the sample products), WP Job Manager (job listings with
+company logos and salaries) and GeoDirectory (places with photos, map pins, opening hours and reviews) are built in;
+the other plugins the Reign add-ons support follow.
 
 Requires WordPress 6.5+ and PHP 8.1+.
 
@@ -23,8 +29,10 @@ Requires WordPress 6.5+ and PHP 8.1+.
 wp wbcom-demo status
 wp wbcom-demo build --recipe=community [--include=buddynext,jetonomy] [--keep-look] [--dry-run]
 wp wbcom-demo finish [--mode=keep|all] [--keep=learnomy:course] [--dry-run]
+wp wbcom-demo install --all
 wp wbcom-demo resume
 wp wbcom-demo verify
+wp wbcom-demo adopt
 ```
 
 ## License

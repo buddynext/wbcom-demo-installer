@@ -28,6 +28,15 @@ final class Gamification extends Provider {
 	);
 
 	/**
+	 * Core WordPress actions WB Gamification registers on every site. They keep the history varied where BuddyNext is
+	 * not active; without them every person ended on the same registration and kudos points (issue #3).
+	 */
+	private const WP_ACTIONS = array(
+		'wp_leave_comment'         => 6,
+		'wp_post_receives_comment' => 4,
+	);
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function id(): string {
@@ -59,7 +68,7 @@ final class Gamification extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.6.7';
+		return '1.6.7'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -132,6 +141,23 @@ final class Gamification extends Provider {
 	}
 
 	/**
+	 * Weighted list of the actions to draw the history from: only actions WB Gamification has registered on this site,
+	 * so every event awards points.
+	 *
+	 * @return string[]
+	 */
+	private static function pool(): array {
+		$pool = array();
+		foreach ( self::ACTIONS + self::WP_ACTIONS as $action => $weight ) {
+			if ( null === \WBGam\Engine\Registry::get_action( $action ) ) {
+				continue;
+			}
+			$pool = array_merge( $pool, array_fill( 0, $weight, $action ) );
+		}
+		return $pool;
+	}
+
+	/**
 	 * Ten people's history per step. Busier people get more events.
 	 *
 	 * @param string  $step Step.
@@ -143,9 +169,9 @@ final class Gamification extends Provider {
 			return;
 		}
 		$offset  = (int) substr( $step, 7 );
-		$actions = array();
-		foreach ( self::ACTIONS as $action => $weight ) {
-			$actions = array_merge( $actions, array_fill( 0, $weight, $action ) );
+		$actions = self::pool();
+		if ( ! $actions ) {
+			return;
 		}
 		foreach ( array_slice( $ctx->people(), $offset, 10, true ) as $i => $uid ) {
 			$events = 8 + ( ( $i * 37 ) % 53 );
@@ -208,6 +234,39 @@ final class Gamification extends Provider {
 			\WBGam\Engine\MemberData::purge( (int) $row->object_id );
 		}
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		$hub = (int) get_option( 'wb_gam_hub_page_id' );
+		if ( ! $hub || 'publish' !== get_post_status( $hub ) ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$url   = (string) get_permalink( $hub );
+		$admin = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		return array(
+			'name'       => $t['name'],
+			'tab'        => $t['tab'],
+			'member'     => self::guide_steps(
+				$t['member'],
+				array(
+					'leaderboard' => add_query_arg( 'panel', 'leaderboard', $url ),
+					'badges'      => $url,
+				),
+				array( 'leaderboard' => array( 'public' => true ) )
+			),
+			'owner'      => self::guide_steps(
+				$t['owner'],
+				array(
+					'rules'  => $admin( 'wb-gamification' ),
+					'badges' => $admin( 'wb-gamification-badges' ),
+				)
+			),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
 	}
 
 	/**

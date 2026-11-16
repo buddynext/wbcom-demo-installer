@@ -44,9 +44,19 @@ final class Registry {
 		if ( null === self::$providers ) {
 			self::$providers = array();
 			$registry        = new self();
+			$builtin         = array();
 			foreach ( self::builtin() as $class ) {
 				if ( class_exists( $class ) ) {
-					$registry->add( new $class() );
+					$provider                   = new $class();
+					$builtin[ $provider->id() ] = true;
+					$registry->add( $provider );
+				}
+			}
+			// Third-party plugins a demo site runs (guide only), one provider per integration, unless a built-in
+			// provider for the same plugin builds its content and owns its guide (PeepSo).
+			foreach ( Providers\Integration::ids() as $id ) {
+				if ( ! isset( $builtin[ $id ] ) ) {
+					$registry->add( new Providers\Integration( $id ) );
 				}
 			}
 			/**
@@ -85,16 +95,30 @@ final class Registry {
 		return array(
 			Providers\People::class,
 			Providers\BuddyNext::class,
+			Providers\BuddyPress::class,
+			Providers\PeepSo::class,
 			Providers\MediaVerse::class,
 			Providers\Jetonomy::class,
 			Providers\Learnomy::class,
+			Providers\LearnDash::class,
+			Providers\TutorLMS::class,
+			Providers\LifterLMS::class,
+			Providers\Sensei::class,
 			Providers\Eventonomy::class,
 			Providers\CareerBoard::class,
+			Providers\JobManager::class,
 			Providers\Listora::class,
+			Providers\GeoDirectory::class,
 			Providers\SellServices::class,
+			Providers\WooSellServices::class,
 			Providers\Gamification::class,
 			Providers\MediaShield::class,
+			Providers\WooCommerce::class,
+			Providers\Dokan::class,
+			Providers\WCFM::class,
+			Providers\WCVendors::class,
 			Providers\Roadmap::class,
+			Providers\Pages::class,
 			Providers\Theme::class,
 		);
 	}

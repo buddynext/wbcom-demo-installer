@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -51,7 +52,7 @@ final class SellServices extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '1.9.2';
+		return '1.9.3'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -97,9 +98,15 @@ final class SellServices extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function settings(): array {
-		return array(
+		$settings = array(
 			'wpss_setup_wizard_completed' => time(),
 		);
+		// The plugin's own short checkout for digital work (name, email, country): street, city and postcode are
+		// a reason to abandon a services checkout, and a visitor trying the demo should reach Test Gateway at once.
+		if ( function_exists( 'wpss_get_digital_billing_field_preset' ) ) {
+			$settings['wpss_billing_field_settings'] = array( 'enabled' => wpss_get_digital_billing_field_preset() );
+		}
+		return $settings;
 	}
 
 	/**
@@ -149,17 +156,38 @@ final class SellServices extends Provider {
 	}
 
 	/**
+	 * WP Sell Services keeps its own copy of the site title (general > platform name, set on activation) and shows it
+	 * on marketplace screens. When the build gave the site the owner's own name and that copy still holds the old
+	 * title, follow the new name; a platform name the owner chose stays untouched (issue #4).
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function platform_name( Context $ctx ): void {
+		$old = \WbcomDemo\Core\Snapshot::before( 'blogname' );
+		if ( ! $ctx->state->get( 'own_name' ) || ! is_string( $old ) ) {
+			return;
+		}
+		$general = get_option( 'wpss_general' );
+		if ( ! is_array( $general ) || ( $general['platform_name'] ?? '' ) !== $old ) {
+			return;
+		}
+		$general['platform_name'] = (string) get_option( 'blogname' );
+		\WbcomDemo\Core\Snapshot::write( 'wpss_general', $general );
+	}
+
+	/**
 	 * Vendors and their services.
 	 *
 	 * @param Context $ctx Context.
 	 */
 	private function vendors( Context $ctx ): void {
+		$this->platform_name( $ctx );
 		$vendors  = new \WPSellServices\Services\VendorService();
 		$services = new \WPSellServices\Services\ServiceManager();
 		$done     = array();
 		foreach ( $this->content()['services'] as $i => $s ) {
-			list( $who, $title, $cat, $base, $desc ) = $s;
-			$vendor                                  = $ctx->person( $who );
+			list( $who, $title, $cat, $base, $desc, $image ) = $s;
+			$vendor = $ctx->person( $who );
 			if ( ! isset( $done[ $vendor ] ) ) {
 				$vendors->register( $vendor, array( 'status' => 'active' ) );
 				$p = $ctx->profile( $vendor );
@@ -177,7 +205,7 @@ final class SellServices extends Provider {
 			}
 			$term = $this->ensure_term( $cat, 'wpss_service_category', $ctx );
 			// Sell Services publishes only marketplace-ready services, and that includes an image.
-			$thumb = $ctx->attachment( 'photos/' . array( 'tech-workspace.jpg', 'art-gallery.jpg', 'developer-desk.jpg', 'creative-studio-portrait.jpg', 'neon-light.jpg', 'festival-friends.jpg' )[ $i % 6 ], $vendor, $this->id() );
+			$thumb = $ctx->attachment( $image, $vendor, $this->id() );
 			\WbcomDemo\Core\Clock::set( $ctx->date( $i, count( $this->content()['services'] ), 70 ) );
 			$id = $services->create(
 				array(
@@ -226,6 +254,7 @@ final class SellServices extends Provider {
 			wp_update_post(
 				array(
 					'ID'            => $id,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'     => get_date_from_gmt( $date ),
 					'post_date_gmt' => $date,
 					'edit_date'     => true,
@@ -310,15 +339,9 @@ final class SellServices extends Provider {
 			case 'term':
 				return self::remove_unused_term( $id, 'wpss_service_category' );
 			case 'attachment':
-				if ( get_post( $id ) ) {
-					wp_delete_attachment( $id, true );
-				}
-				return true;
+				return self::delete_post( $id, true );
 			case 'service':
-				if ( get_post( $id ) ) {
-					wp_delete_post( $id, true );
-				}
-				return true;
+				return self::delete_post( $id );
 			case 'order':
 				// Orders are removed with the buyer (Sell Services cascades orders, reviews and wallet rows on user delete).
 				return true;
@@ -331,6 +354,139 @@ final class SellServices extends Provider {
 	 */
 	public function late_types(): array {
 		return array( 'term' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		if ( ! function_exists( 'wpss_get_page_url' ) ) {
+			return array();
+		}
+		$t        = $this->content()['guide'];
+		$services = Ledger::ids( $this->id(), 'service' );
+		$browse   = (string) wpss_get_page_url( 'services_page' );
+		$first    = $services ? (string) get_permalink( (int) min( $services ) ) : $browse;
+		$board    = (string) wpss_get_page_url( 'dashboard' );
+		$buyer    = People::user_id( 'buyer' );
+		// The seller of the first service, so the switch lands on someone with orders to deliver.
+		$seller = People::user_id( 'vendor', (int) ( $this->content()['services'][0][0] ?? -1 ) );
+		$admin  = static fn( string $page ): string => admin_url( 'admin.php?page=' . $page );
+		return array(
+			'name'         => $t['name'],
+			'tab'          => $t['tab'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'buyer',
+					'user'   => $buyer,
+					'label'  => $t['roles']['buyer'][0],
+					'points' => $t['roles']['buyer'][1],
+				),
+				array(
+					'key'    => 'seller',
+					'user'   => $seller,
+					'label'  => $t['roles']['seller'][0],
+					'points' => $t['roles']['seller'][1],
+				),
+			),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'browse' => $browse,
+					'order'  => $first,
+					'pay'    => $first,
+					'follow' => $board,
+					'sell'   => $board,
+				),
+				array(
+					'browse' => array(
+						'public' => true,
+						'as'     => 'buyer',
+					),
+					'order'  => array(
+						'public' => true,
+						'as'     => 'buyer',
+					),
+					'pay'    => array(
+						'as'        => 'buyer',
+						'highlight' => true,
+					),
+					'follow' => array( 'as' => 'buyer' ),
+					'sell'   => array( 'as' => 'seller' ),
+				)
+			),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'orders'      => $admin( 'wpss-orders' ),
+					'vendors'     => $admin( 'wpss-vendors' ),
+					'withdrawals' => $admin( 'wpss-withdrawals' ),
+					'payments'    => $admin( 'wpss-settings&tab=payments' ),
+				)
+			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A services marketplace: the hero, service and category counts, search, categories and the newest services
+	 * in WP Sell Services' own blocks.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( 'wpss_get_page_url' ) ) {
+			return array();
+		}
+		$h      = (array) ( $this->content()['home'] ?? array() );
+		$browse = (string) wpss_get_page_url( 'services_page' );
+		$sell   = (string) wpss_get_page_url( 'become_vendor' );
+		$cats   = array( 'maxItems' => 8 );
+		$grid   = array(
+			'perPage'        => 6,
+			'showPagination' => false,
+		);
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $sell ? array( array( (string) $h['browse'], $browse ), array( (string) $h['sell'], $sell ) ) : array( array( (string) $h['browse'], $browse ) ),
+				'closing' => (string) $h['closing'],
+				'cta'     => $sell ? array( (string) $h['sell'], $sell ) : array(),
+			),
+			'stats'    => array(
+				array( (int) ( wp_count_posts( 'wpss_service' )->publish ?? 0 ), __( 'services', 'wbcom-demo-installer' ) ),
+				array(
+					(int) wp_count_terms(
+						array(
+							'taxonomy'   => 'wpss_service_category',
+							'hide_empty' => true,
+						)
+					),
+					__( 'categories', 'wbcom-demo-installer' ),
+				),
+			),
+			'sections' => array(
+				get_comment_delimited_block_content( 'wpss/service-search', array(), '' )
+					. Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] )
+					. get_comment_delimited_block_content( 'wpss/service-categories', $cats, '' ),
+				Blocks::heading( (string) $h['popular'][0] ) . Blocks::paragraph( (string) $h['popular'][1] )
+					. get_comment_delimited_block_content( 'wpss/service-grid', $grid, '' )
+					. Blocks::button( (string) $h['all'], $browse ),
+			),
+		);
 	}
 
 	/**

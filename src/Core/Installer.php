@@ -1,0 +1,587 @@
+<?php
+/**
+ * Install and activate the free Wbcom products (and the free BuddyX theme) from the wizard.
+ *
+ * @package WbcomDemo
+ */
+
+namespace WbcomDemo\Core;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * One product per call, released versions only.
+ *
+ * Packages come through the channel each plugin already trusts for its own updates (owner, 10 November 2026): the
+ * store's EDD Software Licensing endpoint with the free distribution key the plugin ships, the same flow BuddyX Pro
+ * and Reign use in their Getting Started installers. The store authorises the key for this site, then returns a
+ * signed package URL on wbcomdesigns.com. Products listed on WordPress.org (Product Roadmap, the BuddyX theme)
+ * install from there. Pro add-ons are listed with a store link and never installed here.
+ */
+final class Installer {
+
+	private const STORE   = 'https://wbcomdesigns.com/';
+	private const TIMEOUT = 30;
+
+	/**
+	 * BuddyNext, WPMediaVerse and Jetonomy are one set on every starting point (owner, 8 November 2026).
+	 */
+	public const CORE = array( 'buddynext', 'mediaverse', 'jetonomy' );
+
+	/**
+	 * Installable products, keyed by provider id (the theme by "buddyx").
+	 *
+	 * Each item id and free key is the one that plugin registers with its own EDD SDK in its main file.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	public static function catalog(): array {
+		$store   = static fn( string $label, string $basename, int $item, string $key, string $pro = '' ): array => array(
+			'label'    => $label,
+			'type'     => 'plugin',
+			'basename' => $basename,
+			'item_id'  => $item,
+			'key'      => $key,
+			'pro'      => $pro,
+		);
+		$catalog = array(
+			'buddynext'    => $store( 'BuddyNext', 'buddynext/buddynext.php', 1664401, 'buddynext9a3c7e1d5f2b8a4c6e0d9b7f1a2c8e55', 'buddynext-pro/buddynext-pro.php' ),
+			'mediaverse'   => $store( 'WPMediaVerse', 'wpmediaverse/wpmediaverse.php', 1660826, 'wbcomfree7a9c2e5d1f8b4c6a3e0d9b2f7c1a8e44', 'wpmediaverse-pro/wpmediaverse-pro.php' ),
+			'jetonomy'     => $store( 'Jetonomy', 'jetonomy/jetonomy.php', 1660320, 'wbcomfreec7e2a9b45d8f1c3e6a0b9d2f7c4e8a11', 'jetonomy-pro/jetonomy-pro.php' ),
+			'learnomy'     => $store( 'Learnomy', 'learnomy/learnomy.php', 1662698, 'wbcomfree5d8a1f3c7b2e9a4c6f0d1e8b3c9a7f25', 'learnomy-pro/learnomy-pro.php' ),
+			'eventonomy'   => $store( 'Eventonomy', 'eventonomy/eventonomy.php', 1666307, 'eventonomyfree7a9c2e5d1f8b4c6a3e0d9b2f7c1a8e44', 'eventonomy-pro/eventonomy-pro.php' ),
+			'careerboard'  => $store( 'WP Career Board', 'wp-career-board/wp-career-board.php', 1659888, 'wbcomfree5b8c1e7a9d3f2a4c6e0d1b7f9c2a6e00', 'wp-career-board-pro/wp-career-board-pro.php' ),
+			'listora'      => $store( 'WB Listora', 'wb-listora/wb-listora.php', 1662779, 'wbcomfree8a5d1c7e3f2b9a4c6e0d1b7f9c2a6e55', 'wb-listora-pro/wb-listora-pro.php' ),
+			'sellservices' => $store( 'WP Sell Services', 'wp-sell-services/wp-sell-services.php', 1660955, 'wbcomfree3c8a1f7e5d2b9a4c6e0f1d8b7a2c9e66', 'wp-sell-services-pro/wp-sell-services-pro.php' ),
+			'mediashield'  => $store( 'MediaShield', 'mediashield/mediashield.php', 1661218, 'mediasheild7c2a9e5d1f8b4c6a3e0d9b2f7c1a8e12', 'mediashield-pro/mediashield-pro.php' ),
+			'gamification' => $store( 'WB Gamification', 'wb-gamification/wb-gamification.php', 1662147, 'wbcomfree6e2a9c1d7b4f3c8a0e5d9b2f1a7c6e11' ),
+			// Free with Reign, BuddyX and BuddyX Pro; the preset key is the one it activates itself with.
+			'pages'        => $store( 'Wbcom Essential', 'wbcom-essential/loader.php', 1545975, '1cf3c1cf9ea987039b97194ae9c64755' ),
+			'roadmap'      => array(
+				'label'    => 'Product Roadmap',
+				'type'     => 'plugin',
+				'basename' => 'product-roadmap/product-roadmap.php',
+				'wporg'    => 'product-roadmap',
+				'pro'      => 'roadmap-pro-addon/roadmap-pro-addon.php',
+			),
+			'buddyx'       => array(
+				'label' => 'BuddyX',
+				'type'  => 'theme',
+				'wporg' => 'buddyx',
+			),
+		);
+		// The plugin each Reign add-on is built for, offered only while that add-on is active (the pair rule: our
+		// add-on plus its plugin). Free from WordPress.org, except LearnDash. Listed in install order: WooCommerce
+		// before the marketplaces, WCFM's Frontend Manager before WCFM Marketplace.
+		$addon = static fn( string $label, string $basename, string $wporg, array $addons ): array => array(
+			'label'    => $label,
+			'type'     => 'plugin',
+			'basename' => $basename,
+			'wporg'    => $wporg,
+			'for'      => $addons,
+		);
+		// Public repositories: the latest release zip comes straight from GitHub (always the newest release); the
+		// store's free channel stays the fallback, and the only source for private repositories.
+		foreach ( array(
+			'buddynext'    => 'buddynext/buddynext',
+			'mediaverse'   => 'vapvarun/wpmediaverse',
+			'jetonomy'     => 'vapvarun/jetonomy',
+			'careerboard'  => 'vapvarun/wp-career-board',
+			'listora'      => 'wbcomdesigns/wb-listora',
+			'sellservices' => 'vapvarun/wp-sell-services',
+			'mediashield'  => 'vapvarun/mediashield',
+			'gamification' => 'vapvarun/wb-gamification',
+			'pages'        => 'vapvarun/wbcom-essential',
+		) as $id => $repo ) {
+			$catalog[ $id ]['github'] = $repo;
+		}
+		$catalog += array(
+			// The member side of a Reign add-on (places, courses, orders in profiles and activity). Offered only while
+			// the site has no community plugin; see overview().
+			'buddypress'    => $addon(
+				'BuddyPress',
+				'buddypress/bp-loader.php',
+				'buddypress',
+				array(
+					'reign-geodirectory'         => 'Reign GeoDirectory',
+					'reign-dokan-addon'          => 'Reign Dokan',
+					'reign-learndash-addon'      => 'Reign LearnDash',
+					'reign-tutorlms-addon'       => 'Reign TutorLMS',
+					'reign-lifterlms-addon'      => 'Reign LifterLMS',
+					'reign-sensei-addon'         => 'Reign Sensei',
+					'reign-wcfm-addon'           => 'Reign WCFM',
+					'reign-wc-vendor-addon'      => 'Reign WC Vendors',
+					'reign-wp-job-manager-addon' => 'Reign WP Job Manager',
+				)
+			) + array( 'community' => true ),
+			'woocommerce'   => $addon(
+				'WooCommerce',
+				'woocommerce/woocommerce.php',
+				'woocommerce',
+				array(
+					'reign-dokan-addon'     => 'Reign Dokan',
+					'reign-wcfm-addon'      => 'Reign WCFM',
+					'reign-wc-vendor-addon' => 'Reign WC Vendors',
+				)
+			),
+			'dokan'         => $addon( 'Dokan', 'dokan-lite/dokan.php', 'dokan-lite', array( 'reign-dokan-addon' => 'Reign Dokan' ) ),
+			'wcfm-frontend' => $addon( 'WCFM Frontend Manager', 'wc-frontend-manager/wc_frontend_manager.php', 'wc-frontend-manager', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
+			'wcfm'          => $addon( 'WCFM Marketplace', 'wc-multivendor-marketplace/wc-multivendor-marketplace.php', 'wc-multivendor-marketplace', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
+			'wcvendors'     => $addon( 'WC Vendors', 'wc-vendors/class-wc-vendors.php', 'wc-vendors', array( 'reign-wc-vendor-addon' => 'Reign WC Vendors' ) ),
+			'jobmanager'    => $addon( 'WP Job Manager', 'wp-job-manager/wp-job-manager.php', 'wp-job-manager', array( 'reign-wp-job-manager-addon' => 'Reign WP Job Manager' ) ),
+			'geodirectory'  => $addon( 'GeoDirectory', 'geodirectory/geodirectory.php', 'geodirectory', array( 'reign-geodirectory' => 'Reign GeoDirectory' ) ),
+			'tutorlms'      => $addon( 'Tutor LMS', 'tutor/tutor.php', 'tutor', array( 'reign-tutorlms-addon' => 'Reign TutorLMS' ) ),
+			'lifterlms'     => $addon( 'LifterLMS', 'lifterlms/lifterlms.php', 'lifterlms', array( 'reign-lifterlms-addon' => 'Reign LifterLMS' ) ),
+			'sensei'        => $addon( 'Sensei LMS', 'sensei-lms/sensei-lms.php', 'sensei-lms', array( 'reign-sensei-addon' => 'Reign Sensei' ) ),
+			// Sold by LearnDash, not on WordPress.org: named with where to get it, never installed from here.
+			'learndash'     => array(
+				'label'    => 'LearnDash',
+				'type'     => 'plugin',
+				'basename' => 'sfwd-lms/sfwd_lms.php',
+				'url'      => 'https://www.learndash.com/',
+				'for'      => array( 'reign-learndash-addon' => 'Reign LearnDash' ),
+			),
+		);
+		/**
+		 * Filter the products the wizard can install.
+		 *
+		 * @param array<string,array<string,mixed>> $catalog Provider id => entry.
+		 */
+		return (array) apply_filters( 'wbcom_demo_install_catalog', $catalog );
+	}
+
+	/**
+	 * What the wizard shows: every catalog entry with its state and what this admin may do with it.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	public static function overview(): array {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		$plugins = get_plugins();
+		$folders = array_map( 'dirname', (array) get_option( 'active_plugins', array() ) );
+		$out     = array();
+		foreach ( self::catalog() as $id => $entry ) {
+			$state = self::state( (string) $id, $entry, $plugins );
+			if ( 'theme' === $entry['type'] && 'active' !== $state && self::wbcom_theme() ) {
+				continue; // A Wbcom theme is active: BuddyX is not offered over it.
+			}
+			// A Reign add-on's plugin shows only while one of its add-ons is active (matched by folder: the main
+			// file names differ, Reign GeoDirectory's is reign-geolocation.php), or installed and waiting for it: an
+			// add-on that names it under "Requires Plugins" cannot be activated before it (Reign Sensei).
+			$waiting   = array_map( 'dirname', self::waiting_addons( $entry, $plugins ) );
+			$needed_by = array_values( array_intersect_key( (array) ( $entry['for'] ?? array() ), array_flip( array_merge( $folders, $waiting ) ) ) );
+			if ( isset( $entry['for'] ) && ! $needed_by ) {
+				continue;
+			}
+			if ( ! empty( $entry['community'] ) && array_intersect( array( 'buddypress', 'buddyboss-platform', 'peepso', 'peepso-core', 'buddynext' ), $folders ) ) {
+				continue; // The site already has its community.
+			}
+			$manual   = ! isset( $entry['wporg'] ) && ! isset( $entry['item_id'] );
+			$pro_file = (string) ( $entry['pro'] ?? '' );
+			$out[]    = array(
+				'id'        => (string) $id,
+				'label'     => (string) $entry['label'],
+				'type'      => (string) $entry['type'],
+				'core'      => in_array( $id, self::CORE, true ),
+				'state'     => $state,
+				'can'       => ! ( $manual && 'not_installed' === $state ) && self::allowed( in_array( $state, array( 'not_installed', 'outdated' ), true ) ? 'install' : 'activate', (string) $entry['type'] ),
+				'version'   => 'outdated' === $state ? (string) Registry::get( (string) $id )?->version() : '',
+				'pro'       => '' === $pro_file ? '' : ( isset( $plugins[ $pro_file ] ) ? ( is_plugin_active( $pro_file ) ? 'active' : 'inactive' ) : 'not_installed' ),
+				'needed_by' => $needed_by,
+				'community' => ! empty( $entry['community'] ),
+				'url'       => $manual ? (string) ( $entry['url'] ?? '' ) : '',
+			);
+		}
+		return array_merge( self::reign_updates( $plugins ), $out );
+	}
+
+	/**
+	 * Reign and the active Reign add-ons that WordPress already offers an update for (Dashboard > Updates, through
+	 * the customer's licence): the demo is built on their latest release, so the site check updates them first.
+	 *
+	 * @param array<string,array<string,mixed>> $plugins get_plugins().
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function reign_updates( array $plugins ): array {
+		$out    = array();
+		$themes = get_site_transient( 'update_themes' );
+		$theme  = wp_get_theme( 'reign-theme' );
+		$new    = is_object( $themes ) ? (array) ( $themes->response['reign-theme'] ?? array() ) : array();
+		if ( $theme->exists() && 'reign-theme' === get_template() && ! empty( $new['new_version'] ) ) {
+			$out[] = self::update_row( 'theme:reign-theme', 'Reign', 'theme', (string) $theme->get( 'Version' ), (string) $new['new_version'], ! empty( $new['package'] ) );
+		}
+		$updates = get_site_transient( 'update_plugins' );
+		foreach ( is_object( $updates ) ? (array) $updates->response : array() as $file => $info ) {
+			$info = (array) $info;
+			if ( str_starts_with( (string) $file, 'reign-' ) && is_plugin_active( (string) $file ) && isset( $plugins[ $file ] ) ) {
+				$out[] = self::update_row( 'plugin:' . $file, (string) $plugins[ $file ]['Name'], 'plugin', (string) $plugins[ $file ]['Version'], (string) ( $info['new_version'] ?? '' ), ! empty( $info['package'] ) );
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * A site check row for one update.
+	 *
+	 * @param string $key     theme:<stylesheet> or plugin:<file>.
+	 * @param string $label   Name.
+	 * @param string $type    'theme' or 'plugin'.
+	 * @param string $version Installed version.
+	 * @param string $latest  Latest version.
+	 * @param bool   $package The licence lets WordPress download it.
+	 * @return array<string,mixed>
+	 */
+	private static function update_row( string $key, string $label, string $type, string $version, string $latest, bool $package ): array {
+		return array(
+			'id'        => 'update:' . $key,
+			'label'     => $label,
+			'type'      => $type,
+			'core'      => false,
+			'state'     => 'outdated',
+			'update'    => true,
+			'can'       => $package && current_user_can( 'theme' === $type ? 'update_themes' : 'update_plugins' ) && wp_is_file_mod_allowed( 'wbcom_demo_install' ),
+			'version'   => $version,
+			'latest'    => $latest,
+			'licence'   => $package,
+			'pro'       => '',
+			'needed_by' => array(),
+			'community' => false,
+			'url'       => '',
+		);
+	}
+
+	/**
+	 * Run WordPress's own update for Reign or a Reign add-on (the package its licence provides).
+	 *
+	 * @param string $key theme:<stylesheet> or plugin:<file>.
+	 * @return true|\WP_Error
+	 */
+	private static function update( string $key ) {
+		list( $type, $item ) = array_pad( explode( ':', $key, 2 ), 2, '' );
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		// Only an update the site check listed: never any other plugin or theme on the site.
+		if ( ! in_array( 'update:' . $key, array_column( self::reign_updates( get_plugins() ), 'id' ), true ) ) {
+			return new \WP_Error( 'wbcom_demo_unknown_product', __( 'This product cannot be updated from here.', 'wbcom-demo-installer' ), array( 'status' => 404 ) );
+		}
+		if ( ! current_user_can( 'theme' === $type ? 'update_themes' : 'update_plugins' ) || ! wp_is_file_mod_allowed( 'wbcom_demo_install' ) ) {
+			return new \WP_Error( 'wbcom_demo_cannot_install', __( 'Your account is not allowed to update plugins and themes on this site.', 'wbcom-demo-installer' ), array( 'status' => 403 ) );
+		}
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		$skin     = new \WP_Ajax_Upgrader_Skin();
+		$upgrader = 'theme' === $type ? new \Theme_Upgrader( $skin ) : new \Plugin_Upgrader( $skin );
+		$result   = $upgrader->bulk_upgrade( array( $item ) );
+		$done     = is_array( $result ) ? ( $result[ $item ] ?? null ) : null;
+		if ( is_wp_error( $done ) ) {
+			return $done;
+		}
+		if ( ! $done ) {
+			$errors = $skin->get_errors();
+			return $errors->has_errors() ? $errors : new \WP_Error( 'wbcom_demo_update_failed', __( 'The update could not be installed. Check that your licence is active under Dashboard > Updates.', 'wbcom-demo-installer' ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Install (when missing) and activate one catalog product.
+	 *
+	 * @param string $id Catalog id.
+	 * @return true|\WP_Error
+	 */
+	public static function install( string $id ) {
+		if ( str_starts_with( $id, 'update:' ) ) {
+			return self::update( substr( $id, 7 ) );
+		}
+		$catalog = self::catalog();
+		if ( ! isset( $catalog[ $id ] ) ) {
+			return new \WP_Error( 'wbcom_demo_unknown_product', __( 'This product cannot be installed from here.', 'wbcom-demo-installer' ), array( 'status' => 404 ) );
+		}
+		$entry = $catalog[ $id ];
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		$state = self::state( $id, $entry, get_plugins() );
+		if ( 'active' === $state ) {
+			return true;
+		}
+		$action = array(
+			'not_installed' => 'install',
+			'outdated'      => 'update',
+		)[ $state ] ?? 'activate';
+		if ( 'install' === $action && ! isset( $entry['wporg'] ) && ! isset( $entry['item_id'] ) ) {
+			return new \WP_Error(
+				'wbcom_demo_manual_product',
+				/* translators: 1: product name, 2: where to get it. */
+				sprintf( __( '%1$s is not on WordPress.org. Get it from %2$s, upload it under Plugins > Add New, then come back.', 'wbcom-demo-installer' ), (string) $entry['label'], (string) ( $entry['url'] ?? '' ) ),
+				array( 'status' => 400 )
+			);
+		}
+		if ( ! self::allowed( 'activate' === $action ? 'activate' : 'install', (string) $entry['type'] ) ) {
+			return new \WP_Error(
+				'wbcom_demo_cannot_install',
+				! wp_is_file_mod_allowed( 'wbcom_demo_install' )
+					? __( 'This site does not allow installing plugins or themes from the dashboard (DISALLOW_FILE_MODS). Ask your host, or upload them another way.', 'wbcom-demo-installer' )
+					: __( 'Your account is not allowed to install or activate plugins and themes on this site.', 'wbcom-demo-installer' ),
+				array( 'status' => 403 )
+			);
+		}
+		if ( 'activate' !== $action ) {
+			$package = self::package( $entry );
+			if ( is_wp_error( $package ) ) {
+				return $package;
+			}
+			// An update replaces the older copy in place; the plugin stays active and keeps its settings.
+			$installed = self::unpack( $package, (string) $entry['type'], 'update' === $action );
+			if ( is_wp_error( $installed ) ) {
+				return $installed;
+			}
+		}
+		if ( 'theme' === $entry['type'] ) {
+			// The owner chose this theme on the wizard; it is not part of the demo, so Remove everything keeps it.
+			switch_theme( (string) $entry['wporg'] );
+			return wp_get_theme()->get_stylesheet() === $entry['wporg'] ? true : new \WP_Error( 'wbcom_demo_theme', __( 'BuddyX was installed but could not be switched on. Activate it from Appearance > Themes.', 'wbcom-demo-installer' ) );
+		}
+		// This runs in a REST request. Some plugins send the browser to their setup screen and stop the request when
+		// they are activated (Tutor LMS), which the wizard reads as a failed install; they skip that for background
+		// requests, which this is.
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		$waiting   = self::waiting_addons( $entry, get_plugins() );
+		$activated = activate_plugin( (string) $entry['basename'] );
+		// The owner's add-on that waited for this plugin is switched on with it, as it was installed to be.
+		foreach ( is_wp_error( $activated ) ? array() : $waiting as $file ) {
+			activate_plugin( $file );
+		}
+		remove_filter( 'wp_doing_ajax', '__return_true' );
+		return is_wp_error( $activated ) ? $activated : true;
+	}
+
+	/**
+	 * The entry's Reign add-ons that are installed but inactive and name it under "Requires Plugins": WordPress
+	 * does not activate them until it is active.
+	 *
+	 * @param array<string,mixed>               $entry   Catalog entry.
+	 * @param array<string,array<string,mixed>> $plugins get_plugins().
+	 * @return string[] Add-on plugin files.
+	 */
+	private static function waiting_addons( array $entry, array $plugins ): array {
+		$out = array();
+		foreach ( $plugins as $file => $data ) {
+			$requires = array_map( 'trim', explode( ',', (string) ( $data['RequiresPlugins'] ?? '' ) ) );
+			if ( isset( $entry['wporg'], ( (array) ( $entry['for'] ?? array() ) )[ dirname( (string) $file ) ] ) && in_array( $entry['wporg'], $requires, true ) && ! is_plugin_active( (string) $file ) ) {
+				$out[] = (string) $file;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Installed and active, installed only, or missing.
+	 *
+	 * @param string                            $id      Catalog id.
+	 * @param array<string,mixed>               $entry   Catalog entry.
+	 * @param array<string,array<string,mixed>> $plugins get_plugins().
+	 */
+	private static function state( string $id, array $entry, array $plugins ): string {
+		if ( 'theme' === $entry['type'] ) {
+			$theme = wp_get_theme( (string) $entry['wporg'] );
+			if ( ! $theme->exists() ) {
+				return 'not_installed';
+			}
+			return get_stylesheet() === $theme->get_stylesheet() || get_template() === $theme->get_stylesheet() ? 'active' : 'inactive';
+		}
+		$file = (string) $entry['basename'];
+		if ( ! isset( $plugins[ $file ] ) ) {
+			// A product can be active from another folder name (a renamed upload): trust its provider.
+			$provider = Registry::get( $id );
+			return $provider && $provider->available() ? 'active' : 'not_installed';
+		}
+		$provider = Registry::get( $id );
+		if ( $provider && $provider->available() && ! $provider->supported() && ( isset( $entry['github'] ) || isset( $entry['item_id'] ) || isset( $entry['wporg'] ) ) ) {
+			return 'outdated'; // Older than the demo needs: the site check updates it to the latest release.
+		}
+		return is_plugin_active( $file ) ? 'active' : 'inactive';
+	}
+
+	/**
+	 * Where a product's latest release comes from: GitHub for a public repository, else the store or WordPress.org.
+	 *
+	 * @param array<string,mixed> $entry Catalog entry.
+	 * @return string|\WP_Error Package URL.
+	 */
+	private static function package( array $entry ) {
+		if ( isset( $entry['github'] ) ) {
+			$url = self::github_package( (string) $entry['github'], dirname( (string) $entry['basename'] ) );
+			if ( ! is_wp_error( $url ) || ! isset( $entry['item_id'] ) ) {
+				return $url;
+			}
+		}
+		return isset( $entry['wporg'] ) ? self::wporg_package( (string) $entry['wporg'], (string) $entry['type'] ) : self::store_package( (int) $entry['item_id'], (string) $entry['key'] );
+	}
+
+	/**
+	 * The plugin zip attached to a public repository's latest GitHub release.
+	 *
+	 * @param string $repo   owner/name.
+	 * @param string $folder Plugin folder, which starts the zip's name.
+	 * @return string|\WP_Error
+	 */
+	private static function github_package( string $repo, string $folder ) {
+		$res  = wp_remote_get(
+			'https://api.github.com/repos/' . $repo . '/releases/latest',
+			array(
+				'timeout' => 20,
+				'headers' => array( 'Accept' => 'application/vnd.github+json' ),
+			)
+		);
+		$body = json_decode( (string) wp_remote_retrieve_body( $res ), true );
+		foreach ( (array) ( is_array( $body ) ? ( $body['assets'] ?? array() ) : array() ) as $asset ) {
+			$name = (string) ( $asset['name'] ?? '' );
+			if ( str_starts_with( $name, $folder . '-' ) && str_ends_with( $name, '.zip' ) ) {
+				return self::trusted( (string) ( $asset['browser_download_url'] ?? '' ), 'github.com' );
+			}
+		}
+		return new \WP_Error( 'wbcom_demo_github', __( 'The latest release could not be found on GitHub.', 'wbcom-demo-installer' ) );
+	}
+
+	/**
+	 * Whether this admin may install or activate, and the site allows file changes.
+	 *
+	 * @param string $action 'install' or 'activate'.
+	 * @param string $type   'plugin' or 'theme'.
+	 */
+	private static function allowed( string $action, string $type ): bool {
+		if ( 'install' === $action && ! wp_is_file_mod_allowed( 'wbcom_demo_install' ) ) {
+			return false;
+		}
+		if ( 'theme' === $type ) {
+			return current_user_can( 'switch_themes' ) && ( 'activate' === $action || current_user_can( 'install_themes' ) );
+		}
+		return current_user_can( 'activate_plugins' ) && ( 'activate' === $action || current_user_can( 'install_plugins' ) );
+	}
+
+	/**
+	 * A Wbcom theme (BuddyX, BuddyX Pro, Reign or a child of one) is active.
+	 */
+	private static function wbcom_theme(): bool {
+		return in_array( get_template(), array( 'buddyx', 'buddyx-pro', 'reign-theme' ), true );
+	}
+
+	/**
+	 * Signed package URL from the store for a free product.
+	 *
+	 * @param int    $item Store item id.
+	 * @param string $key  Free distribution key.
+	 * @return string|\WP_Error
+	 */
+	private static function store_package( int $item, string $key ) {
+		$ask = static function ( string $action ) use ( $item, $key ) {
+			$response = wp_remote_post(
+				self::STORE,
+				array(
+					'timeout' => self::TIMEOUT,
+					'body'    => array(
+						'edd_action'  => $action,
+						'item_id'     => $item,
+						'license'     => $key,
+						'url'         => home_url(),
+						'environment' => wp_get_environment_type(),
+					),
+				)
+			);
+			if ( is_wp_error( $response ) ) {
+				return new \WP_Error( 'wbcom_demo_store_unreachable', __( 'Could not reach wbcomdesigns.com to download the plugin. Check that this site can make outgoing connections, then try again.', 'wbcom-demo-installer' ) );
+			}
+			$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+			return is_array( $body ) ? $body : new \WP_Error( 'wbcom_demo_store_response', __( 'wbcomdesigns.com sent an unexpected answer. Try again in a minute.', 'wbcom-demo-installer' ) );
+		};
+		// The store hands out a package only for a key activated for this site, so activate the free key first.
+		$licence = $ask( 'activate_license' );
+		if ( is_wp_error( $licence ) ) {
+			return $licence;
+		}
+		if ( empty( $licence['success'] ) && ! in_array( $licence['license'] ?? '', array( 'valid', 'active' ), true ) ) {
+			/* translators: %s: reason given by the store. */
+			return new \WP_Error( 'wbcom_demo_store_licence', sprintf( __( 'wbcomdesigns.com would not authorise the free download for this site (%s).', 'wbcom-demo-installer' ), sanitize_text_field( (string) ( $licence['error'] ?? $licence['license'] ?? 'unknown' ) ) ) );
+		}
+		$version = $ask( 'get_version' );
+		if ( is_wp_error( $version ) ) {
+			return $version;
+		}
+		return self::trusted( (string) ( $version['download_link'] ?? $version['package'] ?? '' ), 'wbcomdesigns.com' );
+	}
+
+	/**
+	 * Download URL of the current WordPress.org release.
+	 *
+	 * @param string $slug WordPress.org slug.
+	 * @param string $type 'plugin' or 'theme'.
+	 * @return string|\WP_Error
+	 */
+	private static function wporg_package( string $slug, string $type ) {
+		if ( 'theme' === $type ) {
+			require_once ABSPATH . 'wp-admin/includes/theme.php';
+			$info = themes_api(
+				'theme_information',
+				array(
+					'slug'   => $slug,
+					'fields' => array( 'sections' => false ),
+				)
+			);
+		} else {
+			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+			$info = plugins_api(
+				'plugin_information',
+				array(
+					'slug'   => $slug,
+					'fields' => array( 'sections' => false ),
+				)
+			);
+		}
+		if ( is_wp_error( $info ) ) {
+			return new \WP_Error( 'wbcom_demo_wporg', __( 'Could not reach WordPress.org to download it. Try again in a minute.', 'wbcom-demo-installer' ) );
+		}
+		return self::trusted( (string) ( is_object( $info ) ? ( $info->download_link ?? '' ) : '' ), 'wordpress.org' );
+	}
+
+	/**
+	 * Only download from the expected host (or a subdomain of it).
+	 *
+	 * @param string $url  Package URL.
+	 * @param string $host Expected host.
+	 * @return string|\WP_Error
+	 */
+	private static function trusted( string $url, string $host ) {
+		$got = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		if ( '' === $url || 'https' !== wp_parse_url( $url, PHP_URL_SCHEME ) || ( $got !== $host && ! str_ends_with( $got, '.' . $host ) ) ) {
+			return new \WP_Error( 'wbcom_demo_package_host', __( 'The download did not come from the expected address, so it was not installed.', 'wbcom-demo-installer' ) );
+		}
+		return $url;
+	}
+
+	/**
+	 * Download and unpack a package with WordPress's own upgrader.
+	 *
+	 * @param string $package Package URL.
+	 * @param string $type    'plugin' or 'theme'.
+	 * @param bool   $replace Replace an installed older copy.
+	 * @return true|\WP_Error
+	 */
+	private static function unpack( string $package, string $type, bool $replace = false ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		if ( ! WP_Filesystem() ) {
+			return new \WP_Error( 'wbcom_demo_filesystem', __( 'WordPress cannot write files on this site without FTP details. Install it from the Plugins or Themes screen instead.', 'wbcom-demo-installer' ) );
+		}
+		$skin     = new \WP_Ajax_Upgrader_Skin();
+		$upgrader = 'theme' === $type ? new \Theme_Upgrader( $skin ) : new \Plugin_Upgrader( $skin );
+		$result   = $upgrader->install( $package, array( 'overwrite_package' => $replace ) );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		if ( true !== $result ) {
+			$errors = $skin->get_errors();
+			return $errors->has_errors() ? $errors : new \WP_Error( 'wbcom_demo_install_failed', __( 'The download could not be installed.', 'wbcom-demo-installer' ) );
+		}
+		return true;
+	}
+}

@@ -7,6 +7,13 @@ title: Troubleshooting
 The demo is made for a fresh site. Use a staging copy or a new install if you can. To build here anyway, tick the
 confirmation on the Review step. From WP-CLI, add `--yes` to `wp wbcom-demo build`.
 
+## The site check warns about PHP memory
+
+With every Wbcom product active, WordPress needs about 165 MB before the demo adds anything, so with less than 256 MB
+a build step can stop. Ask your host to raise `memory_limit` to 256 MB, or add `define( 'WP_MEMORY_LIMIT', '256M' );`
+to `wp-config.php`. From WP-CLI, run with `WP_CLI_PHP_ARGS="-d memory_limit=512M" wp wbcom-demo build`. If a step
+does stop, the build skips that product's remaining part, says so, and finishes the rest.
+
 ## A product is shown as not supported
 
 Its version is older than the one the demo was tested with. Update the product, then open the wizard again.

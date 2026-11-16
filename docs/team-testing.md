@@ -51,7 +51,7 @@ Choosing a mode shows a "Will remove" and "Will keep" list; check it before cont
 - Build again after that: kept spaces and categories are reused, no duplicates.
 - "Let me choose": only the ticked items are removed.
 - "Remove everything the demo added": the site matches how it was before the build (pages, menu, logo, settings).
-- Deactivate and delete the installer after Finish: nothing left behind.
+- After Remove everything the report says nothing was left behind; deactivate and delete the installer.
 
 ## Reporting
 

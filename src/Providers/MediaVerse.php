@@ -7,10 +7,12 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
+use WbcomDemo\Core\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -53,7 +55,7 @@ final class MediaVerse extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function min_version(): string {
-		return '2.6.3';
+		return '2.6.4'; // Latest release; the site check updates an older copy.
 	}
 
 	/**
@@ -73,6 +75,20 @@ final class MediaVerse extends Provider {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function keeps_logs(): string {
+		return __( 'WPMediaVerse keeps its usage ledger as an accounting record, with the sample people removed from it.', 'wbcom-demo-installer' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ai_skip_keys(): array {
+		return array( 'photos', 'tags' ); // Library photos: their titles describe the pictures.
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function pro_label(): string {
 		return defined( 'MVS_PRO_VERSION' ) ? __( 'Pro add-on active', 'wbcom-demo-installer' ) : '';
 	}
@@ -83,7 +99,7 @@ final class MediaVerse extends Provider {
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: photos */
-			__( '%d photos with titles and tags across the sample people, 3 albums and favorites. Also powers photo posts and messages in BuddyNext', 'wbcom-demo-installer' ),
+			__( '%d photos with titles and tags across the sample people, 3 albums and favorites', 'wbcom-demo-installer' ),
 			count( $this->content()['photos'] )
 		);
 	}
@@ -302,19 +318,123 @@ final class MediaVerse extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'album' === $row->object_type ) {
-			if ( get_post( $id ) ) {
-				wp_delete_post( $id, true );
-			}
-			return true;
+			return self::delete_post( $id );
 		}
 		if ( 'media' === $row->object_type ) {
 			$repo = $this->service( 'media_repository' );
-			if ( $repo && method_exists( $repo, 'delete_cascade' ) ) {
-				$repo->delete_cascade( $id );
+			if ( ! $repo || ! method_exists( $repo, 'delete_cascade' ) ) {
+				return false;
 			}
-			return true;
+			if ( method_exists( $repo, 'exists' ) && ! $repo->exists( $id ) ) {
+				return true;
+			}
+			$repo->delete_cascade( $id );
+			return ! method_exists( $repo, 'exists' ) || ! $repo->exists( $id );
 		}
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function guide(): array {
+		if ( ! class_exists( '\\WPMediaVerse\\Core\\SettingsHelper' ) ) {
+			return array();
+		}
+		$page_url = static function ( string $key ): string {
+			$id = (int) \WPMediaVerse\Core\SettingsHelper::get_page_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$explore  = $page_url( 'explore' );
+		if ( '' === $explore ) {
+			return array();
+		}
+		$upload = $page_url( 'upload' );
+		$mine   = $page_url( 'dashboard' );
+		$t      = $this->content()['guide'];
+		$admin  = static fn( string $slug ): string => admin_url( 'admin.php?page=' . $slug );
+		return array(
+			'name'       => $t['name'],
+			'tab'        => $t['tab'],
+			'roles'      => array(
+				array(
+					'key'    => 'creator',
+					'user'   => People::user_id( '', 1 ),
+					'label'  => $t['roles']['creator'][0],
+					'points' => $t['roles']['creator'][1],
+				),
+			),
+			'member'     => self::guide_steps(
+				$t['member'],
+				array(
+					'explore' => $explore,
+					'share'   => '' !== $upload ? $upload : $explore,
+					'mine'    => '' !== $mine ? $mine : null,
+				),
+				array(
+					'explore' => array(
+						'public' => true,
+						'as'     => 'creator',
+					),
+					'share'   => array(
+						'as'        => 'creator',
+						'highlight' => true,
+					),
+					'mine'    => array( 'as' => 'creator' ),
+				)
+			),
+			'owner'      => self::guide_steps(
+				$t['owner'],
+				array(
+					'media'    => $admin( 'mvs-media' ),
+					'settings' => $admin( 'mvs-settings' ),
+				)
+			),
+			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * On a media site (no community platform in the demo): the hero, the photo count and links to browse and
+	 * upload. With a community platform, media is part of the community and adds nothing here.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		// With a community platform in the demo, media is one of its features: the community leads the page.
+		if ( ! class_exists( '\WPMediaVerse\Core\SettingsHelper' ) || ! class_exists( '\WPMediaVerse\Core\Plugin' )
+			|| array_filter( Registry::all(), static fn( Provider $p ): bool => $p->community() && $ctx->includes( $p->id() ) ) ) {
+			return array();
+		}
+		$h     = (array) ( $this->content()['home'] ?? array() );
+		$page  = static function ( string $key ): string {
+			$id = (int) \WPMediaVerse\Core\SettingsHelper::get_page_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$links = array_values( array_filter( array( '' !== $page( 'explore' ) ? array( (string) $h['browse'], $page( 'explore' ) ) : null, '' !== $page( 'upload' ) ? array( (string) $h['upload'], $page( 'upload' ) ) : null ) ) );
+		// No photo grid: the mvs/media-grid block is unstyled outside WPMediaVerse's own pages (its grid CSS loads only
+		// there), so the section links to the gallery instead. Add the block here once WPMediaVerse styles it anywhere.
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $links,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => array( array( (int) \WPMediaVerse\Core\Plugin::container()->get( 'media_repository' )->count_published(), __( 'photos shared', 'wbcom-demo-installer' ) ) ),
+			'sections' => array( Blocks::heading( (string) $h['latest'][0] ) . Blocks::paragraph( (string) $h['latest'][1] ) . ( $links ? Blocks::buttons( $links ) : '' ) ),
+		);
 	}
 
 	/**
