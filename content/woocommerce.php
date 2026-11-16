@@ -33,6 +33,17 @@ return array(
 		array( 'Dotted Hardcover Notebook', 'notebook', 'learning', '14', '', 70, 'A5 notebook with dotted pages and a lay-flat binding.', '192 pages of thick, ink-friendly paper, a ribbon marker and an elastic closure. For sketches, plans and meeting notes.', false, false ),
 		array( 'Remote Work Masterclass', 'online-course', 'learning', '59', '45', null, 'A self-paced online class on working well from anywhere.', 'Six short video lessons and worksheets on focus, async communication and healthy routines. Instant access after purchase, watch at your own pace.', false, true ),
 	),
+	'home'       => array(
+		'title'   => 'Good things for everyday life, made with care',
+		'text'    => 'Hoodies, bags, homewares and books from a small store that knows its customers, with honest reviews on every product.',
+		'image'   => 'photos/matcha-latte.jpg',
+		'shop'    => 'Shop now',
+		'account' => 'Your account',
+		'closing' => 'Find something you will use every day.',
+		'cats'    => array( 'Shop by category', 'Pick a category to see everything in it, with prices, stock and reviews.' ),
+		'top'     => array( 'Top rated', 'The products our customers rate highest.' ),
+		'all'     => 'See all products',
+	),
 	'reviews'    => array(
 		array( 0, 1, 5, 'Warm without being bulky. I wear it to every meetup now.' ),
 		array( 0, 4, 4, 'Great hoodie, runs slightly large so I sized down.' ),

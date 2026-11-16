@@ -233,6 +233,41 @@ final class Dokan extends Provider {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The marketplace's hero, store count and store cards. Dokan Lite has no blocks, so the cards are core blocks.
+	 * A shopper becomes a seller from WooCommerce's account page, when it lets visitors register.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		$pages  = (array) get_option( 'dokan_pages', array() );
+		$list   = ! empty( $pages['store_listing'] ) && 'publish' === get_post_status( (int) $pages['store_listing'] ) ? (string) get_permalink( (int) $pages['store_listing'] ) : '';
+		$sell   = 'yes' === get_option( 'woocommerce_enable_myaccount_registration' ) && function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'myaccount' ) : '';
+		$stores = array();
+		foreach ( Ledger::ids( $this->id(), 'store' ) as $id ) {
+			$vendor = dokan()->vendor->get( (int) $id );
+			if ( ! $vendor || ! $vendor->get_id() ) {
+				continue;
+			}
+			$stores[] = array(
+				'name'   => (string) $vendor->get_shop_name(),
+				'url'    => (string) $vendor->get_shop_url(),
+				'about'  => (string) ( $vendor->get_shop_info()['vendor_biography'] ?? '' ),
+				'banner' => (int) $vendor->get_banner_id(),
+			);
+		}
+		return WooCommerce::marketplace_home( (array) ( $this->content()['home'] ?? array() ), $stores, $list, $sell );
+	}
+
+	/**
 	 * The "Try the demo" text stays in content/integrations.php, shared with the guide-only integration.
 	 */
 	public function guide(): array {

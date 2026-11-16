@@ -12,6 +12,18 @@
 defined( 'ABSPATH' ) || exit;
 
 return array(
+	'home'   => array(
+		'title'   => 'Shop from independent sellers, all in one place',
+		'text'    => 'Clothing, accessories, homewares and books from small stores run by the people who make and pick them. One cart, every seller.',
+		'image'   => 'photos/creative-studio-portrait.jpg',
+		'stores'  => 'Browse stores',
+		'shop'    => 'Shop products',
+		'sell'    => 'Become a seller',
+		'closing' => 'Make or sell something people love? Open your own store here.',
+		'browse'  => 'Find a store you will keep coming back to.',
+		'meet'    => array( 'Meet the sellers', 'Every store has its own page with its products, story and reviews.' ),
+		'all'     => 'See all stores',
+	),
 	'stores' => array(
 		array( 'Northwind Outfitters', 'northwind-outfitters', 'Hoodies, tees and hats made in small batches, built for meetups and long weekends.', '120 Market Street', 'Portland', 'OR', '97205', 'US', '+1 555 0102 410', 'covers/cover-02.jpg' ),
 		array( 'Harbor & Pine', 'harbor-and-pine', 'Everyday accessories for people on the move: bags, sunglasses and headphones.', '155 Pike Street', 'Seattle', 'WA', '98101', 'US', '+1 555 0103 417', 'covers/cover-04.jpg' ),

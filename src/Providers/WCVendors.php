@@ -215,6 +215,38 @@ final class WCVendors extends Provider {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The marketplace's hero, shop count and shop cards. WC Vendors has no blocks and no shop banners, so the cards
+	 * are core blocks with the name and about line; a shopper applies to sell from the account page's "Become a
+	 * vendor" tab, when vendor registration is on.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		$page   = (int) get_option( 'wcvendors_vendors_page_id' );
+		$list   = $page && 'publish' === get_post_status( $page ) ? (string) get_permalink( $page ) : '';
+		$sell   = 'yes' === get_option( 'wcvendors_vendor_allow_registration' ) && function_exists( 'wc_get_account_endpoint_url' ) ? (string) wc_get_account_endpoint_url( 'become-a-vendor' ) : '';
+		$stores = array();
+		foreach ( Ledger::ids( $this->id(), 'store' ) as $id ) {
+			$stores[] = array(
+				'name'   => (string) \WCV_Vendors::get_vendor_shop_name( (int) $id ),
+				'url'    => (string) \WCV_Vendors::get_vendor_shop_page( (int) $id ),
+				'about'  => (string) get_user_meta( (int) $id, 'pv_shop_description', true ),
+				'banner' => 0,
+			);
+		}
+		return WooCommerce::marketplace_home( (array) ( $this->content()['home'] ?? array() ), $stores, $list, $sell );
+	}
+
+	/**
 	 * The "Try the demo" text lives in content/integrations.php, alongside the other marketplaces.
 	 */
 	public function guide(): array {
