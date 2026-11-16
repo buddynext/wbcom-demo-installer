@@ -73,6 +73,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * New      - Sample content for WP Job Manager: job listings from sample companies with logos and salaries.
 * New      - Sample content for GeoDirectory: places with photos, map pins, opening hours and reviews.
 * New      - Sample content for TutorLMS and LifterLMS: courses with lessons, instructors and students making progress.
+* New      - Sample content for Sensei LMS: courses with modules, lessons, teachers, students making progress and Reign course ratings.
 * New      - Sample content for WCFM Marketplace and WC Vendors: sample vendors become stores that sell the sample products.
 * New      - A designed home page for every combination: a hero, the site's numbers, each product's own sections (places and map, courses, jobs, stores, events, services, discussions) and the members with their activity, then a call to action.
 * New      - The home page uses Wbcom Essential's hero, stats, call to action, members, activity and groups blocks, so every piece is edited like any block.

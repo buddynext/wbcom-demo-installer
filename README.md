@@ -17,7 +17,7 @@ Third-party plugins are added one at a time: BuddyPress or BuddyBoss Platform (m
 a feed), PeepSo (stream posts), WooCommerce (a store with products, photos, sale prices and reviews), LearnDash
 (courses with lessons, topics and students part way through), Tutor LMS (courses with topics, lessons, ratings and
 students part way through), LifterLMS (courses with sections, lessons, access plans, reviews and students part way
-through), Dokan, WCFM Marketplace and WC Vendors (stores selling the sample products), WP Job Manager (job listings with
+through), Sensei LMS (courses with modules, lessons, teachers and students part way through), Dokan, WCFM Marketplace and WC Vendors (stores selling the sample products), WP Job Manager (job listings with
 company logos and salaries) and GeoDirectory (places with photos, map pins, opening hours and reviews) are built in;
 the other plugins the Reign add-ons support follow.
 

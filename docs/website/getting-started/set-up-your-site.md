@@ -94,6 +94,10 @@ To edit them, open the page in the block editor:
   preview lesson, sample students part way through (one finishes each course) and two reviews each. If there is no
   course catalog, student dashboard or checkout page yet, the demo adds them, and switches on manual payments so
   paid courses show their price; Remove everything takes both away again.
+- With Sensei LMS: the same 5 courses, each with modules, lessons, a photo and a sample teacher, and sample students
+  part way through (one finishes each course). With the Reign Sensei add-on, its course reviews are switched on and
+  the first two students in each course rate it; Remove everything puts the setting back. If the Reign Sensei add-on
+  is installed but waits for Sensei LMS, the site check installs Sensei LMS and switches the add-on on with it.
 - With Dokan (and WooCommerce): 4 stores run by the sample vendors, each with a photo, banner, address and phone,
   selling the sample products of their category.
 - With WCFM Marketplace (and WooCommerce): the same 4 stores, with a photo, banner, address and phone, selling the

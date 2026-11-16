@@ -108,6 +108,7 @@ final class Installer {
 					'reign-learndash-addon'      => 'Reign LearnDash',
 					'reign-tutorlms-addon'       => 'Reign TutorLMS',
 					'reign-lifterlms-addon'      => 'Reign LifterLMS',
+					'reign-sensei-addon'         => 'Reign Sensei',
 					'reign-wcfm-addon'           => 'Reign WCFM',
 					'reign-wc-vendor-addon'      => 'Reign WC Vendors',
 					'reign-wp-job-manager-addon' => 'Reign WP Job Manager',
@@ -131,6 +132,7 @@ final class Installer {
 			'geodirectory'  => $addon( 'GeoDirectory', 'geodirectory/geodirectory.php', 'geodirectory', array( 'reign-geodirectory' => 'Reign GeoDirectory' ) ),
 			'tutorlms'      => $addon( 'Tutor LMS', 'tutor/tutor.php', 'tutor', array( 'reign-tutorlms-addon' => 'Reign TutorLMS' ) ),
 			'lifterlms'     => $addon( 'LifterLMS', 'lifterlms/lifterlms.php', 'lifterlms', array( 'reign-lifterlms-addon' => 'Reign LifterLMS' ) ),
+			'sensei'        => $addon( 'Sensei LMS', 'sensei-lms/sensei-lms.php', 'sensei-lms', array( 'reign-sensei-addon' => 'Reign Sensei' ) ),
 			// Sold by LearnDash, not on WordPress.org: named with where to get it, never installed from here.
 			'learndash'     => array(
 				'label'    => 'LearnDash',
@@ -164,8 +166,10 @@ final class Installer {
 				continue; // A Wbcom theme is active: BuddyX is not offered over it.
 			}
 			// A Reign add-on's plugin shows only while one of its add-ons is active (matched by folder: the main
-			// file names differ, Reign GeoDirectory's is reign-geolocation.php).
-			$needed_by = array_values( array_intersect_key( (array) ( $entry['for'] ?? array() ), array_flip( $folders ) ) );
+			// file names differ, Reign GeoDirectory's is reign-geolocation.php), or installed and waiting for it: an
+			// add-on that names it under "Requires Plugins" cannot be activated before it (Reign Sensei).
+			$waiting   = array_map( 'dirname', self::waiting_addons( $entry, $plugins ) );
+			$needed_by = array_values( array_intersect_key( (array) ( $entry['for'] ?? array() ), array_flip( array_merge( $folders, $waiting ) ) ) );
 			if ( isset( $entry['for'] ) && ! $needed_by ) {
 				continue;
 			}
@@ -340,9 +344,33 @@ final class Installer {
 		// they are activated (Tutor LMS), which the wizard reads as a failed install; they skip that for background
 		// requests, which this is.
 		add_filter( 'wp_doing_ajax', '__return_true' );
+		$waiting   = self::waiting_addons( $entry, get_plugins() );
 		$activated = activate_plugin( (string) $entry['basename'] );
+		// The owner's add-on that waited for this plugin is switched on with it, as it was installed to be.
+		foreach ( is_wp_error( $activated ) ? array() : $waiting as $file ) {
+			activate_plugin( $file );
+		}
 		remove_filter( 'wp_doing_ajax', '__return_true' );
 		return is_wp_error( $activated ) ? $activated : true;
+	}
+
+	/**
+	 * The entry's Reign add-ons that are installed but inactive and name it under "Requires Plugins": WordPress
+	 * does not activate them until it is active.
+	 *
+	 * @param array<string,mixed>               $entry   Catalog entry.
+	 * @param array<string,array<string,mixed>> $plugins get_plugins().
+	 * @return string[] Add-on plugin files.
+	 */
+	private static function waiting_addons( array $entry, array $plugins ): array {
+		$out = array();
+		foreach ( $plugins as $file => $data ) {
+			$requires = array_map( 'trim', explode( ',', (string) ( $data['RequiresPlugins'] ?? '' ) ) );
+			if ( isset( $entry['wporg'], ( (array) ( $entry['for'] ?? array() ) )[ dirname( (string) $file ) ] ) && in_array( $entry['wporg'], $requires, true ) && ! is_plugin_active( (string) $file ) ) {
+				$out[] = (string) $file;
+			}
+		}
+		return $out;
 	}
 
 	/**
