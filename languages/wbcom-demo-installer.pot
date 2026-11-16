@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T04:02:17+00:00\n"
+"POT-Creation-Date: 2026-11-16T06:05:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -578,6 +578,61 @@ msgstr ""
 msgid "Forums"
 msgstr ""
 
+#. translators: 1: courses, 2: categories
+#: src/Providers/LearnDash.php:79
+#, php-format
+msgid "%1$d courses in %2$d categories, with lessons, topics and students making progress"
+msgstr ""
+
+#: src/Providers/LearnDash.php:99
+#: src/Providers/Learnomy.php:110
+msgid "courses"
+msgstr ""
+
+#: src/Providers/LearnDash.php:100
+msgid "lessons"
+msgstr ""
+
+#: src/Providers/LearnDash.php:101
+msgid "topics"
+msgstr ""
+
+#: src/Providers/LearnDash.php:102
+msgid "courses with sample students"
+msgstr ""
+
+#: src/Providers/LearnDash.php:103
+msgid "course photos"
+msgstr ""
+
+#: src/Providers/LearnDash.php:106
+msgid "store currency (USD)"
+msgstr ""
+
+#: src/Providers/LearnDash.php:110
+#: src/Providers/Learnomy.php:109
+msgid "course categories"
+msgstr ""
+
+#: src/Providers/LearnDash.php:219
+msgid "What you will learn"
+msgstr ""
+
+#: src/Providers/LearnDash.php:222
+msgid "LearnDash did not save it."
+msgstr ""
+
+#. translators: %s: course title
+#: src/Providers/LearnDash.php:247
+#, php-format
+msgid "Part of %s."
+msgstr ""
+
+#: src/Providers/LearnDash.php:403
+#: src/Providers/Learnomy.php:497
+msgid "Courses"
+msgstr ""
+
 #: src/Providers/Learnomy.php:74
 msgid "Learnomy keeps an audit log of the removal as a security record, with the sample people removed from it."
 msgstr ""
@@ -588,24 +643,12 @@ msgstr ""
 msgid "%1$d courses with %2$d lessons, instructors, enrolments, progress and reviews"
 msgstr ""
 
-#: src/Providers/Learnomy.php:109
-msgid "course categories"
-msgstr ""
-
-#: src/Providers/Learnomy.php:110
-msgid "courses"
-msgstr ""
-
 #: src/Providers/Learnomy.php:111
 msgid "enrolments"
 msgstr ""
 
 #: src/Providers/Learnomy.php:112
 msgid "course images"
-msgstr ""
-
-#: src/Providers/Learnomy.php:497
-msgid "Courses"
 msgstr ""
 
 #. translators: %d: listings

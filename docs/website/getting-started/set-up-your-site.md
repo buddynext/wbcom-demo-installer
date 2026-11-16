@@ -84,6 +84,9 @@ To edit them, open the page in the block editor:
   BuddyPress, the demo switches them on; Remove everything switches them back.
 - With WooCommerce: a store of 13 products in 4 categories, with photos, a few sale prices, stock and reviews from
   the sample people. The shop opens (a new store starts in "coming soon" mode); Remove everything puts that back.
+- With LearnDash: 5 courses in 4 categories, each with lessons, topics and a photo, the first lesson open as a free
+  preview, and sample students part way through (one finishes each course). Paid courses show in US dollars when
+  the site has no currency set yet.
 - Your home page, menu and logo, if you chose them.
 - Each product's own setup finished and its pages shown without sidebars, so there are no setup wizards or
   setup reminders waiting for you.

@@ -100,6 +100,7 @@ final class Registry {
 			Providers\MediaVerse::class,
 			Providers\Jetonomy::class,
 			Providers\Learnomy::class,
+			Providers\LearnDash::class,
 			Providers\Eventonomy::class,
 			Providers\CareerBoard::class,
 			Providers\Listora::class,

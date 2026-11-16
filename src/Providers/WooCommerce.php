@@ -253,7 +253,7 @@ final class WooCommerce extends Provider {
 			if ( ! $id ) {
 				continue;
 			}
-			$ctx->record( $this->id(), 'review', (int) $id, 'sample', array(), $product_id );
+			$ctx->record( $this->id(), 'review', (int) $id );
 		}
 		// Average rating and review counts on each product, as WooCommerce works them out after a new review.
 		if ( class_exists( 'WC_Comments' ) ) {
