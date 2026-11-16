@@ -257,7 +257,7 @@ final class PeepSo extends Provider {
 					continue;
 				}
 				wp_set_current_user( $user );
-				$comment = ( new \PeepSoActivity() )->add_comment( (int) $post_id, $user, (string) $replies[ ( $k + $r ) % count( $replies ) ], self::dated( $ctx->after( $post->post_date_gmt, $k * 3 + $r ) ) );
+				$comment = ( new \PeepSoActivity() )->add_comment( (int) $post_id, $user, self::mentions( (string) $replies[ ( $k + $r ) % count( $replies ) ], $ctx ), self::dated( $ctx->after( $post->post_date_gmt, $k * 3 + $r ) ) );
 				if ( $comment ) {
 					$ctx->record( $this->id(), 'comment', (int) $comment );
 				}

@@ -598,7 +598,7 @@ final class BuddyPress extends Provider {
 					array(
 						'activity_id' => (int) $activity->id,
 						'parent_id'   => (int) $activity->id,
-						'content'     => (string) $replies[ ( $k + $r ) % count( $replies ) ],
+						'content'     => self::mentions( (string) $replies[ ( $k + $r ) % count( $replies ) ], $ctx ),
 						'user_id'     => $user,
 					)
 				);
