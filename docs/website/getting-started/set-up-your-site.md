@@ -87,6 +87,8 @@ To edit them, open the page in the block editor:
 - With LearnDash: 5 courses in 4 categories, each with lessons, topics and a photo, the first lesson open as a free
   preview, and sample students part way through (one finishes each course). Paid courses show in US dollars when
   the site has no currency set yet.
+- With Dokan (and WooCommerce): 4 stores run by the sample vendors, each with a photo, banner, address and phone,
+  selling the sample products of their category.
 - Your home page, menu and logo, if you chose them.
 - Each product's own setup finished and its pages shown without sidebars, so there are no setup wizards or
   setup reminders waiting for you.

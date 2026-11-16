@@ -14,8 +14,8 @@ remove the samples and keep their setup.
 Supports the Wbcom product family (BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board,
 WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and their Pro add-ons) with the BuddyX, BuddyX Pro and Reign themes.
 Third-party plugins are added one at a time: BuddyPress or BuddyBoss Platform (member photos, groups, friendships and
-a feed), PeepSo (stream posts), WooCommerce (a store with products, photos, sale prices and reviews) and LearnDash
-(courses with lessons, topics and students part way through) are built in;
+a feed), PeepSo (stream posts), WooCommerce (a store with products, photos, sale prices and reviews) , LearnDash
+(courses with lessons, topics and students part way through) and Dokan (stores selling the sample products) are built in;
 the other plugins the Reign add-ons support follow.
 
 Requires WordPress 6.5+ and PHP 8.1+.

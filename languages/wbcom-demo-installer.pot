@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T06:05:02+00:00\n"
+"POT-Creation-Date: 2026-11-16T06:08:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -504,6 +504,28 @@ msgstr ""
 
 #: src/Providers/CareerBoard.php:430
 msgid "Jobs"
+msgstr ""
+
+#. translators: %d: stores
+#: src/Providers/Dokan.php:92
+#, php-format
+msgid "A marketplace of %d stores with photos, banners and addresses, selling the sample products"
+msgstr ""
+
+#: src/Providers/Dokan.php:103
+msgid "stores"
+msgstr ""
+
+#: src/Providers/Dokan.php:104
+msgid "store banners"
+msgstr ""
+
+#: src/Providers/Dokan.php:165
+msgid "Dokan did not make the store."
+msgstr ""
+
+#: src/Providers/Dokan.php:246
+msgid "Stores"
 msgstr ""
 
 #. translators: 1: upcoming events, 2: past events
