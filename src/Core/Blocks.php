@@ -65,10 +65,11 @@ final class Blocks {
 	 * Core columns block, one column per inner markup.
 	 *
 	 * @param string[] $inner Inner blocks per column.
+	 * @param bool     $stack Stack the columns on phones (false keeps them side by side, for small items).
 	 */
-	public static function columns( array $inner ): string {
+	public static function columns( array $inner, bool $stack = true ): string {
 		$cols = array_map( static fn( string $c ): string => '<!-- wp:column --><div class="wp-block-column">' . $c . '</div><!-- /wp:column -->', $inner );
-		return '<!-- wp:columns --><div class="wp-block-columns">' . implode( '', $cols ) . '</div><!-- /wp:columns -->';
+		return ( $stack ? '<!-- wp:columns --><div class="wp-block-columns">' : '<!-- wp:columns {"isStackedOnMobile":false} --><div class="wp-block-columns is-not-stacked-on-mobile">' ) . implode( '', $cols ) . '</div><!-- /wp:columns -->';
 	}
 
 	/**
@@ -176,7 +177,7 @@ final class Blocks {
 				$cols[] = '<!-- wp:image {"width":"96px","height":"96px","scale":"cover","sizeSlug":"thumbnail","linkDestination":"custom","align":"center","className":"is-style-rounded"} --><figure class="wp-block-image aligncenter size-thumbnail is-resized is-style-rounded"><a href="' . esc_url( $p[1] ) . '"><img src="' . esc_url( $p[2] ) . '" alt="' . esc_attr( $p[0] ) . '" style="object-fit:cover;width:96px;height:96px"/></a></figure><!-- /wp:image -->'
 					. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="' . esc_url( $p[1] ) . '">' . self::text( $p[0] ) . '</a></p><!-- /wp:paragraph -->';
 			}
-			$out .= self::columns( $cols );
+			$out .= self::columns( $cols, false ); // Four small faces fit a phone's width.
 		}
 		return $out;
 	}

@@ -134,7 +134,21 @@ final class Page {
 		}
 		wp_enqueue_style( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/css/wizard.css', array(), self::ver( 'assets/css/wizard.css' ) );
 		wp_style_add_data( 'wbcom-demo', 'rtl', 'replace' );
-		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array( 'wp-api-fetch', 'wp-i18n' ), self::ver( 'assets/js/wizard.js' ), true );
+		// Wbcom Essential's own block code, so the wizard can build its hero, stats and call to action for the
+		// designed home page exactly as the editor saves them.
+		$deps = array( 'wp-api-fetch', 'wp-i18n' );
+		foreach ( \WbcomDemo\Providers\Theme::ESSENTIAL as $name ) {
+			$type = \WP_Block_Type_Registry::get_instance()->get_registered( $name );
+			if ( $type ) {
+				$deps = array_merge( $deps, array( 'wp-blocks' ), (array) $type->editor_script_handles );
+			}
+		}
+		if ( in_array( 'wp-blocks', $deps, true ) ) {
+			// What the block editor hands its blocks from block.json (title, attributes): without it they do not register.
+			$defs = array_intersect_key( get_block_editor_server_block_settings(), array_flip( \WbcomDemo\Providers\Theme::ESSENTIAL ) );
+			wp_add_inline_script( 'wp-blocks', 'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( $defs ) . ');' );
+		}
+		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array_values( array_unique( $deps ) ), self::ver( 'assets/js/wizard.js' ), true );
 		wp_set_script_translations( 'wbcom-demo', 'wbcom-demo-installer' );
 		wp_localize_script(
 			'wbcom-demo',

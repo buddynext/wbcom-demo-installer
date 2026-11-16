@@ -150,6 +150,8 @@ final class Engine {
 			'catalog'     => Installer::overview(),
 			// The sample logo is the BuddyNext brand pack, set only when BuddyNext is active.
 			'brand'       => \WbcomDemo\Providers\Theme::branded(),
+			// The designed home page's hero, numbers and closing, for the wizard to swap for Wbcom Essential blocks.
+			'home'        => \WbcomDemo\Providers\Theme::home_upgrade(),
 			'memory'      => self::memory(),
 			'ai'          => \WbcomDemo\Ai\Assistant::overview(),
 			// Names of every starting point, also those whose product is not installed yet (AI ideas name them).

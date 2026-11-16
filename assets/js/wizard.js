@@ -294,12 +294,16 @@
 		const ticked = ( s.catalog || [] ).filter( ( c ) => S.pick && S.pick.has( c.id ) && 'active' !== c.state );
 		const busyNow = Object.values( S.installing ).includes( 'busy' );
 		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( addonMissing ? __( 'No supported product is active yet. Install the plugins your Reign add-ons are built for, ticked below, to start.', 'wbcom-demo-installer' ) : __( 'No supported product is active yet. Install the community set below, or activate a supported plugin such as BuddyPress, WooCommerce or LearnDash.', 'wbcom-demo-installer' ) ) }${ ticked.length ? `<p><button type="button" class="wdi-btn wdi-btn--primary" data-go="install" ${ busyNow ? 'disabled' : '' }>${ esc( sprintf( /* translators: %s: product names. */ __( 'Install %s', 'wbcom-demo-installer' ), ticked.map( ( c ) => c.label ).join( ', ' ) ) ) }</button></p>` : '' }</div></div>` : '';
+		// Something is supported already (say Wbcom Essential), but a Reign add-on still lacks its plugin: say so, or the
+		// owner continues and builds a demo without the product they bought the add-on for.
+		const addonTicked = ticked.filter( ( c ) => ( c.needed_by || [] ).length );
+		const addonNote = Object.keys( s.recipes ).length && addonMissing && addonTicked.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'plug' ) }<div>${ esc( sprintf( /* translators: %s: Reign add-on names. */ __( '%s needs its plugin before the demo can show it. It is ticked below.', 'wbcom-demo-installer' ), [ ...new Set( addonTicked.flatMap( ( c ) => c.needed_by ) ) ].join( ', ' ) ) ) }<p><button type="button" class="wdi-btn wdi-btn--primary" data-go="install" ${ busyNow ? 'disabled' : '' }>${ esc( sprintf( /* translators: %s: product names. */ __( 'Install %s', 'wbcom-demo-installer' ), addonTicked.map( ( c ) => c.label ).join( ', ' ) ) ) }</button></p></div></div>` : '';
 		const wanted = S.wantRecipe && ( S.site.all_recipes || {} )[ S.wantRecipe ];
 		const want = wanted ? `<div class="wdi-callout">${ ic( 'plug' ) }<div>${ esc( sprintf( /* translators: %s: starting point name. */ __( 'The products the %s starting point needs are ticked below. Install them, then the wizard returns to Starting point with it chosen.', 'wbcom-demo-installer' ), wanted.name ) ) }</div></div>` : '';
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ want }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ panel }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ addonNote }${ want }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ panel }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
@@ -602,6 +606,110 @@
 		S.site = res.site;
 		S.status = res.status;
 		route();
+		upgradeHome();
+	}
+
+	// The designed home page is built from core blocks on the server (valid on every path, WP-CLI too). With Wbcom
+	// Essential active, its hero, stats counter and call to action replace those parts here, created by the blocks'
+	// own code so the editor accepts them and the owner edits them like any Essential block.
+	async function upgradeHome() {
+		const home = S.site && S.site.home;
+		const blocks = window.wp && window.wp.blocks;
+		if ( ! home || ! home.id || S.homeBusy ) {
+			return;
+		}
+		if ( ! blocks || ! blocks.getBlockType( 'wbcom-essential/hero' ) ) {
+			// Wbcom Essential was installed during this visit, so its block code is not on the page yet: load the
+			// page once more (the server only offers the swap while Essential is active).
+			let tried = '1';
+			try {
+				tried = window.sessionStorage.getItem( 'wdiHomeReload' );
+				window.sessionStorage.setItem( 'wdiHomeReload', '1' );
+			} catch ( e ) {}
+			if ( ! tried ) {
+				window.location.reload();
+			}
+			return;
+		}
+		S.homeBusy = true;
+		const accent = 'var(--reign-colors-theme, var(--wp--preset--color--primary, #2563eb))';
+		const box = ( t, r, b, l ) => ( { top: t, right: r, bottom: b, left: l } );
+		const L = home.layout || {};
+		const made = {};
+		if ( L.hero ) {
+			const [ one, two ] = L.hero.buttons || [];
+			const img = L.hero.image;
+			made.hero = blocks.createBlock( 'wbcom-essential/hero', {
+				uniqueId: 'wdihomehero',
+				heading: L.hero.title,
+				subheading: L.hero.text,
+				buttonOneText: one ? one[ 0 ] : '',
+				buttonOneUrl: one ? one[ 1 ] : '',
+				buttonTwoText: two ? two[ 0 ] : '',
+				buttonTwoUrl: two ? two[ 1 ] : '',
+				backgroundType: img ? 'image' : 'gradient',
+				backgroundImage: img || {},
+				gradientStart: '#111827',
+				gradientEnd: accent,
+				overlayColor: '#000000',
+				overlayOpacity: 55,
+				contentAlign: 'left',
+				minHeight: 460,
+				buttonOneBg: accent,
+				buttonOneColor: '#ffffff',
+				buttonTwoBg: 'transparent',
+				buttonTwoColor: '#ffffff',
+				padding: box( 80, 48, 80, 48 ),
+				paddingMobile: box( 56, 24, 56, 24 ),
+				borderRadius: box( 16, 16, 16, 16 ),
+			} );
+		}
+		if ( L.stats && L.stats.length ) {
+			made.stats = blocks.createBlock( 'wbcom-essential/stats-counter', {
+				uniqueId: 'wdihomestats',
+				columns: L.stats.length,
+				stats: L.stats.map( ( s ) => ( { number: s[ 0 ], prefix: '', suffix: '', label: s[ 1 ] } ) ),
+				numberColor: accent,
+				labelColor: 'inherit',
+				separatorColor: 'color-mix(in srgb, currentColor 14%, transparent)',
+				padding: box( 40, 16, 32, 16 ),
+			} );
+		}
+		if ( L.cta ) {
+			made.cta = blocks.createBlock( 'wbcom-essential/cta', {
+				uniqueId: 'wdihomecta',
+				heading: L.cta[ 0 ],
+				description: '',
+				buttonText: L.cta[ 1 ][ 0 ],
+				buttonUrl: L.cta[ 1 ][ 1 ],
+				layout: 'inline',
+				backgroundColor: 'color-mix(in srgb, ' + accent + ' 10%, transparent)',
+				headingColor: 'inherit',
+				descriptionColor: 'inherit',
+				buttonBg: accent,
+				buttonColor: '#ffffff',
+				buttonBgHover: accent,
+				contentAlign: 'left',
+				padding: box( 40, 40, 40, 40 ),
+				paddingMobile: box( 28, 24, 28, 24 ),
+				margin: box( 48, 0, 56, 0 ),
+				borderRadius: box( 16, 16, 16, 16 ),
+			} );
+		}
+		try {
+			const page = await wp.apiFetch( { path: '/wp/v2/pages/' + home.id + '?context=edit&_fields=content' } );
+			let content = page.content.raw;
+			Object.keys( made ).forEach( ( k ) => {
+				if ( home.parts[ k ] && content.includes( home.parts[ k ] ) ) {
+					content = content.replace( home.parts[ k ], blocks.serialize( [ made[ k ] ] ) );
+				}
+			} );
+			if ( content !== page.content.raw ) {
+				await wp.apiFetch( { path: '/wp/v2/pages/' + home.id, method: 'POST', data: { content } } );
+			}
+		} catch ( e ) {} // The core-block home stays: a complete page either way.
+		S.site.home = null;
+		S.homeBusy = false;
 	}
 
 	function route() {

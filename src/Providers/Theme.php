@@ -23,6 +23,12 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Theme extends Provider {
 
+	/** Post meta on the designed home page: its layout and the core-block parts Wbcom Essential blocks replace. */
+	private const HOME_META = '_wbcom_demo_home';
+
+	/** The Wbcom Essential blocks the wizard puts on the designed home page. */
+	public const ESSENTIAL = array( 'wbcom-essential/hero', 'wbcom-essential/stats-counter', 'wbcom-essential/cta' );
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -224,26 +230,45 @@ final class Theme extends Provider {
 		if ( ! $sections && ! $people ) {
 			return 0;
 		}
-		$hero  = $hero ? $hero : $fallback;
-		$stats = array_merge( $stats, $crowd ); // The product's numbers lead, the community's follow.
-		$admin = (int) get_current_user_id();
-		$body  = '';
+		$hero   = $hero ? $hero : $fallback;
+		$stats  = array_merge( $stats, $crowd ); // The product's numbers lead, the community's follow.
+		$admin  = (int) get_current_user_id();
+		$layout = array();
+		$parts  = array();
+		$body   = '';
 		if ( $hero ) {
-			$inner = Blocks::heading( (string) $hero['title'], 1 ) . Blocks::paragraph( (string) $hero['text'] ) . ( ! empty( $hero['buttons'] ) ? Blocks::buttons( $hero['buttons'] ) : '' );
-			$photo = ! empty( $hero['image'] ) ? $ctx->attachment( (string) $hero['image'], $admin, $this->id(), 'setup' ) : 0;
-			$body .= $photo ? Blocks::cover( $photo, $inner ) : Blocks::section( $inner );
+			$inner          = Blocks::heading( (string) $hero['title'], 1 ) . Blocks::paragraph( (string) $hero['text'] ) . ( ! empty( $hero['buttons'] ) ? Blocks::buttons( $hero['buttons'] ) : '' );
+			$photo          = ! empty( $hero['image'] ) ? $ctx->attachment( (string) $hero['image'], $admin, $this->id(), 'setup' ) : 0;
+			$parts['hero']  = $photo ? Blocks::cover( $photo, $inner ) : Blocks::section( $inner );
+			$layout['hero'] = array(
+				'title'   => (string) $hero['title'],
+				'text'    => (string) $hero['text'],
+				'buttons' => array_slice( (array) ( $hero['buttons'] ?? array() ), 0, 2 ),
+				'image'   => $photo ? array(
+					'id'  => $photo,
+					'url' => (string) wp_get_attachment_image_url( $photo, 'full' ),
+					'alt' => '',
+				) : null,
+			);
+			$body          .= $parts['hero'];
 		}
 		if ( $stats ) {
 			// The four that matter most: products list theirs first, the community's follow.
-			$cols  = array_map( static fn( array $s ): string => Blocks::heading( number_format_i18n( (int) $s[0] ), 3 ) . Blocks::paragraph( (string) $s[1] ), array_slice( $stats, 0, 4 ) );
-			$body .= Blocks::section( Blocks::columns( $cols ) );
+			$stats           = array_slice( $stats, 0, 4 );
+			$cols            = array_map( static fn( array $s ): string => Blocks::heading( number_format_i18n( (int) $s[0] ), 3 ) . Blocks::paragraph( (string) $s[1] ), $stats );
+			$parts['stats']  = Blocks::section( Blocks::columns( $cols ) );
+			$layout['stats'] = array_map( static fn( array $s ): array => array( (int) $s[0], (string) $s[1] ), $stats );
+			$body           .= $parts['stats'];
 		}
 		foreach ( array_merge( $sections, $people ) as $section ) {
 			$body .= Blocks::section( (string) $section );
 		}
 		if ( $hero && ! empty( $hero['buttons'] ) ) {
-			$cta   = ! empty( $hero['cta'] ) ? $hero['cta'] : $hero['buttons'][0];
-			$body .= Blocks::section( Blocks::heading( (string) ( $hero['closing'] ?? $hero['title'] ) ) . Blocks::buttons( array( $cta ) ) );
+			$cta           = ! empty( $hero['cta'] ) ? $hero['cta'] : $hero['buttons'][0];
+			$heading       = (string) ( $hero['closing'] ?? $hero['title'] );
+			$parts['cta']  = Blocks::section( Blocks::heading( $heading ) . Blocks::buttons( array( $cta ) ) );
+			$layout['cta'] = array( $heading, $cta );
+			$body         .= $parts['cta'];
 		}
 		$id = wp_insert_post(
 			array(
@@ -262,7 +287,45 @@ final class Theme extends Provider {
 		}
 		$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
 		self::no_sidebar( (int) $id );
+		// The hero, numbers and closing are core blocks here (valid on every path, WP-CLI too). When Wbcom Essential
+		// is active the wizard swaps them for its hero, stats counter and call to action, built by those blocks' own
+		// code in the browser so the editor accepts them (see home_upgrade()).
+		update_post_meta(
+			(int) $id,
+			self::HOME_META,
+			array(
+				'layout' => $layout,
+				'parts'  => $parts,
+			)
+		);
 		return (int) $id;
+	}
+
+	/**
+	 * The designed home page still waiting for its Wbcom Essential blocks, for the wizard: page id, the core-block
+	 * parts to replace and what goes in their place. Empty when done, not ours, or Wbcom Essential is not active.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public static function home_upgrade(): array {
+		$id   = (int) get_option( 'page_on_front' );
+		$data = $id ? get_post_meta( $id, self::HOME_META, true ) : '';
+		if ( ! is_array( $data ) || empty( $data['parts'] ) ) {
+			return array();
+		}
+		$registry = \WP_Block_Type_Registry::get_instance();
+		foreach ( self::ESSENTIAL as $block ) {
+			if ( ! $registry->is_registered( $block ) ) {
+				return array();
+			}
+		}
+		$content = (string) get_post_field( 'post_content', $id );
+		$parts   = array_filter( (array) $data['parts'], static fn( $markup ): bool => is_string( $markup ) && str_contains( $content, $markup ) );
+		return $parts ? array(
+			'id'     => $id,
+			'parts'  => $parts,
+			'layout' => $data['layout'],
+		) : array();
 	}
 
 	/**
