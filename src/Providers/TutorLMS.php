@@ -484,19 +484,15 @@ final class TutorLMS extends Provider {
 			array(
 				'post_type'   => $type,
 				'post_status' => 'publish',
-				'numberposts' => 3,
+				'numberposts' => 1,
+				'fields'      => 'ids',
 			)
 		);
 		$topics    = taxonomy_exists( 'course-category' ) ? LearnDash::course_topics( 'course-category' ) : array();
 
-		$cards = array();
-		foreach ( $courses as $course ) {
-			$photo   = (int) get_post_thumbnail_id( $course );
-			$cards[] = ( $photo ? Blocks::image( $photo ) : '' ) . Blocks::link_heading( get_the_title( $course ), (string) get_permalink( $course ), 3 ) . Blocks::paragraph( wp_strip_all_tags( get_the_excerpt( $course ) ) );
-		}
 		$sections = array();
-		if ( $cards ) {
-			$sections[] = Blocks::heading( (string) $h['featured'][0] ) . Blocks::paragraph( (string) $h['featured'][1] ) . Blocks::columns( $cards )
+		if ( $courses ) {
+			$sections[] = Blocks::heading( (string) $h['featured'][0] ) . Blocks::paragraph( (string) $h['featured'][1] ) . Blocks::query( $type, 3 )
 				. ( $catalog ? Blocks::button( (string) $h['all'], $catalog ) : '' );
 		}
 		if ( $topics ) {

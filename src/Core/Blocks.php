@@ -138,6 +138,39 @@ final class Blocks {
 	}
 
 	/**
+	 * Core Query Loop of the newest posts of one type, in a grid: live, so it shows what the site has now (not the
+	 * build's copy), and the owner changes count, order and look in the editor.
+	 *
+	 * @param string $type    Post type.
+	 * @param int    $count   How many.
+	 * @param bool   $image   Show the featured image.
+	 * @param int    $columns Columns.
+	 */
+	public static function query( string $type, int $count, bool $image = true, int $columns = 3 ): string {
+		$query = array(
+			'queryId' => 0,
+			'query'   => array(
+				'perPage'  => $count,
+				'pages'    => 0,
+				'offset'   => 0,
+				'postType' => $type,
+				'order'    => 'desc',
+				'orderBy'  => 'date',
+				'author'   => '',
+				'search'   => '',
+				'exclude'  => array(),
+				'sticky'   => '',
+				'inherit'  => false,
+			),
+		);
+		return '<!-- wp:query ' . wp_json_encode( $query ) . ' --><div class="wp-block-query">'
+			. '<!-- wp:post-template {"layout":{"type":"grid","columnCount":' . $columns . '}} -->'
+			. ( $image ? '<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /-->' : '' )
+			. '<!-- wp:post-title {"level":3,"isLink":true} /--><!-- wp:post-excerpt {"excerptLength":18} /-->'
+			. '<!-- /wp:post-template --></div><!-- /wp:query -->';
+	}
+
+	/**
 	 * Whether a block is registered on this site (a Wbcom Essential block when that plugin is active).
 	 *
 	 * @param string $name Block name.

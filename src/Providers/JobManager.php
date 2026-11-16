@@ -301,29 +301,10 @@ final class JobManager extends Provider {
 			array( (int) ( wp_count_posts( 'job_listing' )->publish ?? 0 ), __( 'open jobs', 'wbcom-demo-installer' ) ),
 			array( $companies, __( 'companies hiring', 'wbcom-demo-installer' ) ),
 		);
-		$jobs      = get_posts(
-			array(
-				'post_type'   => 'job_listing',
-				'post_status' => 'publish',
-				'numberposts' => 6,
-			)
-		);
-
-		$cards = array();
-		foreach ( $jobs as $job ) {
-			$types   = wp_get_post_terms( $job->ID, 'job_listing_type', array( 'fields' => 'names' ) );
-			$where   = (string) get_post_meta( $job->ID, '_job_location', true );
-			$where   = '' !== $where ? $where : ( get_post_meta( $job->ID, '_remote_position', true ) ? __( 'Remote', 'wbcom-demo-installer' ) : '' );
-			$line    = array_filter( array( (string) get_post_meta( $job->ID, '_company_name', true ), $where, is_array( $types ) && $types ? (string) $types[0] : '' ) );
-			$cards[] = Blocks::link_heading( get_the_title( $job ), (string) get_permalink( $job ), 3 ) . Blocks::paragraph( implode( ' · ', $line ) );
-		}
-		if ( ! $cards ) {
+		if ( ! $stats[0][0] ) {
 			return array();
 		}
-		$section = Blocks::heading( (string) $h['latest'][0] ) . Blocks::paragraph( (string) $h['latest'][1] );
-		foreach ( array_chunk( $cards, 3 ) as $row ) {
-			$section .= Blocks::columns( $row );
-		}
+		$section = Blocks::heading( (string) $h['latest'][0] ) . Blocks::paragraph( (string) $h['latest'][1] ) . Blocks::query( 'job_listing', 6, false );
 		return array(
 			'hero'     => array(
 				'title'   => (string) $h['title'],
