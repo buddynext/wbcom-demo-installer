@@ -329,9 +329,10 @@ final class Theme extends Provider {
 		$content = (string) get_post_field( 'post_content', $id );
 		$parts   = array_filter( (array) $data['parts'], static fn( $markup ): bool => is_string( $markup ) && str_contains( $content, $markup ) );
 		return $parts ? array(
-			'id'     => $id,
-			'parts'  => $parts,
-			'layout' => $data['layout'],
+			'id'        => $id,
+			'parts'     => $parts,
+			'layout'    => $data['layout'],
+			'essential' => defined( 'WBCOM_ESSENTIAL_VERSION' ) ? (string) WBCOM_ESSENTIAL_VERSION : '',
 		) : array();
 	}
 

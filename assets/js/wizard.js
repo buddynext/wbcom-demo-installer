@@ -620,9 +620,9 @@
 		if ( ! home || ! home.id || S.homeBusy ) {
 			return;
 		}
-		if ( ! blocks || ! blocks.getBlockType( 'wbcom-essential/hero' ) ) {
-			// Wbcom Essential was installed during this visit, so its block code is not on the page yet: load the
-			// page once more (the server only offers the swap while Essential is active).
+		if ( ! blocks || ! blocks.getBlockType( 'wbcom-essential/hero' ) || ( home.essential && home.essential !== cfg.essential ) ) {
+			// Wbcom Essential was installed or updated during this visit, so the block code on this page is missing or
+			// older: load the page once more (the server only offers the swap while Essential is active).
 			let tried = '1';
 			try {
 				tried = window.sessionStorage.getItem( 'wdiHomeReload' );
@@ -709,6 +709,9 @@
 			if ( content !== page.content.raw ) {
 				await wp.apiFetch( { path: '/wp/v2/pages/' + home.id, method: 'POST', data: { content } } );
 			}
+			try {
+				window.sessionStorage.removeItem( 'wdiHomeReload' ); // A later demo in this tab may reload again.
+			} catch ( e ) {}
 		} catch ( e ) {} // The core-block home stays: a complete page either way.
 		S.site.home = null;
 		S.homeBusy = false;

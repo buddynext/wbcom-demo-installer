@@ -921,9 +921,13 @@ final class BuddyPress extends Provider {
 			$section .= Blocks::heading( (string) $h['feed'], 3 ) . Blocks::dynamic(
 				'wbcom-essential/activity-feed',
 				array(
-					'uniqueId'        => 'wdihomefeed',
-					'totalActivities' => 4,
-					'activityType'    => 'activity_update',
+					'uniqueId'         => 'wdihomefeed',
+					'totalActivities'  => 3,
+					'activityType'     => 'activity_update',
+					// A glance at what people share, not the feed itself: three cards with their text. A photo inside an
+					// update still shows full width (Wbcom Essential sizes it, not this setting).
+					'layout'           => 'cards',
+					'showMediaPreview' => false,
 				) + $look
 			);
 		}
