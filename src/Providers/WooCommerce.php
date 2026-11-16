@@ -414,10 +414,20 @@ final class WooCommerce extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function home( Context $ctx ): array {
-		$h        = (array) ( $this->content()['home'] ?? array() );
-		$shop     = function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '';
-		$account  = function_exists( 'wc_get_page_id' ) && wc_get_page_id( 'myaccount' ) > 0 ? (string) wc_get_page_permalink( 'myaccount' ) : '';
-		$products = (int) ( wp_count_posts( 'product' )->publish ?? 0 );
+		$h       = (array) ( $this->content()['home'] ?? array() );
+		$shop    = function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '';
+		$account = function_exists( 'wc_get_page_id' ) && wc_get_page_id( 'myaccount' ) > 0 ? (string) wc_get_page_permalink( 'myaccount' ) : '';
+		// Products a shopper can see: Dokan, for one, keeps a hidden "Reverse Withdrawal Payment" product.
+		$found    = wc_get_products(
+			array(
+				'status'     => 'publish',
+				'visibility' => 'catalog',
+				'limit'      => 1,
+				'paginate'   => true,
+				'return'     => 'ids',
+			)
+		);
+		$products = is_object( $found ) ? (int) $found->total : 0;
 		$count    = (int) wp_count_terms(
 			array(
 				'taxonomy'   => 'product_cat',
