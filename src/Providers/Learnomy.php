@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -484,6 +485,57 @@ final class Learnomy extends Provider {
 				)
 			),
 			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A learning site: the hero, course and student counts, popular courses and the instructors, in Learnomy's
+	 * own blocks.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( '\\Learnomy\\route_url' ) || ! class_exists( '\\Learnomy\\Models\\Course' ) || ! class_exists( '\\Learnomy\\Models\\Enrollment' ) ) {
+			return array();
+		}
+		$h       = (array) ( $this->content()['home'] ?? array() );
+		$catalog = (string) \Learnomy\route_url( 'catalog' );
+		$courses = array(
+			'count'   => 6,
+			'columns' => 3,
+		);
+		$people  = array(
+			'count'   => 4,
+			'columns' => 4,
+		);
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => array( array( (string) $h['browse'], $catalog ) ),
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => array(
+				array( \Learnomy\Models\Course::count_published( 0 ), __( 'courses', 'wbcom-demo-installer' ) ),
+				array( \Learnomy\Models\Enrollment::count_distinct_students(), __( 'students', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array(
+				Blocks::heading( (string) $h['courses'][0] ) . Blocks::paragraph( (string) $h['courses'][1] )
+					. get_comment_delimited_block_content( 'learnomy/course-grid', $courses, '' )
+					. Blocks::button( (string) $h['all'], $catalog ),
+				Blocks::heading( (string) $h['teachers'][0] ) . Blocks::paragraph( (string) $h['teachers'][1] )
+					. get_comment_delimited_block_content( 'learnomy/instructor-grid', $people, '' ),
+			),
 		);
 	}
 

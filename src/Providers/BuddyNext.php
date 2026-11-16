@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
@@ -973,6 +974,85 @@ final class BuddyNext extends Provider {
 				)
 			),
 			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function community(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The members and spaces part of the designed home page; its hero is used only on a community-only site.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( 'buddynext_member_url' ) || ! class_exists( '\BuddyNext\Spaces\SpaceService' ) ) {
+			return array();
+		}
+		$h    = (array) ( $this->content()['home'] ?? array() );
+		$page = static function ( string $key ): string {
+			$id = (int) get_option( 'buddynext_page_' . $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		// Section data: people (name, profile, photo), the busiest spaces and the links under them.
+		$people = array();
+		foreach ( array_slice( $ctx->people(), 0, 8 ) as $id ) {
+			$people[] = array( (string) ( $ctx->profile( $id )['name'] ?? get_the_author_meta( 'display_name', $id ) ), buddynext_member_url( $id ), buddynext_user_avatar_url( $id, 192 ) );
+		}
+		$spaces  = ( new \BuddyNext\Spaces\SpaceService() )->list_spaces_with_total(
+			array(
+				'per_page' => 3,
+				'orderby'  => 'member_count',
+				'viewer'   => 0,
+			)
+		);
+		$buttons = array_values(
+			array_filter(
+				array(
+					'' !== $page( 'activity' ) ? array( (string) $h['join'], $page( 'activity' ) ) : null,
+					'' !== $page( 'spaces' ) ? array( (string) $h['spaces'], $page( 'spaces' ) ) : null,
+				)
+			)
+		);
+
+		$section = Blocks::heading( (string) $h['people'][0] ) . Blocks::paragraph( (string) $h['people'][1] ) . Blocks::people( $people );
+		$cards   = array();
+		foreach ( (array) $spaces['items'] as $s ) {
+			$url     = \BuddyNext\Core\PageRouter::space_url( (int) $s['id'] );
+			$cards[] = Blocks::link_heading( (string) $s['name'], $url, 3 ) . Blocks::paragraph( wp_strip_all_tags( (string) $s['description'] ) ) . Blocks::button( (string) $h['enter'], $url );
+		}
+		if ( $cards ) {
+			$section .= Blocks::heading( (string) $h['popular'], 3 ) . Blocks::columns( $cards );
+		}
+		if ( $buttons ) {
+			$section .= Blocks::buttons( $buttons );
+		}
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => array(
+				array( count( $ctx->people() ), __( 'members', 'wbcom-demo-installer' ) ),
+				array( (int) $spaces['total'], __( 'spaces', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array( $section ),
 		);
 	}
 

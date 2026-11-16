@@ -22,6 +22,16 @@ return array(
 		array( 'Spring Members Meetup', 'Community', 'Riverside Commons', 'Rua do Infante 11', 'Porto', 'PT', 17, -12, '18:00-21:00', 'Our first in-person meetup: lightning talks, a photo wall and far too much food.', false, 'photos/festival-friends.jpg' ),
 		array( 'Typography Evening', 'Design', 'Letterpress Lab', 'Shimogyo-ku 3-1', 'Kyoto', 'JP', 3, -25, '19:00-21:00', 'A hands-on evening setting type by hand, with a short talk on how letters are drawn.', false, 'photos/open-books.jpg' ),
 	),
+	'home'   => array(
+		'title'   => 'Discover events you will love',
+		'text'    => 'Music nights, workshops, meetups and food festivals. Find your next experience and save your seat in seconds.',
+		'image'   => 'photos/festival-friends.jpg',
+		'browse'  => 'Browse all events',
+		'host'    => 'Host an event',
+		'closing' => 'Have something worth gathering for? Host your own event.',
+		'coming'  => array( 'Coming up', 'The next events on the calendar, with tickets, venues and who is going.' ),
+		'all'     => 'See every event',
+	),
 	'guide'  => array(
 		'name'         => 'Eventonomy',
 		'tab'          => 'Events',

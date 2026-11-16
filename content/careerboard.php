@@ -23,6 +23,16 @@ return array(
 		array( 2, 'Mobile Developer (Android)', 'Engineering', 'Contract', 'Remote', 'Senior', 30000, 45000, true, 'Our ordering app has to work in kitchens with flour on the screen and no wifi. Offline-first experience is a must.' ),
 		array( 2, 'Junior Support Engineer', 'Customer Success', 'Full-time', 'Kochi, IN', 'Entry Level', 7000, 9500, false, 'Learn our product inside out, fix small bugs, and help bakeries get set up. Great first role, we will teach you a lot.' ),
 	),
+	'home'      => array(
+		'title'    => 'The smarter way to hire and get hired',
+		'text'     => 'Search open roles from companies that invest in their people. One profile, quick applications and a clear view of every step.',
+		'image'    => 'photos/tech-workspace.jpg',
+		'browse'   => 'Browse jobs',
+		'post'     => 'Post a job',
+		'closing'  => 'Hiring? Post your first job in two minutes.',
+		'search'   => array( 'Find your next role', 'Search by title, category, location or job type.' ),
+		'featured' => 'Featured opportunities',
+	),
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'     => array(
 		'name'       => 'WP Career Board',

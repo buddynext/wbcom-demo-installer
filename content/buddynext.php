@@ -265,6 +265,17 @@ return array(
 	),
 	'companies'  => array( 'Nomad Studio', 'Hyperlane', 'Northwind Labs', 'Paperplane', 'Bluefin Data', 'Pixel Harbor', 'Tidewater Institute', 'Roastworks', 'Clearword', 'Lumen Cloud' ),
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
+	'home'       => array(
+		'title'   => 'Your people, your spaces, one community',
+		'text'    => 'Members share updates, join spaces around what they care about and keep up with each other in one feed.',
+		'image'   => 'photos/coffee-cheers.jpg',
+		'join'    => 'Join the conversation',
+		'spaces'  => 'Explore spaces',
+		'enter'   => 'Join this space',
+		'closing' => 'Come and say hello. The community is waiting.',
+		'people'  => array( 'Meet the members', 'Designers, developers and makers who share what they learn and help each other out.' ),
+		'popular' => 'Popular spaces',
+	),
 	'guide'      => array(
 		'name'         => 'BuddyNext',
 		'tab'          => 'Community',

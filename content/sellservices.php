@@ -17,6 +17,17 @@ return array(
 		array( 7, 'I will set up a fast, reliable Go API for your product', 'Development', 600, 'A small, well-tested REST API in Go with clear docs, deployment notes and a week of support after handover, so your team can run and extend it with confidence.', 'photos/developer-workspace.jpg' ),
 		array( 17, 'I will run sound and AV for your meetup or conference', 'Events', 250, 'Mics, speakers, mixing and recording for meetups and conferences of up to 300 people. Setup, sound check and teardown are included, and you get the recordings the same week.', 'photos/festival-friends.jpg' ),
 	),
+	'home'     => array(
+		'title'   => 'Find the right freelancer for your next project',
+		'text'    => 'Design, development, writing and marketing. Fixed prices, clear delivery dates and payment held safely until the work is done.',
+		'image'   => 'photos/creative-studio-portrait.jpg',
+		'browse'  => 'Browse services',
+		'sell'    => 'Start selling',
+		'closing' => 'Good at something? Turn it into a service people can buy.',
+		'cats'    => array( 'Browse by category', 'Every service sorted by what you need done.' ),
+		'popular' => array( 'Fresh services', 'The newest offers, each with a fixed price, a delivery date and the seller behind it.' ),
+		'all'     => 'See all services',
+	),
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'    => array(
 		'name'         => 'WP Sell Services',
