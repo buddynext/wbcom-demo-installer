@@ -50,15 +50,29 @@ final class Guide {
 			(string) filemtime( WBCOM_DEMO_DIR . 'assets/js/tour-block.js' ),
 			true
 		);
+		wp_register_style( 'wbcom-demo-tour', WBCOM_DEMO_URL . 'assets/css/tour.css', array(), (string) filemtime( WBCOM_DEMO_DIR . 'assets/css/tour.css' ) );
+		wp_register_script(
+			'wbcom-demo-tour-view',
+			WBCOM_DEMO_URL . 'assets/js/tour.js',
+			array(),
+			(string) filemtime( WBCOM_DEMO_DIR . 'assets/js/tour.js' ),
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
 		register_block_type(
 			self::BLOCK,
 			array(
-				'api_version'     => '3',
-				'title'           => __( 'Demo tour', 'wbcom-demo-installer' ),
-				'category'        => 'widgets',
-				'editor_script'   => 'wbcom-demo-tour-editor',
-				'render_callback' => array( self::class, 'render' ),
-				'supports'        => array( 'html' => false ),
+				'api_version'         => '3',
+				'title'               => __( 'Demo tour', 'wbcom-demo-installer' ),
+				'category'            => 'widgets',
+				'editor_script'       => 'wbcom-demo-tour-editor',
+				// WordPress loads these only on pages that show the block.
+				'style_handles'       => array( 'wbcom-demo-tour' ),
+				'view_script_handles' => array( 'wbcom-demo-tour-view' ),
+				'render_callback'     => array( self::class, 'render' ),
+				'supports'            => array( 'html' => false ),
 			)
 		);
 	}
@@ -119,8 +133,8 @@ final class Guide {
 	 */
 	private static function owner(): ?\WP_User {
 		$old = class_exists( 'user_switching' ) ? \user_switching::get_old_user() : false;
-		if ( $old instanceof \WP_User ) {
-			return $old;
+		if ( $old instanceof \WP_User && user_can( $old, 'manage_options' ) ) {
+			return $old; // Only a site administrator's switched session counts as the owner.
 		}
 		return current_user_can( 'manage_options' ) ? wp_get_current_user() : null;
 	}
@@ -228,7 +242,6 @@ final class Guide {
 		?>
 		<div class="wdi-tour">
 			<?php
-			self::styles();
 			self::role_cards( $products, $launch );
 			self::tour( $products, $launch );
 			self::highlights( $products, (string) ( $first['guide']['name'] ?? $first['label'] ) );
@@ -395,20 +408,6 @@ final class Guide {
 					?>
 				</div>
 			<?php endforeach; ?>
-			<script>
-			( function () {
-				var root = document.currentScript.parentNode;
-				root.querySelectorAll( '[role=tab]' ).forEach( function ( tab ) {
-					tab.addEventListener( 'click', function () {
-						root.querySelectorAll( '[role=tab]' ).forEach( function ( t ) {
-							var on = t === tab;
-							t.setAttribute( 'aria-selected', on ? 'true' : 'false' );
-							document.getElementById( t.getAttribute( 'aria-controls' ) ).hidden = ! on;
-						} );
-					} );
-				} );
-			} () );
-			</script>
 		</section>
 		<?php
 	}
@@ -526,60 +525,6 @@ final class Guide {
 				<?php endforeach; ?>
 			</div>
 		</section>
-		<?php
-	}
-
-	/**
-	 * Styles, once per page. Colours follow the theme: Reign's accent token first, then mixes of the text colour,
-	 * so the section reads right in the theme's light and dark modes.
-	 */
-	private static function styles(): void {
-		static $done = false;
-		if ( $done ) {
-			return;
-		}
-		$done = true;
-		?>
-		<style>
-		.wdi-tour{--wdi-accent:var(--reign-colors-theme,var(--wp--preset--color--primary,#2563eb));--wdi-line:color-mix(in srgb,currentColor 14%,transparent);--wdi-soft:color-mix(in srgb,var(--wdi-accent) 10%,transparent);--wdi-muted:color-mix(in srgb,currentColor 68%,transparent);display:grid;gap:clamp(40px,6vw,64px);margin-block:8px 48px}
-		.wdi-tour h2{margin:0 0 6px;font-size:clamp(24px,3vw,30px);letter-spacing:-.015em;line-height:1.2}
-		.wdi-tour__lede{margin:0 0 24px;color:var(--wdi-muted);max-width:62ch}
-		.wdi-tour__roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:18px}
-		.wdi-tour__role{border:1px solid var(--wdi-line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;background:color-mix(in srgb,currentColor 2%,transparent)}
-		.wdi-tour__role.is-here{border-color:var(--wdi-accent);box-shadow:0 0 0 3px var(--wdi-soft)}
-		.wdi-tour__who{display:flex;gap:14px;align-items:center}
-		.wdi-tour__who strong{display:block;font-size:17px}
-		.wdi-tour__face{width:56px;height:56px;border-radius:50%;flex:none;object-fit:cover}
-		.wdi-tour__face--icon{display:grid;place-items:center;background:var(--wdi-accent);color:#fff;font-weight:700;font-size:18px}
-		.wdi-tour__launch{margin-top:20px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between;padding:22px 24px;border-radius:16px;background:var(--wdi-soft)}
-		.wdi-tour__launch strong{display:block;font-size:17px}.wdi-tour__launch span{color:var(--wdi-muted)}
-		.wdi-tour__launch .wdi-tour__btn{flex:none;padding-inline:28px}
-		.wdi-tour__badge{display:inline-block;margin-top:3px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--wdi-soft);color:var(--wdi-accent)}
-		.wdi-tour__badge.is-here{background:transparent;padding-inline-start:0}
-		.wdi-tour__points{list-style:none;margin:0;padding:0;display:grid;gap:8px;flex:1;color:var(--wdi-muted);font-size:15px}
-		.wdi-tour__points li{display:flex;gap:9px;align-items:flex-start}.wdi-tour__points svg{flex:none;margin-top:3px;color:var(--wdi-accent)}
-		.wdi-tour__btn{display:block;text-align:center;padding:12px 18px;border-radius:10px;background:var(--wdi-accent);color:#fff!important;font-weight:600;text-decoration:none!important}
-		.wdi-tour__btn:hover,.wdi-tour__btn:focus-visible{filter:brightness(.92)}
-		.wdi-tour__tabs{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:color-mix(in srgb,currentColor 7%,transparent);margin-bottom:20px;flex-wrap:wrap}
-		.wdi-tour__tabs button{border:0;background:transparent;color:var(--wdi-muted);font:inherit;font-weight:600;font-size:15px;padding:9px 16px;border-radius:9px;cursor:pointer}
-		.wdi-tour__tabs button[aria-selected=true]{background:var(--wdi-accent);color:#fff}
-		.wdi-tour__steps{display:grid;grid-template-columns:repeat(var(--wdi-cols,4),minmax(0,1fr));gap:16px}
-		@media (max-width:1024px){.wdi-tour__steps{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}}
-		.wdi-tour__steps[hidden]{display:none}
-		.wdi-tour__step{display:flex;flex-direction:column;gap:8px;border:1px solid var(--wdi-line);border-radius:14px;padding:20px;color:inherit!important;text-decoration:none!important;transition:border-color .15s,transform .15s}
-		a.wdi-tour__step:hover,a.wdi-tour__step:focus-visible{border-color:var(--wdi-accent);transform:translateY(-2px)}
-		.wdi-tour__step.is-key{background:var(--wdi-soft);border-color:transparent}
-		.wdi-tour__top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-		.wdi-tour__icon{width:40px;height:40px;border-radius:10px;background:var(--wdi-soft);color:var(--wdi-accent);display:grid;place-items:center;flex:none}
-		.wdi-tour__n{font-size:13px;font-weight:700;color:var(--wdi-muted)}
-		.wdi-tour__title{font-size:17px}
-		.wdi-tour__text{color:var(--wdi-muted);font-size:15px;flex:1}
-		.wdi-tour__go{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--wdi-accent)}
-		.wdi-tour__feats{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:24px 28px}
-		.wdi-tour__feat{display:flex;gap:14px;align-items:flex-start}
-		.wdi-tour__feat strong{display:block;margin-bottom:3px}.wdi-tour__feat span{color:var(--wdi-muted);font-size:15px}
-		@media (prefers-reduced-motion:reduce){.wdi-tour__step{transition:none}a.wdi-tour__step:hover{transform:none}}
-		</style>
 		<?php
 	}
 }

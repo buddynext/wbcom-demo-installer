@@ -393,6 +393,7 @@ final class GeoDirectory extends Provider {
 				'post_content'     => wpautop( $desc ),
 				'post_author'      => $owner,
 				'post_date_gmt'    => $date,
+				// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 				'post_date'        => get_date_from_gmt( $date ),
 				'comment_status'   => 'open',
 				'post_category'    => $cat_id ? array( $cat_id ) : array(),
@@ -494,6 +495,7 @@ final class GeoDirectory extends Provider {
 					'comment_approved'     => 1,
 					'user_id'              => $user_id,
 					'comment_date_gmt'     => $date,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'comment_date'         => get_date_from_gmt( $date ),
 				)
 			);

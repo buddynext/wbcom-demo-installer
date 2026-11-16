@@ -199,6 +199,7 @@ final class Pages extends Provider {
 					'post_excerpt'  => $post['excerpt'],
 					'post_content'  => implode( "\n\n", $body ),
 					'post_author'   => $author,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'     => get_date_from_gmt( $date ),
 					'post_category' => array_filter( array( (int) ( $terms[ $post['category'] ] ?? 0 ) ) ),
 				),

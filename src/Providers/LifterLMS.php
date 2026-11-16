@@ -291,7 +291,8 @@ final class LifterLMS extends Provider {
 		}
 		$teacher = $ctx->person( (int) $c['instructor'] );
 		$date    = $ctx->date( $i, count( $all ), 70 );
-		$local   = static fn( string $gmt ): string => get_date_from_gmt( $gmt );
+		// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
+		$local = static fn( string $gmt ): string => get_date_from_gmt( $gmt );
 		// LifterLMS's instructor role lives on the sample person and goes with them on Finish.
 		$user = get_userdata( $teacher );
 		if ( $user && get_role( 'instructor' ) ) {
@@ -415,6 +416,7 @@ final class LifterLMS extends Provider {
 					continue;
 				}
 				// Enrolled on the build timeline, not on the day of the build.
+				// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 				llms_update_user_postmeta( (int) $uid, (int) $course_id, '_start_date', get_date_from_gmt( $ctx->after( $start, $s + 1 ) ) );
 				// Completing every lesson completes its sections and the course, as LifterLMS works it out.
 				$share = 0 === $s ? 1 : ( ( $s * 37 ) % 90 ) / 100;
@@ -450,6 +452,7 @@ final class LifterLMS extends Provider {
 				'post_parent'   => $course_id,
 				'post_author'   => $uid,
 				'post_date_gmt' => $date,
+				// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 				'post_date'     => get_date_from_gmt( $date ),
 			),
 			true

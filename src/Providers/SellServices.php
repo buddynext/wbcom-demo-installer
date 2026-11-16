@@ -254,6 +254,7 @@ final class SellServices extends Provider {
 			wp_update_post(
 				array(
 					'ID'            => $id,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'     => get_date_from_gmt( $date ),
 					'post_date_gmt' => $date,
 					'edit_date'     => true,

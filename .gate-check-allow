@@ -1,0 +1,1 @@
+P9 src/Core/Installer.php  # Install and update downloads run only on the owner's click (REST POST /install, wp wbcom-demo install): fetching the package IS the request. Never on a page load, never on a visitor request.

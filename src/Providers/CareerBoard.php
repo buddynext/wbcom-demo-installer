@@ -194,6 +194,7 @@ final class CareerBoard extends Provider {
 					'post_title'   => $name,
 					'post_content' => wpautop( $tagline . '. ' . sprintf( 'Based in %s, %s people.', $hq, $size ) ),
 					'post_author'  => $owner,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'    => get_date_from_gmt( $ctx->date( $i, 6, 70 ) ),
 				),
 				true
@@ -239,6 +240,7 @@ final class CareerBoard extends Provider {
 					'post_title'   => $title,
 					'post_content' => wpautop( $body ),
 					'post_author'  => $owner,
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'post_date'    => get_date_from_gmt( $ctx->date( $i, count( $this->content()['jobs'] ), 30 ) ),
 				),
 				true

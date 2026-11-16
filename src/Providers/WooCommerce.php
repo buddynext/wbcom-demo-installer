@@ -287,6 +287,7 @@ final class WooCommerce extends Provider {
 					'comment_approved'     => 1,
 					'user_id'              => $user_id,
 					'comment_date_gmt'     => $ctx->date( (int) $n, count( $reviews ), 30 ),
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 					'comment_date'         => get_date_from_gmt( $ctx->date( (int) $n, count( $reviews ), 30 ) ),
 					'comment_meta'         => array(
 						'rating'   => max( 1, min( 5, (int) $rating ) ),

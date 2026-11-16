@@ -187,6 +187,7 @@ final class PeepSo extends Provider {
 	private static function dated( string $gmt ): array {
 		return array(
 			'post_date_gmt' => $gmt,
+			// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 			'post_date'     => get_date_from_gmt( $gmt ),
 		);
 	}

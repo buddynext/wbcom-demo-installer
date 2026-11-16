@@ -295,6 +295,7 @@ final class TutorLMS extends Provider {
 				'menu_order'     => $order,
 				'comment_status' => 'open',
 				'post_date_gmt'  => $date,
+				// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 				'post_date'      => get_date_from_gmt( $date ),
 			),
 			true
@@ -356,7 +357,8 @@ final class TutorLMS extends Provider {
 				$data = static function ( array $data ) use ( $when ): array {
 					$data['post_status']   = 'completed';
 					$data['post_date_gmt'] = $when;
-					$data['post_date']     = get_date_from_gmt( $when );
+					// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
+					$data['post_date'] = get_date_from_gmt( $when );
 					return $data;
 				};
 				add_filter( 'tutor_enroll_data', $data );
@@ -408,6 +410,7 @@ final class TutorLMS extends Provider {
 				'comment_agent'    => 'TutorLMSPlugin',
 				'user_id'          => $uid,
 				'comment_date_gmt' => $date,
+				// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 				'comment_date'     => get_date_from_gmt( $date ),
 				'comment_meta'     => array( 'tutor_rating' => max( 1, min( 5, (int) $body[0] ) ) ),
 			)

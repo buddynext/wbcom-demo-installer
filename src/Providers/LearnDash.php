@@ -297,6 +297,7 @@ final class LearnDash extends Provider {
 				'post_excerpt'  => $excerpt,
 				'post_author'   => $author,
 				'post_date_gmt' => $date,
+				// time-ok: WordPress stores this field in site time beside its _gmt column; the build works in UTC.
 				'post_date'     => get_date_from_gmt( $date ),
 			),
 			true
