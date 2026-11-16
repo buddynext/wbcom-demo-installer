@@ -102,6 +102,7 @@ final class Registry {
 			Providers\Learnomy::class,
 			Providers\LearnDash::class,
 			Providers\TutorLMS::class,
+			Providers\LifterLMS::class,
 			Providers\Eventonomy::class,
 			Providers\CareerBoard::class,
 			Providers\JobManager::class,

@@ -90,6 +90,10 @@ To edit them, open the page in the block editor:
 - With Tutor LMS: the same 5 courses, each with topics, lessons, a photo, level and duration, sample instructors,
   and sample students part way through (one finishes each course); the first two students in each course rate it.
   Course ratings and the enrolled count are switched on; Remove everything puts Tutor's settings back.
+- With LifterLMS: the same 5 courses, each with sections, lessons, a photo, a free or paid access plan and a free
+  preview lesson, sample students part way through (one finishes each course) and two reviews each. If there is no
+  course catalog, student dashboard or checkout page yet, the demo adds them, and switches on manual payments so
+  paid courses show their price; Remove everything takes both away again.
 - With Dokan (and WooCommerce): 4 stores run by the sample vendors, each with a photo, banner, address and phone,
   selling the sample products of their category.
 - With WP Job Manager: 8 job listings from 3 companies run by sample people, with logos, job types, salaries and
