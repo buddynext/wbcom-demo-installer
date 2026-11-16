@@ -16,6 +16,10 @@ When you are ready for real members, remove the sample content and keep everythi
    only when the demo left nothing on the site.
    After **Try a different demo**, its main button is **Pick another demo**, which goes back to the demo gallery.
 
+![Choose what should stay](../images/11-finish-choose.webp)
+
+![The report after removing everything](../images/13-finish-report.webp)
+
 ## Good to know
 
 - Your own users and content are never removed.

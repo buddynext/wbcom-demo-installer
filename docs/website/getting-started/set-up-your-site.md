@@ -44,6 +44,11 @@ then remove the sample content in one step when you are ready.
    Each demo card shows what you still have to upload (with a **Get it** link) and how many free plugins it sets up
    for you. **Set up and use this demo** installs, updates or switches on what is missing and moves you to the next
    step. **Live preview** opens the same demo on our sandbox.
+
+   ![The demo gallery: one card per purpose, the Reign LearnDash add-on first](../images/02-gallery.webp)
+
+   ![A demo card: what it uses and Set up and use this demo](../images/03-demo-card.webp)
+
 4. **Products**: switch each product on or off. The bar at the bottom shows exactly what will be created.
 5. **Home page and menu**: use the demo home page, menu and logo, or keep your own.
 6. **Review** the list. You can type your own site name and tagline here: a new name shows in the header in place of
@@ -55,6 +60,8 @@ what happens next: **Start my real site** removes the sample people and content 
 settings; **Remove everything** puts the site back as it was; **Try a different demo** removes everything and takes
 you back to pick another one. Each one shows what will be removed and asks you to confirm first. See
 [Finish the demo](finish-demo.md); it is also under **Tools > Demo data** at any time.
+
+![Your demo is ready, with the Done exploring? choices](../images/09-ready.webp)
 
 ## Pick a demo
 
