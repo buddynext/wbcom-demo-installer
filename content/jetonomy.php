@@ -183,6 +183,15 @@ return array(
 		'Happy to help if you want to pair on it.',
 		'The second option worked better for us.',
 	),
+	'home'       => array(
+		'title'   => 'Ask, answer and share what you know',
+		'text'    => 'Questions get answers, ideas get votes and the best replies rise to the top. A forum built for people who help each other.',
+		'image'   => 'photos/developer-workspace.jpg',
+		'browse'  => 'Open the forums',
+		'closing' => 'Got a question? Someone here has the answer.',
+		'latest'  => array( 'Latest discussions', 'Questions, ideas and how-tos from the members, with accepted answers marked.' ),
+		'all'     => 'See all discussions',
+	),
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'      => array(
 		'name'         => 'Jetonomy',

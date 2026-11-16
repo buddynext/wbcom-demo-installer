@@ -7,10 +7,12 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
+use WbcomDemo\Core\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -478,6 +480,49 @@ final class Jetonomy extends Provider {
 			),
 			'highlights'   => self::guide_highlights( $t['highlights'] ),
 		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The latest discussions in Jetonomy's own block and the discussion count. Forums lead the page (the hero)
+	 * only when no community platform is in the demo; with one they are part of the community.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( '\Jetonomy\base_url' ) || ! class_exists( '\Jetonomy\Models\Post' ) ) {
+			return array();
+		}
+		$h      = (array) ( $this->content()['home'] ?? array() );
+		$forums = (string) \Jetonomy\base_url();
+		$feed   = array( 'count' => 5 );
+		$lead   = ! array_filter( Registry::all(), static fn( Provider $p ): bool => $p->community() && $ctx->includes( $p->id() ) );
+		$part   = array(
+			'stats'    => array( array( \Jetonomy\Models\Post::count_by_status( array( 'publish' ) ), __( 'discussions', 'wbcom-demo-installer' ) ) ),
+			'sections' => array(
+				Blocks::heading( (string) $h['latest'][0] ) . Blocks::paragraph( (string) $h['latest'][1] )
+					. get_comment_delimited_block_content( 'jetonomy/forum-feed', $feed, '' )
+					. Blocks::button( (string) $h['all'], $forums ),
+			),
+		);
+		if ( $lead ) {
+			$part['hero'] = array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => array( array( (string) $h['browse'], $forums ) ),
+				'closing' => (string) $h['closing'],
+			);
+		}
+		return $part;
 	}
 
 	/**

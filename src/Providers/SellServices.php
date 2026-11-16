@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -425,6 +426,65 @@ final class SellServices extends Provider {
 				)
 			),
 			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A services marketplace: the hero, service and category counts, search, categories and the newest services
+	 * in WP Sell Services' own blocks.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( 'wpss_get_page_url' ) ) {
+			return array();
+		}
+		$h      = (array) ( $this->content()['home'] ?? array() );
+		$browse = (string) wpss_get_page_url( 'services_page' );
+		$sell   = (string) wpss_get_page_url( 'become_vendor' );
+		$cats   = array( 'maxItems' => 8 );
+		$grid   = array(
+			'perPage'        => 6,
+			'showPagination' => false,
+		);
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $sell ? array( array( (string) $h['browse'], $browse ), array( (string) $h['sell'], $sell ) ) : array( array( (string) $h['browse'], $browse ) ),
+				'closing' => (string) $h['closing'],
+				'cta'     => $sell ? array( (string) $h['sell'], $sell ) : array(),
+			),
+			'stats'    => array(
+				array( (int) ( wp_count_posts( 'wpss_service' )->publish ?? 0 ), __( 'services', 'wbcom-demo-installer' ) ),
+				array(
+					(int) wp_count_terms(
+						array(
+							'taxonomy'   => 'wpss_service_category',
+							'hide_empty' => true,
+						)
+					),
+					__( 'categories', 'wbcom-demo-installer' ),
+				),
+			),
+			'sections' => array(
+				get_comment_delimited_block_content( 'wpss/service-search', array(), '' )
+					. Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] )
+					. get_comment_delimited_block_content( 'wpss/service-categories', $cats, '' ),
+				Blocks::heading( (string) $h['popular'][0] ) . Blocks::paragraph( (string) $h['popular'][1] )
+					. get_comment_delimited_block_content( 'wpss/service-grid', $grid, '' )
+					. Blocks::button( (string) $h['all'], $browse ),
+			),
 		);
 	}
 

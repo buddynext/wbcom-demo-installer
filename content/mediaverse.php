@@ -271,6 +271,15 @@ return array(
 			'photos' => array( 8, 10, 12 ),
 		),
 	),
+	'home'   => array(
+		'title'   => 'Share the moments worth keeping',
+		'text'    => 'Photos and albums from the members, with reactions, comments and a gallery that looks good on every screen.',
+		'image'   => 'photos/vintage-camera.jpg',
+		'browse'  => 'Explore the gallery',
+		'closing' => 'Got a photo worth sharing? Add it to the gallery.',
+		'upload'  => 'Share a photo',
+		'latest'  => array( 'Photos from the members', 'Photos and albums with reactions and comments. Open the gallery to see them all or add your own.' ),
+	),
 	// "Try the demo" page: text only; the provider adds the links (Provider::guide()).
 	'guide'  => array(
 		'name'       => 'WPMediaVerse',

@@ -23,6 +23,17 @@ return array(
 		array( 4, 'Great for small groups', 'Booked it for our team meetup, everything was easy.' ),
 		array( 5, 'A real gem', 'The kind of place you want to keep secret and tell everyone about.' ),
 	),
+	'home'     => array(
+		'title'    => 'Find the places locals love',
+		'text'     => 'Cafés, studios, venues and bakeries in one directory, with real reviews, opening hours and a live map.',
+		'image'    => 'photos/urban-street-night.jpg',
+		'browse'   => 'Browse the directory',
+		'add'      => 'Add your listing',
+		'closing'  => 'Run a place people should know about? Add it to the directory.',
+		'cats'     => array( 'Browse by category', 'Pick a category to see every listing in it, with filters for rating and what is open now.' ),
+		'featured' => array( 'Places people love', 'The best-rated listings, each with photos, hours, reviews and its spot on the map.' ),
+		'all'      => 'See all listings',
+	),
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'    => array(
 		'name'         => 'Listora',

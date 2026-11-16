@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -403,6 +404,70 @@ final class Listora extends Provider {
 				)
 			),
 			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A directory site: the hero, listing and category counts, search, categories and the best-rated listings
+	 * in WB Listora's own blocks.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( 'wb_listora_get_page_url' ) ) {
+			return array();
+		}
+		$h        = (array) ( $this->content()['home'] ?? array() );
+		$browse   = (string) wb_listora_get_page_url( 'directory' );
+		$add      = (string) wb_listora_get_page_url( 'submission' );
+		$cats     = array(
+			'columns' => 4,
+			'limit'   => 8,
+		);
+		$featured = array(
+			'count'   => 6,
+			'columns' => 3,
+			'sort'    => 'rating',
+		);
+		$buttons  = array_values( array_filter( array( $browse ? array( (string) $h['browse'], $browse ) : null, $add ? array( (string) $h['add'], $add ) : null ) ) );
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+				'cta'     => $add ? array( (string) $h['add'], $add ) : ( $buttons[0] ?? array() ),
+			),
+			'stats'    => array(
+				array( (int) ( wp_count_posts( 'listora_listing' )->publish ?? 0 ), __( 'listings', 'wbcom-demo-installer' ) ),
+				array(
+					(int) wp_count_terms(
+						array(
+							'taxonomy'   => 'listora_listing_cat',
+							'hide_empty' => true,
+						)
+					),
+					__( 'categories', 'wbcom-demo-installer' ),
+				),
+			),
+			'sections' => array(
+				get_comment_delimited_block_content( 'listora/listing-search', array(), '' )
+					. Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] )
+					. get_comment_delimited_block_content( 'listora/listing-categories', $cats, '' ),
+				Blocks::heading( (string) $h['featured'][0] ) . Blocks::paragraph( (string) $h['featured'][1] )
+					. get_comment_delimited_block_content( 'listora/listing-featured', $featured, '' )
+					. ( $browse ? Blocks::button( (string) $h['all'], $browse ) : '' ),
+			),
 		);
 	}
 

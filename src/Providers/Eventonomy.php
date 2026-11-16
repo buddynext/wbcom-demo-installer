@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -365,6 +366,51 @@ final class Eventonomy extends Provider {
 				)
 			),
 			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * An events site: the hero, event and venue counts and the coming events in Eventonomy's own block.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( 'evnm_events_page_url' ) || ! evnm_events_page_url() ) {
+			return array();
+		}
+		$h      = (array) ( $this->content()['home'] ?? array() );
+		$events = (string) evnm_events_page_url();
+		$host   = function_exists( 'evnm_dashboard_url' ) ? (string) evnm_dashboard_url( 'create' ) : '';
+		$list   = array( 'perPage' => 6 );
+		// Eventonomy keeps events in its own tables with no public count; these are the events and venues on this site.
+		$counts = array( count( Ledger::ids( $this->id(), 'event' ) ), count( Ledger::ids( $this->id(), 'venue' ) ) );
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $host ? array( array( (string) $h['browse'], $events ), array( (string) $h['host'], $host ) ) : array( array( (string) $h['browse'], $events ) ),
+				'closing' => (string) $h['closing'],
+				'cta'     => $host ? array( (string) $h['host'], $host ) : array(),
+			),
+			'stats'    => array(
+				array( $counts[0], __( 'events', 'wbcom-demo-installer' ) ),
+				array( $counts[1], __( 'venues', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array(
+				Blocks::heading( (string) $h['coming'][0] ) . Blocks::paragraph( (string) $h['coming'][1] )
+					. get_comment_delimited_block_content( 'eventonomy/events-list', $list, '' )
+					. Blocks::button( (string) $h['all'], $events ),
+			),
 		);
 	}
 

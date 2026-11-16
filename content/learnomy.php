@@ -140,6 +140,16 @@ return array(
 		array( 5, 'Short lessons, big results', 'Each lesson takes ten minutes and changes something real.' ),
 		array( 4, 'Recommended', 'Good pace and friendly tone. Worth it.' ),
 	),
+	'home'       => array(
+		'title'    => 'Learn the skills that move your career forward',
+		'text'     => 'Hands-on courses taught by working professionals. Learn at your own pace, earn a certificate and keep access on every device.',
+		'image'    => 'photos/open-books.jpg',
+		'browse'   => 'Browse all courses',
+		'closing'  => 'Your next skill is one lesson away.',
+		'courses'  => array( 'Popular courses to start with', 'Every course has preview lessons, quizzes and a certificate when you finish.' ),
+		'all'      => 'See every course',
+		'teachers' => array( 'Learn from people who do the work', 'Instructors who teach what they use every day.' ),
+	),
 	// "Try the demo" page: text only; the provider adds people and links (Provider::guide()).
 	'guide'      => array(
 		'name'         => 'Learnomy',

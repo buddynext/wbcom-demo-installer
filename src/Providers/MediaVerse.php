@@ -7,10 +7,12 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
+use WbcomDemo\Core\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -392,6 +394,48 @@ final class MediaVerse extends Provider {
 		);
 	}
 
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * On a media site (no community platform in the demo): the hero, the photo count and links to browse and
+	 * upload. With a community platform, media is part of the community and adds nothing here.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		// With a community platform in the demo, media is one of its features: the community leads the page.
+		if ( ! class_exists( '\WPMediaVerse\Core\SettingsHelper' ) || ! class_exists( '\WPMediaVerse\Core\Plugin' )
+			|| array_filter( Registry::all(), static fn( Provider $p ): bool => $p->community() && $ctx->includes( $p->id() ) ) ) {
+			return array();
+		}
+		$h     = (array) ( $this->content()['home'] ?? array() );
+		$page  = static function ( string $key ): string {
+			$id = (int) \WPMediaVerse\Core\SettingsHelper::get_page_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$links = array_values( array_filter( array( '' !== $page( 'explore' ) ? array( (string) $h['browse'], $page( 'explore' ) ) : null, '' !== $page( 'upload' ) ? array( (string) $h['upload'], $page( 'upload' ) ) : null ) ) );
+		// No photo grid: the mvs/media-grid block is unstyled outside WPMediaVerse's own pages (its grid CSS loads only
+		// there), so the section links to the gallery instead. Add the block here once WPMediaVerse styles it anywhere.
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $links,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => array( array( (int) \WPMediaVerse\Core\Plugin::container()->get( 'media_repository' )->count_published(), __( 'photos shared', 'wbcom-demo-installer' ) ) ),
+			'sections' => array( Blocks::heading( (string) $h['latest'][0] ) . Blocks::paragraph( (string) $h['latest'][1] ) . ( $links ? Blocks::buttons( $links ) : '' ) ),
+		);
+	}
 
 	/**
 	 * {@inheritDoc}

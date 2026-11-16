@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -413,6 +414,58 @@ final class CareerBoard extends Provider {
 				)
 			),
 			'highlights' => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A job board: the hero, job and company counts, the job search and the featured jobs in WP Career Board's
+	 * own blocks.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! class_exists( '\WCB\Admin\Pages' ) ) {
+			return array();
+		}
+		$page     = static function ( string $key ): string {
+			$id = (int) \WCB\Admin\Pages::get_id( $key );
+			return $id && 'publish' === get_post_status( $id ) ? (string) get_permalink( $id ) : '';
+		};
+		$h        = (array) ( $this->content()['home'] ?? array() );
+		$jobs     = $page( 'jobs_archive_page' );
+		$post     = $page( 'post_job_page' );
+		$featured = array(
+			'perPage' => 3,
+			'title'   => (string) $h['featured'],
+		);
+		$buttons  = array_values( array_filter( array( $jobs ? array( (string) $h['browse'], $jobs ) : null, $post ? array( (string) $h['post'], $post ) : null ) ) );
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+				'cta'     => $post ? array( (string) $h['post'], $post ) : ( $buttons[0] ?? array() ),
+			),
+			'stats'    => array(
+				array( (int) ( wp_count_posts( 'wcb_job' )->publish ?? 0 ), __( 'open jobs', 'wbcom-demo-installer' ) ),
+				array( (int) ( wp_count_posts( 'wcb_company' )->publish ?? 0 ), __( 'companies hiring', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array(
+				Blocks::heading( (string) $h['search'][0] ) . Blocks::paragraph( (string) $h['search'][1] )
+					. get_comment_delimited_block_content( 'wp-career-board/job-search-hero', array(), '' ),
+				get_comment_delimited_block_content( 'wp-career-board/featured-jobs', $featured, '' ),
+			),
 		);
 	}
 
