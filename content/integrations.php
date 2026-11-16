@@ -68,7 +68,9 @@ return array(
 		'tab'          => 'Shop',
 		'member_label' => 'As a customer',
 		'owner_points' => array( 'Products and stock', 'Orders and customers', 'Payments and shipping' ),
-		'roles'        => array( 'member' => $wbcom_demo_member ),
+		// A store-only demo has no profiles or groups, so the shared member card would promise them. On a community
+		// demo the community provider's card wins, because integrations are ordered last.
+		'roles'        => array( 'member' => array( 'Customer', array( 'A cart ready for checkout', 'Past orders and saved addresses', 'Reviews on products they bought' ) ) ),
 		'member'       => array(
 			'shop'    => array( 'store', 'Browse the shop', 'Products with photos, prices and reviews.', 'Open the shop' ),
 			'account' => array( 'card', 'Your orders', 'Past orders, addresses and account details.', 'Open my account' ),
