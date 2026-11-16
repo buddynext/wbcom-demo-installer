@@ -1,13 +1,17 @@
 <?php
 /**
  * WC Vendors sample shops: the same stores as the Dokan demo (content/dokan.php), so every marketplace reads the
- * same. Run by the sample people with the vendor role, in roster order. The shop URL comes from the name.
+ * same; the home page copy too. Run by the sample people with the vendor role, in roster order. The shop URL
+ * comes from the name.
  *
  * @package WbcomDemo
  */
 
 defined( 'ABSPATH' ) || exit;
 
+$wbcom_demo_dokan = require __DIR__ . '/dokan.php';
+
 return array(
-	'stores' => ( require __DIR__ . '/dokan.php' )['stores'],
+	'home'   => $wbcom_demo_dokan['home'],
+	'stores' => $wbcom_demo_dokan['stores'],
 );

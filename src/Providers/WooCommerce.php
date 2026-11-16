@@ -8,9 +8,11 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
+use WbcomDemo\Core\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -347,6 +349,207 @@ final class WooCommerce extends Provider {
 				),
 			)
 			: array();
+	}
+
+	/**
+	 * Marketplaces whose hero leads the home page when they are in the build: they sell these products.
+	 */
+	private const MARKETPLACES = array( 'dokan', 'wcfm', 'wcvendors' );
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The store's part of the designed home page: shop by category in core blocks, and the top rated products in
+	 * WooCommerce's own Product Collection block, so the owner edits it with WooCommerce's settings. A marketplace
+	 * in the build brings its own hero, so the store then adds only its numbers and sections.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		$h        = (array) ( $this->content()['home'] ?? array() );
+		$shop     = function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '';
+		$account  = function_exists( 'wc_get_page_id' ) && wc_get_page_id( 'myaccount' ) > 0 ? (string) wc_get_page_permalink( 'myaccount' ) : '';
+		$products = (int) ( wp_count_posts( 'product' )->publish ?? 0 );
+		$count    = (int) wp_count_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => true,
+			)
+		);
+		$cats     = array();
+		$terms    = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => true,
+				'orderby'    => 'count',
+				'order'      => 'DESC',
+				'number'     => 4,
+				'exclude'    => array( (int) get_option( 'default_product_cat' ) ), // Uncategorized.
+			)
+		);
+		foreach ( is_array( $terms ) ? $terms : array() as $term ) {
+			$cats[] = array(
+				'name'  => $term->name,
+				'url'   => (string) get_term_link( $term ),
+				'count' => (int) $term->count,
+				'image' => self::category_image( $term ),
+			);
+		}
+		$marketplace = (bool) array_filter( self::MARKETPLACES, static fn( string $id ): bool => $ctx->includes( $id ) && ( Registry::get( $id )?->available() ?? false ) );
+		$buttons     = array_values( array_filter( array( $shop ? array( (string) $h['shop'], $shop ) : null, $account ? array( (string) $h['account'], $account ) : null ) ) );
+
+		$cards    = array_map(
+			static fn( array $c ): string => ( $c['image'] ? Blocks::image( $c['image'] ) : '' )
+				. Blocks::link_heading( $c['name'], $c['url'] )
+				/* translators: %d: products in the category */
+				. Blocks::paragraph( sprintf( _n( '%d product', '%d products', $c['count'], 'wbcom-demo-installer' ), $c['count'] ) ),
+			$cats
+		);
+		$sections = array();
+		if ( $cards ) {
+			$sections[] = Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] ) . Blocks::columns( $cards );
+		}
+		if ( $products ) {
+			$sections[] = Blocks::heading( (string) $h['top'][0] ) . Blocks::paragraph( (string) $h['top'][1] ) . self::top_rated( 4 )
+				. ( $shop ? Blocks::button( (string) $h['all'], $shop ) : '' );
+		}
+		return array(
+			'hero'     => $marketplace ? array() : array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => array(
+				array( $products, __( 'products', 'wbcom-demo-installer' ) ),
+				array( $count, __( 'product categories', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => $sections,
+		);
+	}
+
+	/**
+	 * A category's picture: its own thumbnail, else the photo of its newest product.
+	 *
+	 * @param \WP_Term $term Product category.
+	 */
+	private static function category_image( \WP_Term $term ): int {
+		$id = (int) get_term_meta( $term->term_id, 'thumbnail_id', true );
+		if ( $id ) {
+			return $id;
+		}
+		$product = get_posts(
+			array(
+				'post_type'   => 'product',
+				'numberposts' => 1,
+				'fields'      => 'ids',
+				'tax_query'   => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- one product per category, four categories, once per build.
+					array(
+						'taxonomy' => 'product_cat',
+						'terms'    => $term->term_id,
+					),
+				),
+			)
+		);
+		return $product ? (int) get_post_thumbnail_id( (int) $product[0] ) : 0;
+	}
+
+	/**
+	 * WooCommerce's Product Collection block set to its "Top rated" collection, as its own editor saves it.
+	 *
+	 * @param int $count Products shown, in one row.
+	 */
+	private static function top_rated( int $count ): string {
+		$attrs = array(
+			'queryId'              => 0,
+			'query'                => array(
+				'perPage'                       => $count,
+				'pages'                         => 1,
+				'offset'                        => 0,
+				'postType'                      => 'product',
+				'order'                         => 'desc',
+				'orderBy'                       => 'rating',
+				'search'                        => '',
+				'exclude'                       => array(),
+				'inherit'                       => false,
+				'taxQuery'                      => (object) array(),
+				'isProductCollectionBlock'      => true,
+				'featured'                      => false,
+				'woocommerceOnSale'             => false,
+				'woocommerceStockStatus'        => array( 'instock', 'outofstock', 'onbackorder' ),
+				'woocommerceAttributes'         => array(),
+				'woocommerceHandPickedProducts' => array(),
+				'filterable'                    => false,
+			),
+			'tagName'              => 'div',
+			'displayLayout'        => array(
+				'type'          => 'flex',
+				'columns'       => $count,
+				'shrinkColumns' => true,
+			),
+			'dimensions'           => array( 'widthType' => 'fill' ),
+			'collection'           => 'woocommerce/product-collection/top-rated',
+			'hideControls'         => array( 'inherit', 'order', 'filterable' ),
+			'queryContextIncludes' => array( 'collection' ),
+		);
+		return '<!-- wp:woocommerce/product-collection ' . wp_json_encode( $attrs, JSON_UNESCAPED_SLASHES ) . ' --><div class="wp-block-woocommerce-product-collection">'
+			. '<!-- wp:woocommerce/product-template -->'
+			. '<!-- wp:woocommerce/product-image {"imageSizing":"thumbnail","isDescendentOfQueryLoop":true} --><!-- wp:woocommerce/product-sale-badge {"isDescendentOfQueryLoop":true,"align":"right"} /--><!-- /wp:woocommerce/product-image -->'
+			. '<!-- wp:post-title {"textAlign":"center","level":3,"isLink":true,"__woocommerceNamespace":"woocommerce/product-collection/product-title"} /-->'
+			. '<!-- wp:woocommerce/product-price {"isDescendentOfQueryLoop":true,"textAlign":"center"} /-->'
+			. '<!-- wp:woocommerce/product-button {"isDescendentOfQueryLoop":true,"textAlign":"center"} /-->'
+			. '<!-- /wp:woocommerce/product-template --></div><!-- /wp:woocommerce/product-collection -->';
+	}
+
+	/**
+	 * A marketplace's part of the home page (Dokan, WCFM, WC Vendors share it): the hero, the store count, and a
+	 * section of store cards (banner, linked name, about line, four to a row) in core blocks the owner can edit.
+	 * The copy is the marketplace's content 'home' entry.
+	 *
+	 * @param array<string,mixed>                                              $h          Home copy.
+	 * @param array<int,array{name:string,url:string,about:string,banner:int}> $stores     Stores.
+	 * @param string                                                           $stores_url Store list page link, or ''.
+	 * @param string                                                           $sell       Seller sign-up link, or ''.
+	 * @return array<string,mixed>
+	 */
+	public static function marketplace_home( array $h, array $stores, string $stores_url, string $sell ): array {
+		if ( ! $stores ) {
+			return array();
+		}
+		$shop    = function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '';
+		$buttons = array_values( array_filter( array( $stores_url ? array( (string) $h['stores'], $stores_url ) : null, $shop ? array( (string) $h['shop'], $shop ) : null ) ) );
+		$cards   = '';
+		foreach ( array_chunk( $stores, 4 ) as $row ) {
+			$cards .= Blocks::columns(
+				array_map(
+					static fn( array $s ): string => ( $s['banner'] ? Blocks::image( $s['banner'] ) : '' ) . Blocks::link_heading( $s['name'], $s['url'] ) . Blocks::paragraph( wp_strip_all_tags( $s['about'] ) ),
+					$row
+				)
+			);
+		}
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) ( $sell ? $h['closing'] : $h['browse'] ),
+				'cta'     => $sell ? array( (string) $h['sell'], $sell ) : ( $buttons[0] ?? array() ),
+			),
+			'stats'    => array( array( count( $stores ), __( 'stores', 'wbcom-demo-installer' ) ) ),
+			'sections' => array(
+				Blocks::heading( (string) $h['meet'][0] ) . Blocks::paragraph( (string) $h['meet'][1] ) . $cards
+					. ( $stores_url ? Blocks::button( (string) $h['all'], $stores_url ) : '' ),
+			),
+		);
 	}
 
 	/**

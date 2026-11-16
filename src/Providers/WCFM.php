@@ -324,6 +324,38 @@ final class WCFM extends Provider {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The marketplace's hero, store count and store cards. WCFM has no blocks, so the cards are core blocks; the
+	 * call to action is WCFM's own vendor registration page.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		$page   = self::stores_page();
+		$reg    = (int) get_option( 'wcfm_vendor_registration_page_id' );
+		$sell   = $reg && 'publish' === get_post_status( $reg ) ? (string) get_permalink( $reg ) : '';
+		$stores = array();
+		foreach ( Ledger::ids( $this->id(), 'store' ) as $id ) {
+			$profile  = (array) get_user_meta( (int) $id, 'wcfmmp_profile_settings', true );
+			$stores[] = array(
+				'name'   => (string) ( $profile['store_name'] ?? get_user_meta( (int) $id, 'store_name', true ) ),
+				'url'    => (string) wcfmmp_get_store_url( (int) $id ),
+				'about'  => (string) ( $profile['shop_description'] ?? '' ),
+				'banner' => (int) ( $profile['banner'] ?? 0 ),
+			);
+		}
+		return WooCommerce::marketplace_home( (array) ( $this->content()['home'] ?? array() ), $stores, $page ? (string) get_permalink( $page ) : '', $sell );
+	}
+
+	/**
 	 * The "Try the demo" text lives in content/integrations.php, alongside the other marketplaces.
 	 */
 	public function guide(): array {
