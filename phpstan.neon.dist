@@ -18,8 +18,8 @@ parameters:
 		- '#(Class|Call to static method .* on an unknown class|Instantiated class|on an unknown class|unknown class) \\?(BuddyNext|Jetonomy|Learnomy|Eventonomy|WCB|WBListora|WPSellServices|WBGam|MediaShield|WPMediaVerse|Roadmap_API|user_switching)#'
 		- '#Function (update_space_meta|buddynext_|evnm|wb_listora_|wpss_|Jetonomy\\|Learnomy\\)\w* not found#'
 		# Third-party plugins the BuddyPress provider and the integrations talk to: optional, guarded at runtime.
-		- '#Function (bp_|buddypress|groups_|friends_|xprofile_|bbp_|wc_|dokan|tribe_|learndash_|ld_|job_manager_|get_job_listing|geodir_|tutor|llms_|get_wcfm_|wcfm_|wcfmmp_|wcv_)\w* not found#'
-		- '#(Class|Instantiated class|unknown class) \\?(BP_Activity_Activity|BP_Groups_Member|PeepSo|LearnDash_Settings_Section|Learndash_Admin_Data_Upgrades|LDLMS_|WC_|WeDevs|GeoDir_|Tutor|TUTOR|LLMS_|LifterLMS|WCFMmp|Vendors_Settings|WCV_)#'
-		- '#Constant (BP_PLATFORM_VERSION|LEARNDASH_VERSION|LEARNDASH_SETTINGS_DB_VERSION|JOB_MANAGER_VERSION|DOKAN_PLUGIN_VERSION|GEODIRECTORY_VERSION|TUTOR_VERSION|LLMS_VERSION|LLMS_PLUGIN_DIR|WCFMmp_VERSION|WCV_VERSION) not found#'
+		- '#Function (bp_|buddypress|groups_|friends_|xprofile_|bbp_|wc_|dokan|tribe_|learndash_|ld_|job_manager_|get_job_listing|geodir_|tutor|llms_|Sensei|get_wcfm_|wcfm_|wcfmmp_|wcv_)\w* not found#'
+		- '#(Class|Instantiated class|unknown class) \\?(BP_Activity_Activity|BP_Groups_Member|PeepSo|LearnDash_Settings_Section|Learndash_Admin_Data_Upgrades|LDLMS_|WC_|WeDevs|GeoDir_|Tutor|TUTOR|LLMS_|LifterLMS|Sensei_|WCFMmp|Vendors_Settings|WCV_)#'
+		- '#Constant (BP_PLATFORM_VERSION|LEARNDASH_VERSION|LEARNDASH_SETTINGS_DB_VERSION|JOB_MANAGER_VERSION|DOKAN_PLUGIN_VERSION|GEODIRECTORY_VERSION|TUTOR_VERSION|LLMS_VERSION|LLMS_PLUGIN_DIR|SENSEI_LMS_VERSION|WCFMmp_VERSION|WCV_VERSION) not found#'
 		# WordPress 7.0 AI client: newer than the WordPress stubs, guarded by function_exists() at runtime.
 		- '#(Function wp_ai_client_prompt not found|WordPress\\AiClient\\)#'
