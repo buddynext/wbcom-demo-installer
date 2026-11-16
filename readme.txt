@@ -87,6 +87,8 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * Improve  - A failed build step can be retried from the wizard.
 * Improve  - Back and Continue stay in view on long wizard steps.
 * Fix      - Remove everything no longer leaves sample groups behind on a fresh BuddyPress site.
+* Fix      - A plugin the wizard installs that finishes its own setup only on an admin page, such as GeoDirectory, now builds its demo without errors.
+* Fix      - Remove everything puts back settings that other plugins also change, such as GeoDirectory's and the theme's menu locations, instead of reporting them as kept.
 * Fix      - The Finish screen names every item in plain words, and member photos are removed with their sample people.
 * Fix      - Removing sample product categories also clears them from the WooCommerce analytics lookup.
 * Fix      - A Try the demo link opened after switching accounts returns to the tour instead of acting as the wrong person.
