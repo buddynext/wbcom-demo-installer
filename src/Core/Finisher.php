@@ -114,8 +114,9 @@ final class Finisher {
 		$mode = in_array( $mode, array( 'keep', 'custom', 'all' ), true ) ? $mode : 'keep';
 		$sel  = self::selection( $mode, $custom );
 		// Put the previous look back first, while the demo menu and logo still exist,
-		// so deleting them cannot be mistaken for an owner change.
-		$kept_options = 'all' === $mode ? Snapshot::restore() : array();
+		// so deleting them cannot be mistaken for an owner change. Product settings wait until complete():
+		// removing content can need them (BuddyPress deletes groups only while Groups is active).
+		$kept_options = 'all' === $mode ? Snapshot::restore( false ) : array();
 		$state->set( 'status', State::FINISHING )
 			->set( 'queue', array() )
 			->set(
@@ -329,6 +330,10 @@ final class Finisher {
 		$kept_options = (array) ( $f['kept_options'] ?? array() );
 		if ( 'all' === $f['mode'] ) {
 			self::restore_fresh_site( $state );
+			// Product settings go back only once nothing chosen is left: a retry may still need them on.
+			if ( ! Ledger::next_batch( $f['remove'], array(), 1 ) ) {
+				$kept_options = array_merge( $kept_options, Snapshot::restore( true ) );
+			}
 		}
 		// Kept items stay in the ledger (owner, 10 November 2026): they can still be removed later, until the
 		// owner says they are theirs (adopt()).

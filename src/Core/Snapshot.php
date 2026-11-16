@@ -19,13 +19,18 @@ final class Snapshot {
 	/**
 	 * Remember an option's current value and the value we are about to write, then write it.
 	 *
-	 * @param string $name  Option name, "theme_mod:<name>" or "post_meta:<post id>:<key>".
-	 * @param mixed  $value New value.
+	 * @param string $name    Option name, "theme_mod:<name>" or "post_meta:<post id>:<key>".
+	 * @param mixed  $value   New value.
+	 * @param bool   $setting A product setting (a provider's settings()), restored only after the sample content
+	 *                        is gone: content can need it on to be deleted (BuddyPress groups need Groups active).
 	 */
-	public static function write( string $name, $value ): void {
+	public static function write( string $name, $value, bool $setting = false ): void {
 		$snap = self::load();
 		if ( ! array_key_exists( $name, $snap ) ) {
 			$snap[ $name ] = array( 'before' => self::read( $name ) );
+		}
+		if ( $setting ) {
+			$snap[ $name ]['setting'] = true;
 		}
 		$snap[ $name ]['written'] = $value;
 		update_option( self::OPTION, $snap, false );
@@ -46,11 +51,18 @@ final class Snapshot {
 	/**
 	 * Restore every value the owner has not changed since; report the ones they did.
 	 *
+	 * @param bool|null $settings Null restores everything; false only the look (logo, menu, home page, name);
+	 *                            true only product settings. Restored entries leave the snapshot.
 	 * @return string[] Names kept because the owner changed them.
 	 */
-	public static function restore(): array {
+	public static function restore( ?bool $settings = null ): array {
 		$kept = array();
-		foreach ( self::load() as $name => $entry ) {
+		$snap = self::load();
+		foreach ( $snap as $name => $entry ) {
+			if ( null !== $settings && is_array( $entry ) && ! empty( $entry['setting'] ) !== $settings ) {
+				continue;
+			}
+			unset( $snap[ $name ] );
 			if ( ! is_array( $entry ) || ! array_key_exists( 'written', $entry ) ) {
 				continue;
 			}
@@ -60,7 +72,11 @@ final class Snapshot {
 				$kept[] = $name;
 			}
 		}
-		delete_option( self::OPTION );
+		if ( $snap ) {
+			update_option( self::OPTION, $snap, false );
+		} else {
+			delete_option( self::OPTION );
+		}
 		return $kept;
 	}
 

@@ -399,7 +399,7 @@ final class Engine {
 				$current = get_option( $name, array() );
 				$value   = array_merge( is_array( $current ) ? $current : array(), $value );
 			}
-			Snapshot::write( $name, $value );
+			Snapshot::write( $name, $value, true );
 		}
 	}
 
