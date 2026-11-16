@@ -152,7 +152,9 @@
 		}
 		if ( ! S.pick ) {
 			// The community set is ticked by default when part of it is missing; extras are the owner's choice.
-			S.pick = new Set( cat.filter( ( c ) => c.core && 'active' !== c.state && c.can ).map( ( c ) => c.id ) );
+			// A site that already runs BuddyPress, BuddyBoss or PeepSo has its community: nothing is ticked for it.
+			const community = products().some( ( p ) => [ 'buddypress', 'peepso' ].includes( p.id ) );
+			S.pick = new Set( community ? [] : cat.filter( ( c ) => c.core && 'active' !== c.state && c.can ).map( ( c ) => c.id ) );
 		}
 		const busy = Object.values( S.installing ).includes( 'busy' );
 		const label = { active: __( 'Active', 'wbcom-demo-installer' ), inactive: __( 'Installed, not active', 'wbcom-demo-installer' ), not_installed: __( 'Not installed', 'wbcom-demo-installer' ) };
@@ -252,15 +254,15 @@
 		const s = S.site;
 		const supported = products().filter( ( p ) => p.supported );
 		const rows = [
-			`<li><span class="wdi-checks__ic">${ ic( 'palette' ) }</span><div>${ esc( s.theme.name + ' ' + s.theme.version ) }<small>${ esc( __( 'Theme. The home page, menu and logo can be set up for you.', 'wbcom-demo-installer' ) ) }</small></div><span class="wdi-badge wdi-badge--success">${ ic( 'check' ) }${ esc( __( 'Ready', 'wbcom-demo-installer' ) ) }</span></li>`,
-			`<li><span class="wdi-checks__ic">${ ic( 'plug' ) }</span><div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%d Wbcom product ready', '%d Wbcom products ready', supported.length, 'wbcom-demo-installer' ), supported.length ) ) }<small>${ esc( supported.map( ( p ) => p.label ).join( ', ' ) ) }</small></div><span class="wdi-badge wdi-badge--success">${ ic( 'check' ) }${ esc( __( 'Supported', 'wbcom-demo-installer' ) ) }</span></li>`,
+			`<li><span class="wdi-checks__ic">${ ic( 'palette' ) }</span><div>${ esc( s.theme.name + ' ' + s.theme.version ) }<small>${ esc( s.brand ? __( 'Theme. The home page, menu and logo can be set up for you.', 'wbcom-demo-installer' ) : __( 'Theme. The home page and menu can be set up for you.', 'wbcom-demo-installer' ) ) }</small></div><span class="wdi-badge wdi-badge--success">${ ic( 'check' ) }${ esc( __( 'Ready', 'wbcom-demo-installer' ) ) }</span></li>`,
+			`<li><span class="wdi-checks__ic">${ ic( 'plug' ) }</span><div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%d supported product ready', '%d supported products ready', supported.length, 'wbcom-demo-installer' ), supported.length ) ) }<small>${ esc( supported.map( ( p ) => p.label ).join( ', ' ) ) }</small></div>${ supported.length ? `<span class="wdi-badge wdi-badge--success">${ ic( 'check' ) }${ esc( __( 'Supported', 'wbcom-demo-installer' ) ) }</span>` : `<span class="wdi-badge">${ esc( __( 'None yet', 'wbcom-demo-installer' ) ) }</span>` }</li>`,
 			...products().filter( ( p ) => ! p.supported ).map( ( p ) => `<li><span class="wdi-checks__ic">${ ic( 'alert' ) }</span><div>${ esc( p.label + ' ' + p.version ) }<small>${ esc( __( 'Update this product to include it in the demo.', 'wbcom-demo-installer' ) ) }</small></div><span class="wdi-badge wdi-badge--warning">${ esc( __( 'Not supported yet', 'wbcom-demo-installer' ) ) }</span></li>` ),
 			`<li><span class="wdi-checks__ic">${ ic( 'users' ) }</span><div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%1$s user, %2$s posts and pages', '%1$s users, %2$s posts and pages', s.users, 'wbcom-demo-installer' ), fmt( s.users ), fmt( s.posts ) ) ) }<small>${ esc( __( 'Yours. They are not changed or removed.', 'wbcom-demo-installer' ) ) }</small></div><span class="wdi-badge">${ esc( __( 'Untouched', 'wbcom-demo-installer' ) ) }</span></li>`,
 		];
 		const other = s.leftovers.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'Demo content from %s is still on this site. Remove it from that product first so the two demos do not mix.', 'wbcom-demo-installer' ), s.leftovers.join( ', ' ) ) ) }</div></div>` : '';
 		const live = s.live && s.live.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %s: what the site already has, e.g. "3 other members, 12 blog posts". */ __( 'This site already has %s.', 'wbcom-demo-installer' ), s.live.join( ', ' ) ) ) }</b> ${ esc( __( 'The demo is made for a fresh site you use to show or try the products. On a site people use, sample people appear next to your real members until you finish the demo. Use a staging copy or a fresh install.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		const mem = s.memory && s.memory.low ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %d: memory limit in MB. */ __( 'PHP memory is limited to %d MB.', 'wbcom-demo-installer' ), Math.round( s.memory.limit / 1048576 ) ) ) }</b> ${ esc( __( 'With all products active, WordPress needs about 165 MB before the demo adds anything, so a build step can stop. Ask your host to raise memory_limit to 256 MB, or add define( \'WP_MEMORY_LIMIT\', \'256M\' ); to wp-config.php.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
-		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( __( 'No supported Wbcom product is active yet. Install the community set below to start.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
+		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( __( 'No supported product is active yet. Install the community set below, or activate a supported plugin such as BuddyPress, WooCommerce or LearnDash.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
@@ -303,7 +305,7 @@
 			__( 'Home page and menu', 'wbcom-demo-installer' ),
 			sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%s can open on your community from the first visit.', 'wbcom-demo-installer' ), S.site.theme.name ),
 			`${ ideaNote( 'look' ) }<div class="wdi-choices" role="radiogroup">
-				<label class="wdi-choice"><input type="radio" name="look" value="demo" ${ 'demo' === S.look ? 'checked' : '' }><span class="wdi-choice__ic">${ ic( 'home' ) }</span><span><b>${ esc( __( 'Use the community home page, menu and logo', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'The home page opens on your community and the menu links every product you chose.', 'wbcom-demo-installer' ) ) }</span> <span class="wdi-badge wdi-badge--accent">${ esc( __( 'Recommended for a new site', 'wbcom-demo-installer' ) ) }</span></span></label>
+				<label class="wdi-choice"><input type="radio" name="look" value="demo" ${ 'demo' === S.look ? 'checked' : '' }><span class="wdi-choice__ic">${ ic( 'home' ) }</span><span><b>${ esc( S.site.brand ? __( 'Use the community home page, menu and logo', 'wbcom-demo-installer' ) : __( 'Use the demo home page and menu', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'The home page opens on your community and the menu links every product you chose.', 'wbcom-demo-installer' ) ) }</span> <span class="wdi-badge wdi-badge--accent">${ esc( __( 'Recommended for a new site', 'wbcom-demo-installer' ) ) }</span></span></label>
 				<label class="wdi-choice"><input type="radio" name="look" value="keep" ${ 'keep' === S.look ? 'checked' : '' }><span class="wdi-choice__ic">${ ic( 'palette' ) }</span><span><b>${ esc( __( 'Keep my home page, menu and logo', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'Sample content is added. Your home page, menu and theme settings stay exactly as they are.', 'wbcom-demo-installer' ) ) }</span></span></label>
 			</div>
 			<div class="wdi-callout wdi-callout--info">${ ic( 'undo' ) }<div>${ esc( __( 'We save your current home page, menu and logo first, so you can put them back when you finish the demo. A menu you already have is never edited: the demo adds its own Demo menu.', 'wbcom-demo-installer' ) ) }</div></div>`,
@@ -314,7 +316,7 @@
 	function viewReview() {
 		const t = totals();
 		const n = Object.values( t ).reduce( ( a, b ) => a + b, 0 );
-		const rows = [ `<tr><td>${ esc( __( 'Shared', 'wbcom-demo-installer' ) ) }</td><td class="wdi-num">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%d sample people', 'wbcom-demo-installer' ), S.site.people ) ) }${ 'demo' === S.look ? esc( ', ' + __( 'home page, menu and logo', 'wbcom-demo-installer' ) ) : '' }</td></tr>` ]
+		const rows = [ `<tr><td>${ esc( __( 'Shared', 'wbcom-demo-installer' ) ) }</td><td class="wdi-num">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%d sample people', 'wbcom-demo-installer' ), S.site.people ) ) }${ 'demo' === S.look ? esc( ', ' + ( S.site.brand ? __( 'home page, menu and logo', 'wbcom-demo-installer' ) : __( 'home page and menu', 'wbcom-demo-installer' ) ) ) : '' }</td></tr>` ]
 			.concat( products().filter( ( p ) => S.include.has( p.id ) ).map( ( p ) => `<tr><td>${ esc( p.label ) }</td><td class="wdi-num">${ esc( Object.values( p.plan ).filter( ( r ) => r[ 0 ] > 0 ).map( ( r ) => fmt( r[ 0 ] ) + ' ' + r[ 2 ] ).join( ', ' ) || p.summary ) }</td></tr>` ) );
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 4 ) + card(
 			__( 'Ready to build', 'wbcom-demo-installer' ),
@@ -585,7 +587,7 @@
 			go( 'report' );
 		} else {
 			if ( ! S.recipe ) {
-				S.recipe = S.site.recipes.community ? 'community' : Object.keys( S.site.recipes )[ 0 ] || '';
+				S.recipe = S.site.recipes.community ? 'community' : ( S.site.recipes.everything ? 'everything' : Object.keys( S.site.recipes )[ 0 ] || '' );
 				S.include = new Set( S.recipe ? S.site.recipes[ S.recipe ].use : [] );
 			}
 			if ( 'data' === cfg.view ) {

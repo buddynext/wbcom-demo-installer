@@ -97,7 +97,7 @@ final class MediaVerse extends Provider {
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: photos */
-			__( '%d photos with titles and tags across the sample people, 3 albums and favorites. Also powers photo posts and messages in BuddyNext', 'wbcom-demo-installer' ),
+			__( '%d photos with titles and tags across the sample people, 3 albums and favorites', 'wbcom-demo-installer' ),
 			count( $this->content()['photos'] )
 		);
 	}

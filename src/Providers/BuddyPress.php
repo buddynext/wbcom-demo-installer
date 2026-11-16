@@ -200,7 +200,7 @@ final class BuddyPress extends Provider {
 	 */
 	public function plan(): array {
 		$plan = array(
-			'avatar'   => array( count( People::roster() ), 'setup', __( 'member photos', 'wbcom-demo-installer' ) ),
+			'avatar'   => array( count( People::roster() ), 'sample', __( 'member photos', 'wbcom-demo-installer' ) ),
 			'activity' => array( count( $this->updates() ) + 20, 'sample', __( 'feed updates and comments', 'wbcom-demo-installer' ) ),
 		);
 		if ( $this->groups() ) {
@@ -384,7 +384,7 @@ final class BuddyPress extends Provider {
 				xprofile_set_field_data( bp_xprofile_fullname_field_id(), $user_id, $user->display_name );
 			}
 			if ( ! empty( $person['avatar'] ) && self::write_avatar( $ctx->media( (string) $person['avatar'] ), $user_id, 'user' ) ) {
-				$ctx->record( $this->id(), 'avatar', $user_id, 'setup', array( 'object' => 'user' ) );
+				$ctx->record( $this->id(), 'avatar', $user_id, 'sample', array( 'object' => 'user' ) );
 			}
 		}
 	}
@@ -422,7 +422,7 @@ final class BuddyPress extends Provider {
 			$map[ (string) $g['slug'] ] = (int) $id;
 			groups_update_groupmeta( (int) $id, 'last_activity', Clock::now() );
 			if ( ! empty( $g['image'] ) && self::write_avatar( $ctx->media( (string) $g['image'] ), (int) $id, 'group' ) ) {
-				$ctx->record( $this->id(), 'avatar', (int) $id, 'setup', array( 'object' => 'group' ) );
+				$ctx->record( $this->id(), 'avatar', (int) $id, 'sample', array( 'object' => 'group' ) );
 			}
 			$people  = $ctx->people();
 			$size    = min( count( $people ), max( 3, (int) ( $g['members'] ?? 6 ) ) );
@@ -830,5 +830,18 @@ final class BuddyPress extends Provider {
 				),
 			)
 			: array();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The activity directory, so the home page opens on the community like BuddyNext's does.
+	 */
+	public function front_page(): int {
+		if ( ! function_exists( 'bp_core_get_directory_page_id' ) || ! bp_is_active( 'activity' ) ) {
+			return 0;
+		}
+		$page = (int) bp_core_get_directory_page_id( 'activity' );
+		return $page && 'publish' === get_post_status( $page ) ? $page : 0;
 	}
 }

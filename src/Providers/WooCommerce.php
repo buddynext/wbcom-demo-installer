@@ -286,7 +286,14 @@ final class WooCommerce extends Provider {
 			case 'attachment':
 				return self::delete_post( $id, true );
 			case 'term':
-				return self::remove_unused_term( $id, (string) ( $meta['taxonomy'] ?? 'product_cat' ) );
+				$taxonomy = (string) ( $meta['taxonomy'] ?? 'product_cat' );
+				$gone     = self::remove_unused_term( $id, $taxonomy );
+				if ( $gone && 'product_cat' === $taxonomy ) {
+					// WooCommerce adds a category to its analytics lookup table on create and edit but never removes
+					// it on delete; its own rebuild action drops the rows of categories that no longer exist.
+					do_action( 'generate_category_lookup_table' );
+				}
+				return $gone;
 		}
 		return true;
 	}
@@ -311,5 +318,15 @@ final class WooCommerce extends Provider {
 	 */
 	public function guide(): array {
 		return ( new Integration( 'woocommerce' ) )->guide();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The shop page, for a store without a community (a community provider comes first in the order).
+	 */
+	public function front_page(): int {
+		$page = function_exists( 'wc_get_page_id' ) ? (int) wc_get_page_id( 'shop' ) : 0;
+		return $page > 0 && 'publish' === get_post_status( $page ) ? $page : 0;
 	}
 }

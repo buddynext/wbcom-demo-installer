@@ -77,11 +77,14 @@ final class Theme extends Provider {
 	public function plan(): array {
 		// BuddyX and BuddyX Pro also get the light-text logo for dark mode.
 		$dark = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
-		return array(
-			'attachment' => array( $dark ? 3 : 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ),
-			'menu'       => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
-			'page'       => array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
+		$plan = array(
+			'menu' => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
+			'page' => array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
 		);
+		if ( self::branded() ) {
+			$plan = array( 'attachment' => array( $dark ? 3 : 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ) ) + $plan;
+		}
+		return $plan;
 	}
 
 	/**
@@ -111,11 +114,25 @@ final class Theme extends Provider {
 	}
 
 	/**
+	 * Whether the BuddyNext brand pack fits this site: BuddyNext is active.
+	 */
+	public static function branded(): bool {
+		$p = Registry::get( 'buddynext' );
+		return $p && $p->available();
+	}
+
+	/**
 	 * Logo and site icon from the brand pack.
 	 *
 	 * @param Context $ctx Context.
 	 */
 	private function logo( Context $ctx ): void {
+		// The brand pack is the BuddyNext wordmark and icon: on a site without BuddyNext (BuddyPress, PeepSo, a
+		// shop, a directory) it would brand the owner's site as a product they do not use, so the header keeps the
+		// site name instead.
+		if ( ! self::branded() ) {
+			return;
+		}
 		$admin = (int) get_current_user_id();
 		// The sample logo is a wordmark; an owner who typed their own site name sees that name in the header instead.
 		$logo = $ctx->state->get( 'own_name' ) ? 0 : $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );

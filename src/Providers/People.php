@@ -323,4 +323,13 @@ final class People extends Provider {
 		}
 		return $args;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The Finish screen already groups these under "Sample people", so the row reads "accounts".
+	 */
+	public function type_labels(): array {
+		return array( 'user' => __( 'accounts', 'wbcom-demo-installer' ) ) + parent::type_labels();
+	}
 }

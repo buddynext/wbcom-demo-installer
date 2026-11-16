@@ -148,6 +148,8 @@ final class Engine {
 			'live'        => State::IDLE === $state->get( 'status' ) ? self::live_signals() : array(),
 			'people'      => count( People::roster() ),
 			'catalog'     => Installer::overview(),
+			// The sample logo is the BuddyNext brand pack, set only when BuddyNext is active.
+			'brand'       => \WbcomDemo\Providers\Theme::branded(),
 			'memory'      => self::memory(),
 			'ai'          => \WbcomDemo\Ai\Assistant::overview(),
 			// Names of every starting point, also those whose product is not installed yet (AI ideas name them).
@@ -542,7 +544,16 @@ final class Engine {
 		if ( ! $p ) {
 			return $type;
 		}
-		$labels = $p->type_labels();
+		$labels = $p->type_labels() + array(
+			// Types a provider records without a plan row on this site (a category that already existed, a reused
+			// image): plain words on the Finish screen, never the raw type.
+			'term'       => __( 'categories', 'wbcom-demo-installer' ),
+			'attachment' => __( 'images', 'wbcom-demo-installer' ),
+			'page'       => __( 'pages', 'wbcom-demo-installer' ),
+			'user'       => __( 'accounts', 'wbcom-demo-installer' ),
+			'currency'   => __( 'store currency setting', 'wbcom-demo-installer' ),
+			'comment'    => __( 'comments', 'wbcom-demo-installer' ),
+		);
 		return $labels[ $type ] ?? str_replace( '_', ' ', $type );
 	}
 }

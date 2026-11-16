@@ -347,4 +347,18 @@ final class PeepSo extends Provider {
 	public function guide(): array {
 		return ( new Integration( 'peepso' ) )->guide();
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PeepSo's activity stream page (PeepSo keeps it as a slug in its own settings).
+	 */
+	public function front_page(): int {
+		if ( ! class_exists( 'PeepSo' ) ) {
+			return 0;
+		}
+		$slug = trim( (string) \PeepSo::get_option( 'page_activity' ), '/' );
+		$page = '' !== $slug ? get_page_by_path( $slug ) : null;
+		return $page instanceof \WP_Post && 'publish' === $page->post_status ? (int) $page->ID : 0;
+	}
 }
