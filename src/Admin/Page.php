@@ -164,7 +164,14 @@ final class Page {
 		if ( ! $screen || ! in_array( $screen->id, array( 'dashboard', 'plugins', 'themes' ), true ) ) {
 			return;
 		}
-		if ( State::IDLE !== ( new State() )->get( 'status' ) || ! Engine::site()['recipes'] ) {
+		if ( State::IDLE !== ( new State() )->get( 'status' ) ) {
+			return;
+		}
+		// Show it when a demo can be built now, and also when the wizard can install what is missing (a Reign
+		// add-on's plugin): that owner has nothing supported active yet and needs the way in most.
+		$site    = Engine::site();
+		$missing = array_filter( (array) $site['catalog'], static fn( array $c ): bool => ! empty( $c['needed_by'] ) && 'active' !== $c['state'] && $c['can'] );
+		if ( ! $site['recipes'] && ! $missing ) {
 			return;
 		}
 		wp_enqueue_style( 'wbcom-demo-notice', WBCOM_DEMO_URL . 'assets/css/notice.css', array(), self::ver( 'assets/css/notice.css' ) );
@@ -181,8 +188,8 @@ final class Page {
 		?>
 		<div class="notice wbcom-demo-notice" data-wbcom-demo-notice>
 			<div class="wbcom-demo-notice__body">
-				<p class="wbcom-demo-notice__title"><?php esc_html_e( 'See your community with sample content', 'wbcom-demo-installer' ); ?></p>
-				<p><?php esc_html_e( 'Set up a believable demo of your Wbcom products with 20 sample people in a few minutes. Remove the samples whenever you like and keep your setup.', 'wbcom-demo-installer' ); ?></p>
+				<p class="wbcom-demo-notice__title"><?php esc_html_e( 'See your site with sample content', 'wbcom-demo-installer' ); ?></p>
+				<p><?php esc_html_e( 'Set up a believable demo with 20 sample people in a few minutes, and install the plugins it needs. Remove the samples whenever you like and keep your setup.', 'wbcom-demo-installer' ); ?></p>
 				<p class="wbcom-demo-notice__actions">
 					<a class="button button-primary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Set up your site', 'wbcom-demo-installer' ); ?></a>
 					<button type="button" class="button-link" data-wbcom-demo-dismiss><?php esc_html_e( 'Not now', 'wbcom-demo-installer' ); ?></button>

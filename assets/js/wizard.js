@@ -173,7 +173,7 @@
 			const source = ! needs ? '' : ( c.url
 				? sprintf( /* translators: 1: where to get it, 2: Reign add-on names. */ __( 'Not on WordPress.org: get it from %1$s and upload it under Plugins. Needed by %2$s.', 'wbcom-demo-installer' ), c.url, needs )
 				: sprintf( /* translators: %s: Reign add-on names. */ __( 'Free from WordPress.org. Needed by %s.', 'wbcom-demo-installer' ), needs ) );
-			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro ? pro[ c.pro ] : '', source, ! c.can && ! c.url && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
+			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro && 'not_installed' !== c.state ? pro[ c.pro ] : '', source, ! c.can && ! c.url && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
 			return `<li>${ box }<div>${ esc( c.label ) }${ note.map( ( n ) => `<small${ n === st ? ' class="wdi-install__error" role="alert"' : '' }>${ esc( n ) }</small>` ).join( '' ) }</div>${ badge }</li>`;
 		};
 		const group = ( title, rows ) => rows.length ? `${ title ? `<h2 class="wdi-install__title">${ esc( title ) }</h2>` : '' }<ul class="wdi-checks">${ rows.map( row ).join( '' ) }</ul>` : '';
@@ -183,7 +183,7 @@
 			return `<details class="wdi-details wdi-install"><summary>${ ic( 'check' ) }${ esc( sprintf( /* translators: %d: number of products. */ _n( 'All %d product is active', 'All %d products are active', cat.length, 'wbcom-demo-installer' ), cat.length ) ) }</summary>${ group( '', cat ) }</details>`;
 		}
 		return `<div class="wdi-install">
-			${ group( __( 'Community set, used by every starting point', 'wbcom-demo-installer' ), cat.filter( ( c ) => c.core ) ) }
+			${ group( __( 'Community set, used by every Wbcom starting point', 'wbcom-demo-installer' ), cat.filter( ( c ) => c.core ) ) }
 			${ group( __( 'Plugins your Reign add-ons are built for', 'wbcom-demo-installer' ), cat.filter( ( c ) => ( c.needed_by || [] ).length ) ) }
 			${ group( __( 'Add more products', 'wbcom-demo-installer' ), cat.filter( ( c ) => ! c.core && 'plugin' === c.type && ! ( c.needed_by || [] ).length ) ) }
 			${ group( __( 'Theme', 'wbcom-demo-installer' ), cat.filter( ( c ) => 'theme' === c.type ) ) }
@@ -246,7 +246,9 @@
 		const text = {
 			start: sprintf( /* translators: 1: starting point, 2: audience. */ __( 'Preselected: %1$s. %2$s', 'wbcom-demo-installer' ), ( recipes[ b.recipe ] || {} ).name || b.recipe, b.audience ),
 			products: __( 'Preselected: the products this idea uses, with the reason for each. Switch any of them off or on.', 'wbcom-demo-installer' ),
-			look: sprintf( /* translators: 1: site name, 2: tagline. */ __( 'The header shows "%1$s" and the tagline "%2$s" in place of the sample logo; the menu links every product you chose.', 'wbcom-demo-installer' ), S.name ?? b.name, S.tagline ?? b.tagline ),
+			look: sprintf( S.site.brand
+				? /* translators: 1: site name, 2: tagline. */ __( 'The header shows "%1$s" and the tagline "%2$s" in place of the sample logo; the menu links every product you chose.', 'wbcom-demo-installer' )
+				: /* translators: 1: site name, 2: tagline. */ __( 'The header shows "%1$s" and the tagline "%2$s"; the menu links every product you chose.', 'wbcom-demo-installer' ), S.name ?? b.name, S.tagline ?? b.tagline ),
 		}[ step ] || '';
 		return `<div class="wdi-ideanote">${ SPARK }<div><b>${ esc( sprintf( /* translators: %s: site name. */ __( 'From your idea: %s', 'wbcom-demo-installer' ), b.name ) ) }</b> ${ esc( text ) } <button type="button" class="wdi-link wdi-small" data-go="forget-idea">${ esc( __( 'Use no idea', 'wbcom-demo-installer' ) ) }</button></div></div>`;
 	}
@@ -286,13 +288,16 @@
 		const live = s.live && s.live.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %s: what the site already has, e.g. "3 other members, 12 blog posts". */ __( 'This site already has %s.', 'wbcom-demo-installer' ), s.live.join( ', ' ) ) ) }</b> ${ esc( __( 'The demo is made for a fresh site you use to show or try the products. On a site people use, sample people appear next to your real members until you finish the demo. Use a staging copy or a fresh install.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		const mem = s.memory && s.memory.low ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %d: memory limit in MB. */ __( 'PHP memory is limited to %d MB.', 'wbcom-demo-installer' ), Math.round( s.memory.limit / 1048576 ) ) ) }</b> ${ esc( __( 'With all products active, WordPress needs about 165 MB before the demo adds anything, so a build step can stop. Ask your host to raise memory_limit to 256 MB, or add define( \'WP_MEMORY_LIMIT\', \'256M\' ); to wp-config.php.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		const addonMissing = ( s.catalog || [] ).some( ( c ) => ( c.needed_by || [] ).length && 'active' !== c.state );
-		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( addonMissing ? __( 'No supported product is active yet. Install the plugins your Reign add-ons are built for, ticked below, to start.', 'wbcom-demo-installer' ) : __( 'No supported product is active yet. Install the community set below, or activate a supported plugin such as BuddyPress, WooCommerce or LearnDash.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
+		const panel = installPanel(); // Sets the default ticks (S.pick) the warning's button reads.
+		const ticked = ( s.catalog || [] ).filter( ( c ) => S.pick && S.pick.has( c.id ) && 'active' !== c.state );
+		const busyNow = Object.values( S.installing ).includes( 'busy' );
+		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( addonMissing ? __( 'No supported product is active yet. Install the plugins your Reign add-ons are built for, ticked below, to start.', 'wbcom-demo-installer' ) : __( 'No supported product is active yet. Install the community set below, or activate a supported plugin such as BuddyPress, WooCommerce or LearnDash.', 'wbcom-demo-installer' ) ) }${ ticked.length ? `<p><button type="button" class="wdi-btn wdi-btn--primary" data-go="install" ${ busyNow ? 'disabled' : '' }>${ esc( sprintf( /* translators: %s: product names. */ __( 'Install %s', 'wbcom-demo-installer' ), ticked.map( ( c ) => c.label ).join( ', ' ) ) ) }</button></p>` : '' }</div></div>` : '';
 		const wanted = S.wantRecipe && ( S.site.all_recipes || {} )[ S.wantRecipe ];
 		const want = wanted ? `<div class="wdi-callout">${ ic( 'plug' ) }<div>${ esc( sprintf( /* translators: %s: starting point name. */ __( 'The products the %s starting point needs are ticked below. Install them, then the wizard returns to Starting point with it chosen.', 'wbcom-demo-installer' ), wanted.name ) ) }</div></div>` : '';
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ want }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ installPanel() }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ want }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ panel }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
 	}
@@ -327,7 +332,7 @@
 		} ).join( '' );
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 2 ) + card(
 			__( 'Choose what to include', 'wbcom-demo-installer' ),
-			sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'The same %d sample people appear across every product, so one person can post in the feed, teach a course and run an event.', 'wbcom-demo-installer' ), S.site.people ),
+			sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'The same %d sample people appear across every product you include, so the site feels like one place.', 'wbcom-demo-installer' ), S.site.people ),
 			`${ ideaNote( 'products' ) }<div class="wdi-products">${ rows }</div><div class="wdi-sumbar" aria-live="polite"><b>${ esc( __( 'Will create', 'wbcom-demo-installer' ) ) }</b>${ Object.entries( t ).map( ( [ k, n ] ) => `<span class="wdi-chip">${ fmt( n ) } ${ esc( k ) }</span>` ).join( '' ) }</div>`,
 			foot( 'start', 'look', { disabled: ! S.include.size } )
 		);
@@ -336,9 +341,9 @@
 	function viewLook() {
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 3 ) + card(
 			__( 'Home page and menu', 'wbcom-demo-installer' ),
-			sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%s can open on your community from the first visit.', 'wbcom-demo-installer' ), S.site.theme.name ),
+			sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%s can open on your demo from the first visit.', 'wbcom-demo-installer' ), S.site.theme.name ),
 			`${ ideaNote( 'look' ) }<div class="wdi-choices" role="radiogroup">
-				<label class="wdi-choice"><input type="radio" name="look" value="demo" ${ 'demo' === S.look ? 'checked' : '' }><span class="wdi-choice__ic">${ ic( 'home' ) }</span><span><b>${ esc( S.site.brand ? __( 'Use the community home page, menu and logo', 'wbcom-demo-installer' ) : __( 'Use the demo home page and menu', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'The home page opens on your community and the menu links every product you chose.', 'wbcom-demo-installer' ) ) }</span> <span class="wdi-badge wdi-badge--accent">${ esc( __( 'Recommended for a new site', 'wbcom-demo-installer' ) ) }</span></span></label>
+				<label class="wdi-choice"><input type="radio" name="look" value="demo" ${ 'demo' === S.look ? 'checked' : '' }><span class="wdi-choice__ic">${ ic( 'home' ) }</span><span><b>${ esc( S.site.brand ? __( 'Use the community home page, menu and logo', 'wbcom-demo-installer' ) : __( 'Use the demo home page and menu', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'The home page opens on the main product you chose, and the menu links every product.', 'wbcom-demo-installer' ) ) }</span> <span class="wdi-badge wdi-badge--accent">${ esc( __( 'Recommended for a new site', 'wbcom-demo-installer' ) ) }</span></span></label>
 				<label class="wdi-choice"><input type="radio" name="look" value="keep" ${ 'keep' === S.look ? 'checked' : '' }><span class="wdi-choice__ic">${ ic( 'palette' ) }</span><span><b>${ esc( __( 'Keep my home page, menu and logo', 'wbcom-demo-installer' ) ) }</b><span class="wdi-muted">${ esc( __( 'Sample content is added. Your home page, menu and theme settings stay exactly as they are.', 'wbcom-demo-installer' ) ) }</span></span></label>
 			</div>
 			<div class="wdi-callout wdi-callout--info">${ ic( 'undo' ) }<div>${ esc( __( 'We save your current home page, menu and logo first, so you can put them back when you finish the demo. A menu you already have is never edited: the demo adds its own Demo menu.', 'wbcom-demo-installer' ) ) }</div></div>`,
@@ -359,7 +364,7 @@
 			<div class="wdi-fields">
 				<label class="wdi-field"><span>${ esc( __( 'Site name', 'wbcom-demo-installer' ) ) }</span><input type="text" id="wdi-name" maxlength="80" value="${ esc( S.name ?? S.site.identity.name ) }"></label>
 				<label class="wdi-field"><span>${ esc( __( 'Tagline', 'wbcom-demo-installer' ) ) }</span><input type="text" id="wdi-tagline" maxlength="140" value="${ esc( S.tagline ?? S.site.identity.tagline ) }"></label>
-				<p class="wdi-muted wdi-small">${ esc( __( 'A new site name shows in the header in place of the sample logo. Remove everything puts your current name and tagline back.', 'wbcom-demo-installer' ) ) }</p>
+				<p class="wdi-muted wdi-small">${ esc( S.site.brand ? __( 'A new site name shows in the header in place of the sample logo. Remove everything puts your current name and tagline back.', 'wbcom-demo-installer' ) : __( 'The header shows this name. Remove everything puts your current name and tagline back.', 'wbcom-demo-installer' ) ) }</p>
 			</div>
 			<div class="wdi-assure"><div>${ ic( 'mail' ) }<span><b>${ esc( __( 'Nothing is emailed.', 'wbcom-demo-installer' ) ) }</b> ${ esc( __( 'Sample people never get mail, now or later.', 'wbcom-demo-installer' ) ) }</span></div><div>${ ic( 'shield' ) }<span><b>${ esc( __( 'Your own users and content', 'wbcom-demo-installer' ) ) }</b> ${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '(%1$s user, %2$s posts and pages) are not changed.', '(%1$s users, %2$s posts and pages) are not changed.', S.site.users, 'wbcom-demo-installer' ), fmt( S.site.users ), fmt( S.site.posts ) ) ) }</span></div><div>${ ic( 'clock' ) }<span><b>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( 'About %d minute.', 'About %d minutes.', Math.max( 1, Math.round( n / 300 ) ), 'wbcom-demo-installer' ), Math.max( 1, Math.round( n / 300 ) ) ) ) }</b> ${ esc( __( 'Dates are spread over the last two months.', 'wbcom-demo-installer' ) ) }</span></div></div>`,
 			( S.site.live && S.site.live.length ? `<label class="wdi-consent"><input type="checkbox" id="wdi-consent" ${ S.consent ? 'checked' : '' }> <span>${ esc( sprintf( /* translators: %s: what the site already has. */ __( 'This site already has %s. I understand the demo is made for a fresh site, and I want sample content added here.', 'wbcom-demo-installer' ), S.site.live.join( ', ' ) ) ) }</span></label>` : '' ) +

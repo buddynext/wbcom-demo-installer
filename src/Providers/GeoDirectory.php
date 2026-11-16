@@ -12,6 +12,7 @@ use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
+use WbcomDemo\Core\Snapshot;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -286,6 +287,15 @@ final class GeoDirectory extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function setup( Context $ctx ): void {
+		// The demo sets the directory up, so GeoDirectory's "You're almost ready, run the Setup Wizard" notice would
+		// contradict it. Drop it through Snapshot: Remove everything brings it back. Its wizard stays in its menu.
+		$notices = (array) get_option( 'geodirectory_admin_notices', array() );
+		if ( in_array( 'install', $notices, true ) ) {
+			Snapshot::write( 'geodirectory_admin_notices', array_diff( $notices, array( 'install' ) ) ); // Keys kept, as GeoDirectory's remove_notice() keeps them.
+			if ( class_exists( 'GeoDir_Admin_Notices' ) ) {
+				\GeoDir_Admin_Notices::remove_notice( 'install' );
+			}
+		}
 		foreach ( $this->missing_fields() as $field ) {
 			$id = geodir_custom_field_save( $field );
 			if ( is_wp_error( $id ) || ! $id ) {

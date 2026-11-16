@@ -844,4 +844,14 @@ final class BuddyPress extends Provider {
 		$page = (int) bp_core_get_directory_page_id( 'activity' );
 		return $page && 'publish' === get_post_status( $page ) ? $page : 0;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * BuddyBoss Platform keeps per-activity reaction counts in its own table (wp_bb_reactions_data) and does not
+	 * remove them with the activity; the reactions themselves are removed.
+	 */
+	public function keeps_logs(): string {
+		return defined( 'BP_PLATFORM_VERSION' ) ? __( 'BuddyBoss Platform keeps its reaction counts for the removed sample posts; the reactions themselves are removed and nothing shows on the site.', 'wbcom-demo-installer' ) : '';
+	}
 }

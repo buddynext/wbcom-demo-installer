@@ -66,8 +66,19 @@ final class Snapshot {
 			if ( ! is_array( $entry ) || ! array_key_exists( 'written', $entry ) ) {
 				continue;
 			}
-			if ( self::normalise( self::read( (string) $name ) ) === self::normalise( $entry['written'] ) ) {
-				self::put( (string) $name, $entry['before'] ?? null );
+			$current = self::read( (string) $name );
+			$before  = $entry['before'] ?? null;
+			if ( self::normalise( $current ) === self::normalise( $entry['written'] ) ) {
+				self::put( (string) $name, $before );
+			} elseif ( is_array( $entry['written'] ) && is_array( $current ) && ( null === $before || is_array( $before ) ) ) {
+				// A settings array that other code also writes (a product adding its own keys, a theme registering menu
+				// locations): put back only the keys the demo wrote, and keep any key someone else changed.
+				$changed = false;
+				$merged  = self::merge_back( (array) $before, $entry['written'], $current, $changed );
+				self::put( (string) $name, null === $before && ! $merged ? null : $merged );
+				if ( $changed ) {
+					$kept[] = $name;
+				}
 			} else {
 				$kept[] = $name;
 			}
@@ -78,6 +89,43 @@ final class Snapshot {
 			delete_option( self::OPTION );
 		}
 		return $kept;
+	}
+
+	/**
+	 * Three-way restore of one array: start from what is there now, return each key the demo wrote to its value
+	 * before the demo (or remove it when the demo added it), unless it changed since; bring back keys the demo removed.
+	 *
+	 * @param array<mixed> $before  Value before the demo.
+	 * @param array<mixed> $written Value the demo wrote.
+	 * @param array<mixed> $current Value now.
+	 * @param bool         $changed Set when a key the demo wrote was changed since (that key is kept as it is).
+	 * @return array<mixed>
+	 */
+	private static function merge_back( array $before, array $written, array $current, bool &$changed ): array {
+		$out = $current;
+		foreach ( $written as $key => $value ) {
+			if ( array_key_exists( $key, $before ) && self::normalise( $before[ $key ] ) === self::normalise( $value ) ) {
+				continue; // Carried over unchanged: not the demo's to restore or report (a theme may set it since).
+			}
+			if ( ! array_key_exists( $key, $current ) ) {
+				continue; // Removed since: leave it removed.
+			}
+			if ( self::normalise( $current[ $key ] ) !== self::normalise( $value ) ) {
+				$changed = true;
+				continue;
+			}
+			if ( array_key_exists( $key, $before ) ) {
+				$out[ $key ] = $before[ $key ];
+			} else {
+				unset( $out[ $key ] );
+			}
+		}
+		foreach ( $before as $key => $value ) {
+			if ( ! array_key_exists( $key, $written ) && ! array_key_exists( $key, $current ) ) {
+				$out[ $key ] = $value; // The demo removed it.
+			}
+		}
+		return $out;
 	}
 
 	/**
