@@ -161,7 +161,7 @@ final class Demos {
 	}
 
 	/**
-	 * Requirements with "members" spelled out: the community plugin the site runs, else BuddyNext and its set.
+	 * Requirements with "members" spelled out: BuddyPress, BuddyBoss or PeepSo when the site runs one, else BuddyNext and its set.
 	 *
 	 * @param string[] $requires Requirements.
 	 * @return string[]
@@ -170,8 +170,9 @@ final class Demos {
 		$out = array();
 		foreach ( $requires as $need ) {
 			if ( 'members' === $need ) {
+				// BuddyNext (or none yet) means the whole BuddyNext set, also once BuddyNext itself is active.
 				$active = self::active_community();
-				$out    = array_merge( $out, '' !== $active ? array( $active ) : self::OUR_MEMBERS );
+				$out    = array_merge( $out, in_array( $active, array( '', 'buddynext' ), true ) ? self::OUR_MEMBERS : array( $active ) );
 				continue;
 			}
 			$out[] = $need;
