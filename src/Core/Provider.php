@@ -57,8 +57,8 @@ abstract class Provider {
 	}
 
 	/**
-	 * Post types whose archive (and taxonomy archives) the theme shows without sidebars, on themes that keep a
-	 * layout per archive type (Reign). A directory or catalogue brings its own columns, filters and map.
+	 * Post types whose archive, taxonomy archives and single pages the theme shows without sidebars, on themes
+	 * that keep a layout per type (Reign). A directory or catalogue brings its own columns, filters and map.
 	 *
 	 * @return string[] Post type names.
 	 */

@@ -331,6 +331,7 @@ final class Theme extends Provider {
 			if ( 'Reign' === self::theme_family() ) {
 				foreach ( $p->full_width_archives() as $type ) {
 					Snapshot::write( 'theme_mod:reign_' . sanitize_key( $type ) . '_archive_layout', 'full_width' );
+					Snapshot::write( 'theme_mod:reign_' . sanitize_key( $type ) . '_single_layout', 'full_width' );
 				}
 			}
 			$ids = $p->layout_pages();
