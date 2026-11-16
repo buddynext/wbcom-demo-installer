@@ -147,8 +147,11 @@ final class Command {
 			unset( $assoc['install-missing'] );
 			$flags = '';
 			foreach ( $assoc as $k => $v ) {
-				// WP-CLI passes a bare flag as true.
-				$flags .= ! is_string( $v ) || '' === $v ? " --$k" : ' --' . $k . '=' . escapeshellarg( $v );
+				if ( '' === $v ) {
+					continue;
+				}
+				// WP-CLI passes a bare flag as true; a default such as --idea's 1 arrives as a number and keeps its value.
+				$flags .= true === $v ? " --$k" : ' --' . $k . '=' . escapeshellarg( (string) $v );
 			}
 			$this->relaunch( 'wbcom-demo build' . $flags );
 			return;
@@ -604,35 +607,23 @@ final class Command {
 	}
 
 	/**
-	 * Carry on in a fresh WP-CLI process. WP-CLI's own relaunch starts plain "php wp", which drops a raised memory
-	 * limit, and a site with a store, a marketplace and an LMS active needs about 200 MB just to boot; so the
-	 * same command is built here with the current limit passed on.
+	 * Carry on in a fresh WP-CLI process (new plugins and components boot only on the next request). A site with a
+	 * store, a marketplace and an LMS active needs about 200 MB just to boot, so the current memory limit is passed on.
 	 *
 	 * @param string $command WP-CLI command and its arguments, already escaped.
 	 */
 	private function relaunch( string $command ): void {
-		$config = WP_CLI::get_runner()->config;
-		$assoc  = array();
-		foreach ( array( 'path', 'url', 'user', 'allow-root' ) as $key ) {
-			if ( ! empty( $config[ $key ] ) ) {
-				$assoc[ $key ] = $config[ $key ];
-			}
-		}
-		$line = sprintf(
-			'%s -d memory_limit=%s %s %s%s',
-			escapeshellarg( WP_CLI\Utils\get_php_binary() ),
-			escapeshellarg( (string) ini_get( 'memory_limit' ) ),
-			escapeshellarg( (string) $GLOBALS['argv'][0] ),
-			$command,
-			WP_CLI\Utils\assoc_args_to_str( $assoc )
+		// WP-CLI's own launch keeps --path, --url and --user and this terminal; --exec runs before WordPress and the
+		// plugins load, so the child starts with this process's memory limit.
+		$memory = (string) ini_get( 'memory_limit' );
+		WP_CLI::runcommand(
+			$command . ' --exec=' . escapeshellarg( 'ini_set( "memory_limit", ' . var_export( $memory, true ) . ' );' ), // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- a PHP literal for --exec.
+			array(
+				'launch'     => true,
+				'exit_error' => true,
+				'return'     => false,
+			)
 		);
-		// The child keeps this process's environment (database settings on containers often live there; WP-CLI's
-		// launch() starts it with none) and prints straight to this terminal.
-		$proc = proc_open( $line, array( STDIN, STDOUT, STDERR ), $pipes, null, getenv() ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open -- WP-CLI only, relaunching itself.
-		$code = is_resource( $proc ) ? proc_close( $proc ) : 1;
-		if ( 0 !== $code ) {
-			WP_CLI::halt( $code );
-		}
 	}
 
 	/**
