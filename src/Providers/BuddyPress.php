@@ -126,12 +126,53 @@ final class BuddyPress extends Provider {
 	}
 
 	/**
+	 * Components the demo turns on when a fresh BuddyPress has them off (it starts with Groups and Friends off): a
+	 * community demo without groups or friendships looks empty. Turned on through settings(), so Remove everything
+	 * puts the owner's own choice back.
+	 */
+	private const COMPONENTS = array( 'groups', 'friends' );
+
+	/**
+	 * Whether a component is on, or will be once this build's settings step has run.
+	 *
+	 * @param string $component Component id.
+	 * @return bool
+	 */
+	private function component_on( string $component ): bool {
+		return bp_is_active( $component ) || in_array( $component, self::COMPONENTS, true );
+	}
+
+	/**
+	 * Components from COMPONENTS that are off on this site.
+	 *
+	 * @return string[]
+	 */
+	private function components_off(): array {
+		return array_values( array_filter( self::COMPONENTS, static fn( $c ) => ! bp_is_active( $c ) ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function settings(): array {
+		$off = $this->components_off();
+		return $off ? array( 'bp-active-components' => array_fill_keys( $off, '1' ) ) : array();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function reload_after_settings(): bool {
+		return true; // BuddyPress loads a component's code on the request after it is turned on.
+	}
+
+	/**
 	 * Groups this site can have (the groups component may be off).
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function groups(): array {
-		return bp_is_active( 'groups' ) ? (array) $this->content()['groups'] : array();
+		return $this->component_on( 'groups' ) ? (array) $this->content()['groups'] : array();
 	}
 
 	/**
@@ -165,7 +206,7 @@ final class BuddyPress extends Provider {
 		if ( $this->groups() ) {
 			$plan['group'] = array( count( $this->groups() ), 'sample', __( 'groups', 'wbcom-demo-installer' ) );
 		}
-		if ( bp_is_active( 'friends' ) ) {
+		if ( $this->component_on( 'friends' ) ) {
 			$plan['friendship'] = array( count( People::roster() ) * 3, 'sample', __( 'friendships', 'wbcom-demo-installer' ) );
 		}
 		return $plan;
@@ -178,7 +219,8 @@ final class BuddyPress extends Provider {
 	 * @return string[]
 	 */
 	public function steps( Context $ctx ): array {
-		$steps = array( 'profiles', 'groups', 'friends' );
+		// Tables and directory pages for components this build turns on, after the settings step.
+		$steps = array_merge( $this->components_off() ? array( 'components' ) : array(), array( 'profiles', 'groups', 'friends' ) );
 		for ( $i = 0, $n = count( $this->updates() ); $i < $n; $i += self::UPDATES_PER_STEP ) {
 			$steps[] = 'updates:' . $i;
 		}
@@ -262,6 +304,9 @@ final class BuddyPress extends Provider {
 		self::$own             = true;
 		try {
 			switch ( $name ) {
+				case 'components':
+					$this->install_components( $ctx );
+					break;
 				case 'profiles':
 					$this->profiles( $ctx );
 					break;
@@ -394,6 +439,27 @@ final class BuddyPress extends Provider {
 			}
 		}
 		$ctx->set( $this->id(), 'groups', $map );
+	}
+
+	/**
+	 * Create the tables and directory pages of the components the settings step turned on, through BuddyPress's own
+	 * install functions (as its Components screen does). A directory page it creates is recorded as setup.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function install_components( Context $ctx ): void {
+		if ( ! function_exists( 'bp_core_get_directory_page_ids' ) ) {
+			return;
+		}
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		require_once buddypress()->plugin_dir . 'bp-core/admin/bp-core-admin-schema.php';
+		$active = (array) bp_get_option( 'bp-active-components', array() );
+		$before = array_filter( (array) bp_core_get_directory_page_ids( 'all' ) );
+		bp_core_install( $active );
+		bp_core_add_page_mappings( $active, 'keep' );
+		foreach ( array_diff( array_filter( (array) bp_core_get_directory_page_ids( 'all' ) ), $before ) as $page_id ) {
+			$ctx->record( $this->id(), 'page', (int) $page_id, 'setup' );
+		}
 	}
 
 	/**
@@ -628,6 +694,9 @@ final class BuddyPress extends Provider {
 		// True only once the object is gone: with a component switched off its functions are missing, and Finish must
 		// say what is left rather than report it removed.
 		switch ( $row->object_type ) {
+			case 'page':
+				wp_delete_post( $id, true );
+				return ! get_post( $id );
 			case 'activity':
 				if ( ! function_exists( 'bp_activity_delete' ) ) {
 					return false;

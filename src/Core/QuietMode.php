@@ -63,6 +63,9 @@ final class QuietMode {
 			array(
 				'jetonomy_notification_should_send' => false,
 				'wb_gam_email_enabled'              => false,
+				// BuddyPress sends its own emails (friendship requests, group invites) through BP_PHPMailer, past
+				// pre_wp_mail; routed through wp_mail() they reach filter_mail() like every other message.
+				'bp_email_use_wp_mail'              => true,
 			)
 		);
 	}

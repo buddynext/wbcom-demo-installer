@@ -29,6 +29,7 @@ Registering a provider with the id of a built-in one replaces it.
 | `steps()`, `run()` | yes | Small steps, each finishing well inside one request (chunk long lists). |
 | `remove()` | yes | Delete one recorded object through the product's own delete function. |
 | `settings()` | no | The product's best demo settings and its setup-complete flag (see below). |
+| `reload_after_settings()` | no | Whether the content steps need a fresh request after `settings()` (see below). |
 | `activation_redirects()` | no | The one-time "go to my setup wizard" redirects the product sets on activation; cleared when the owner opens this wizard and on build. |
 | `menu_items()`, `front_page()` | no | Pages for the demo menu and the home page; menu pages get the theme's no-sidebar layout. |
 | `guide()` | no | Steps for the "Try the demo" page: `member` and `owner` lists of `[ text, url ]` (empty url for a step without a link) and `accounts` as `[ user id, what this account shows ]` for the one-click switch cards. Step text lives in `content/<id>.php` under `guide`; use `People::user_id( $role )` for the accounts. |
@@ -62,6 +63,15 @@ public function settings(): array {
 Set a setup-complete flag only when the demo already does what the wizard would (pages, categories); never to hide a
 step the product still needs. "Keep my setup" keeps these values; "Remove everything" restores every value the owner
 has not changed since.
+
+An array value is merged into the current option only when that option is already an array; a never-saved option
+starts from the value given.
+
+When a setting turns on something the product loads only on the next request (BuddyPress components), return `true`
+from `reload_after_settings()` and make `plan()` and `steps()` count the content that setting enables. The wizard
+runs every step in its own request anyway; WP-CLI, which runs the build in one process, carries on in a fresh one
+after that settings step. The BuddyPress provider turns on Groups and Friends this way, and its first step creates
+their tables and directory pages through BuddyPress's own install functions.
 
 ## Context helpers
 

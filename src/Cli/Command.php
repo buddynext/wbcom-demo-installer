@@ -201,6 +201,12 @@ final class Command {
 		if ( $memory['low'] ) {
 			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. Run with WP_CLI_PHP_ARGS="-d memory_limit=512M" if a step stops.', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
 		}
+		// PeepSo switches itself off under WP-CLI (its constructor returns early), so its provider cannot run here.
+		foreach ( (array) get_option( 'active_plugins', array() ) as $plugin ) {
+			if ( str_ends_with( (string) $plugin, '/peepso.php' ) && ! class_exists( 'PeepSoActivity' ) ) {
+				WP_CLI::warning( 'PeepSo does not load under WP-CLI, so its stream posts are left out. Build from Appearance > Set up your site, or the REST API, to include PeepSo.' );
+			}
+		}
 		$status = Engine::start_build( $recipe, $include, isset( $assoc['keep-look'] ) ? 'keep' : 'demo', isset( $assoc['yes'] ), (string) ( $assoc['name'] ?? '' ), (string) ( $assoc['tagline'] ?? '' ), (array) json_decode( (string) ( $assoc['brief'] ?? '' ), true ) );
 		if ( is_wp_error( $status ) ) {
 			WP_CLI::error( $status->get_error_message() . ( 'wbcom_demo_live_site' === $status->get_error_code() ? ' Add --yes to build anyway.' : '' ) );
@@ -594,6 +600,20 @@ final class Command {
 			$status = Engine::step();
 			if ( ! empty( $status['current'] ) ) {
 				WP_CLI::log( sprintf( '%s: %s (%d/%d)', $label, $status['current'], $status['done'], $status['total'] ) );
+			}
+			// A settings step turned on something that loads only on the next request (BuddyPress components):
+			// carry on in a fresh process, as --install-missing does after installing plugins.
+			$state = new \WbcomDemo\Core\State();
+			if ( $state->get( 'reload' ) ) {
+				$state->set( 'reload', false )->save();
+				WP_CLI::runcommand(
+					'wbcom-demo resume',
+					array(
+						'launch'     => true,
+						'exit_error' => true,
+					)
+				);
+				return;
 			}
 			if ( ++$guard > 5000 ) {
 				WP_CLI::error( 'Stopped: too many steps.' );

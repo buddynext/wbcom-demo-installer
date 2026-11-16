@@ -300,6 +300,17 @@ abstract class Provider {
 	}
 
 	/**
+	 * Whether this provider's settings need a fresh request before its content steps (a product that loads a
+	 * component's code only on the request after it is turned on). WP-CLI, which runs the whole build in one
+	 * process, starts a new one after such a settings step; the wizard runs each step in its own request anyway.
+	 *
+	 * @return bool
+	 */
+	public function reload_after_settings(): bool {
+		return false;
+	}
+
+	/**
 	 * One-time redirects the product sets when it is activated (to its own setup wizard), as transient names,
 	 * or "option:<name>" for one kept in an option. Cleared when the owner opens this wizard, and again on build.
 	 *

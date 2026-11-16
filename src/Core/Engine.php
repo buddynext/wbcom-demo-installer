@@ -391,7 +391,10 @@ final class Engine {
 				continue;
 			}
 			if ( is_array( $value ) && ! str_contains( $name, ':' ) ) {
-				$value = array_merge( (array) get_option( $name, array() ), $value );
+				// Merge into the current list only when it is one: a never-saved option ('' or false) cast to an array
+				// becomes array( 0 => '' ) and would drop the product's own defaults.
+				$current = get_option( $name, array() );
+				$value   = array_merge( is_array( $current ) ? $current : array(), $value );
 			}
 			Snapshot::write( $name, $value );
 		}
@@ -443,6 +446,10 @@ final class Engine {
 						}
 					} elseif ( self::SETTINGS_STEP === $step ) {
 						self::apply_settings( $provider );
+						// WP-CLI runs the build in one process: tell it to carry on in a fresh one (Cli\Command::run_steps()).
+						if ( defined( 'WP_CLI' ) && WP_CLI && $provider->reload_after_settings() && array() !== $provider->settings() ) {
+							$state->set( 'reload', true );
+						}
 					} else {
 						$provider->run( $step, $ctx );
 					}
