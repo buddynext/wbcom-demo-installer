@@ -103,6 +103,7 @@ final class Registry {
 			Providers\LearnDash::class,
 			Providers\Eventonomy::class,
 			Providers\CareerBoard::class,
+			Providers\JobManager::class,
 			Providers\Listora::class,
 			Providers\SellServices::class,
 			Providers\WooSellServices::class,

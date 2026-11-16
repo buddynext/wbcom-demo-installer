@@ -89,6 +89,9 @@ To edit them, open the page in the block editor:
   the site has no currency set yet.
 - With Dokan (and WooCommerce): 4 stores run by the sample vendors, each with a photo, banner, address and phone,
   selling the sample products of their category.
+- With WP Job Manager: 8 job listings from 3 companies run by sample people, with logos, job types, salaries and
+  remote roles (each company's first job is featured). If there is no Jobs page yet, the demo adds one; Remove
+  everything takes it away again.
 - Your home page, menu and logo, if you chose them.
 - Each product's own setup finished and its pages shown without sidebars, so there are no setup wizards or
   setup reminders waiting for you.
