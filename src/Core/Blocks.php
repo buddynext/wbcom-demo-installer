@@ -17,6 +17,16 @@ defined( 'ABSPATH' ) || exit;
 final class Blocks {
 
 	/**
+	 * Escaped text that can never run as a shortcode: names and descriptions can come from members (a group's
+	 * description), and the page content is rendered through do_shortcode().
+	 *
+	 * @param string $text Text.
+	 */
+	private static function text( string $text ): string {
+		return str_replace( array( '[', ']' ), array( '&#91;', '&#93;' ), esc_html( $text ) );
+	}
+
+	/**
 	 * Core heading block.
 	 *
 	 * @param string $text  Text.
@@ -24,7 +34,7 @@ final class Blocks {
 	 */
 	public static function heading( string $text, int $level = 2 ): string {
 		$attrs = 2 === $level ? '' : ' {"level":' . $level . '}';
-		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading">%3$s</h%2$d><!-- /wp:heading -->', $attrs, $level, esc_html( $text ) );
+		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading">%3$s</h%2$d><!-- /wp:heading -->', $attrs, $level, self::text( $text ) );
 	}
 
 	/**
@@ -33,7 +43,7 @@ final class Blocks {
 	 * @param string $text Text.
 	 */
 	public static function paragraph( string $text ): string {
-		return '<!-- wp:paragraph --><p>' . esc_html( $text ) . '</p><!-- /wp:paragraph -->';
+		return '<!-- wp:paragraph --><p>' . self::text( $text ) . '</p><!-- /wp:paragraph -->';
 	}
 
 	/**
@@ -68,7 +78,7 @@ final class Blocks {
 	 * @param string $who  Who said it.
 	 */
 	public static function quote( string $text, string $who ): string {
-		return '<!-- wp:quote --><blockquote class="wp-block-quote">' . self::paragraph( $text ) . ( '' !== $who ? '<cite>' . esc_html( $who ) . '</cite>' : '' ) . '</blockquote><!-- /wp:quote -->';
+		return '<!-- wp:quote --><blockquote class="wp-block-quote">' . self::paragraph( $text ) . ( '' !== $who ? '<cite>' . self::text( $who ) . '</cite>' : '' ) . '</blockquote><!-- /wp:quote -->';
 	}
 
 	/**
@@ -78,7 +88,7 @@ final class Blocks {
 	 * @param string $a Answer.
 	 */
 	public static function details( string $q, string $a ): string {
-		return '<!-- wp:details --><details class="wp-block-details"><summary>' . esc_html( $q ) . '</summary>' . self::paragraph( $a ) . '</details><!-- /wp:details -->';
+		return '<!-- wp:details --><details class="wp-block-details"><summary>' . self::text( $q ) . '</summary>' . self::paragraph( $a ) . '</details><!-- /wp:details -->';
 	}
 
 	/**
@@ -101,7 +111,7 @@ final class Blocks {
 		foreach ( array_values( $links ) as $i => $link ) {
 			$outline = $i > 0;
 			$out    .= ( $outline ? '<!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline">' : '<!-- wp:button --><div class="wp-block-button">' )
-				. '<a class="wp-block-button__link wp-element-button" href="' . esc_url( $link[1] ) . '">' . esc_html( $link[0] ) . '</a></div><!-- /wp:button -->';
+				. '<a class="wp-block-button__link wp-element-button" href="' . esc_url( $link[1] ) . '">' . self::text( $link[0] ) . '</a></div><!-- /wp:button -->';
 		}
 		return '<!-- wp:buttons --><div class="wp-block-buttons">' . $out . '</div><!-- /wp:buttons -->';
 	}
@@ -150,7 +160,7 @@ final class Blocks {
 	 */
 	public static function link_heading( string $text, string $url, int $level = 3 ): string {
 		$attrs = 2 === $level ? '' : ' {"level":' . $level . '}';
-		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading"><a href="%3$s">%4$s</a></h%2$d><!-- /wp:heading -->', $attrs, $level, esc_url( $url ), esc_html( $text ) );
+		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading"><a href="%3$s">%4$s</a></h%2$d><!-- /wp:heading -->', $attrs, $level, esc_url( $url ), self::text( $text ) );
 	}
 
 	/**
@@ -164,7 +174,7 @@ final class Blocks {
 			$cols = array();
 			foreach ( $row as $p ) {
 				$cols[] = '<!-- wp:image {"width":"96px","height":"96px","scale":"cover","sizeSlug":"thumbnail","linkDestination":"custom","align":"center","className":"is-style-rounded"} --><figure class="wp-block-image aligncenter size-thumbnail is-resized is-style-rounded"><a href="' . esc_url( $p[1] ) . '"><img src="' . esc_url( $p[2] ) . '" alt="' . esc_attr( $p[0] ) . '" style="object-fit:cover;width:96px;height:96px"/></a></figure><!-- /wp:image -->'
-					. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="' . esc_url( $p[1] ) . '">' . esc_html( $p[0] ) . '</a></p><!-- /wp:paragraph -->';
+					. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="' . esc_url( $p[1] ) . '">' . self::text( $p[0] ) . '</a></p><!-- /wp:paragraph -->';
 			}
 			$out .= self::columns( $cols );
 		}
