@@ -153,7 +153,14 @@ final class Engine {
 			'memory'      => self::memory(),
 			'ai'          => \WbcomDemo\Ai\Assistant::overview(),
 			// Names of every starting point, also those whose product is not installed yet (AI ideas name them).
-			'all_recipes' => array_map( static fn( array $r ): array => array( 'name' => $r['name'] ), Recipes::all() ),
+			'all_recipes' => array_map(
+				static fn( array $r ): array => array(
+					'name'  => $r['name'],
+					'desc'  => $r['desc'],
+					'needs' => $r['needs'],
+				),
+				Recipes::all()
+			),
 			'identity'    => array(
 				'name'    => (string) get_option( 'blogname' ),
 				'tagline' => (string) get_option( 'blogdescription' ),

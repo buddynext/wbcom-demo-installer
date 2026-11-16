@@ -153,8 +153,10 @@
 		if ( ! S.pick ) {
 			// The community set is ticked by default when part of it is missing; extras are the owner's choice.
 			// A site that already runs BuddyPress, BuddyBoss or PeepSo has its community: nothing is ticked for it.
+			// A Reign add-on's owner came for that add-on: its plugin is ticked and the community set stays their choice.
 			const community = products().some( ( p ) => [ 'buddypress', 'peepso' ].includes( p.id ) );
-			S.pick = new Set( community ? [] : cat.filter( ( c ) => c.core && 'active' !== c.state && c.can ).map( ( c ) => c.id ) );
+			const addon = cat.some( ( c ) => ( c.needed_by || [] ).length && 'active' !== c.state );
+			S.pick = new Set( cat.filter( ( c ) => 'active' !== c.state && c.can && ( ( c.core && ! community && ! addon ) || ( c.needed_by || [] ).length ) ).map( ( c ) => c.id ) );
 		}
 		const busy = Object.values( S.installing ).includes( 'busy' );
 		const label = { active: __( 'Active', 'wbcom-demo-installer' ), inactive: __( 'Installed, not active', 'wbcom-demo-installer' ), not_installed: __( 'Not installed', 'wbcom-demo-installer' ) };
@@ -167,18 +169,23 @@
 			const box = 'active' === c.state
 				? `<span class="wdi-checks__ic">${ ic( 'check' ) }</span>`
 				: `<span class="wdi-checks__ic"><input type="checkbox" data-pick="${ esc( c.id ) }" ${ S.pick.has( c.id ) ? 'checked' : '' } ${ c.can && ! busy ? '' : 'disabled' } aria-label="${ esc( sprintf( /* translators: %s: product name. */ __( 'Install %s', 'wbcom-demo-installer' ), c.label ) ) }"></span>`;
-			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro ? pro[ c.pro ] : '', ! c.can && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
+			const needs = ( c.needed_by || [] ).join( ', ' );
+			const source = ! needs ? '' : ( c.url
+				? sprintf( /* translators: 1: where to get it, 2: Reign add-on names. */ __( 'Not on WordPress.org: get it from %1$s and upload it under Plugins. Needed by %2$s.', 'wbcom-demo-installer' ), c.url, needs )
+				: sprintf( /* translators: %s: Reign add-on names. */ __( 'Free from WordPress.org. Needed by %s.', 'wbcom-demo-installer' ), needs ) );
+			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro ? pro[ c.pro ] : '', source, ! c.can && ! c.url && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
 			return `<li>${ box }<div>${ esc( c.label ) }${ note.map( ( n ) => `<small${ n === st ? ' class="wdi-install__error" role="alert"' : '' }>${ esc( n ) }</small>` ).join( '' ) }</div>${ badge }</li>`;
 		};
 		const group = ( title, rows ) => rows.length ? `${ title ? `<h2 class="wdi-install__title">${ esc( title ) }</h2>` : '' }<ul class="wdi-checks">${ rows.map( row ).join( '' ) }</ul>` : '';
 		const todo = cat.filter( ( c ) => S.pick.has( c.id ) && 'active' !== c.state );
 		if ( cat.every( ( c ) => 'active' === c.state ) && ! busy ) {
 			// Nothing to install: one line, the list on request.
-			return `<details class="wdi-details wdi-install"><summary>${ ic( 'check' ) }${ esc( sprintf( /* translators: %d: number of products. */ _n( 'All %d Wbcom product is active', 'All %d Wbcom products are active', cat.length, 'wbcom-demo-installer' ), cat.length ) ) }</summary>${ group( '', cat ) }</details>`;
+			return `<details class="wdi-details wdi-install"><summary>${ ic( 'check' ) }${ esc( sprintf( /* translators: %d: number of products. */ _n( 'All %d product is active', 'All %d products are active', cat.length, 'wbcom-demo-installer' ), cat.length ) ) }</summary>${ group( '', cat ) }</details>`;
 		}
 		return `<div class="wdi-install">
 			${ group( __( 'Community set, used by every starting point', 'wbcom-demo-installer' ), cat.filter( ( c ) => c.core ) ) }
-			${ group( __( 'Add more products', 'wbcom-demo-installer' ), cat.filter( ( c ) => ! c.core && 'plugin' === c.type ) ) }
+			${ group( __( 'Plugins your Reign add-ons are built for', 'wbcom-demo-installer' ), cat.filter( ( c ) => ( c.needed_by || [] ).length ) ) }
+			${ group( __( 'Add more products', 'wbcom-demo-installer' ), cat.filter( ( c ) => ! c.core && 'plugin' === c.type && ! ( c.needed_by || [] ).length ) ) }
 			${ group( __( 'Theme', 'wbcom-demo-installer' ), cat.filter( ( c ) => 'theme' === c.type ) ) }
 			<div class="wdi-install__foot"><span class="wdi-muted wdi-small">${ esc( __( 'Free versions from wbcomdesigns.com and WordPress.org, the same releases you get as updates.', 'wbcom-demo-installer' ) ) }</span><span class="wdi-spacer"></span><button type="button" class="wdi-btn" data-go="install" ${ todo.length && ! busy ? '' : 'disabled' }>${ esc( todo.length ? sprintf( /* translators: %d: number of products. */ _n( 'Install and activate %d product', 'Install and activate %d products', todo.length, 'wbcom-demo-installer' ), todo.length ) : __( 'Install selected', 'wbcom-demo-installer' ) ) }</button></div>
 		</div>`;
@@ -208,6 +215,13 @@
 		}
 		S.recipe = '';
 		route();
+		if ( S.wantRecipe && S.site.recipes[ S.wantRecipe ] ) {
+			S.recipe = S.wantRecipe;
+			S.include = new Set( S.site.recipes[ S.recipe ].use );
+			S.wantRecipe = '';
+			go( 'start' );
+			return;
+		}
 		if ( S.brief ) {
 			applyIdea( S.brief ); // The idea's products are active now: fill the wizard from it again.
 		}
@@ -262,13 +276,23 @@
 		const other = s.leftovers.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'Demo content from %s is still on this site. Remove it from that product first so the two demos do not mix.', 'wbcom-demo-installer' ), s.leftovers.join( ', ' ) ) ) }</div></div>` : '';
 		const live = s.live && s.live.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %s: what the site already has, e.g. "3 other members, 12 blog posts". */ __( 'This site already has %s.', 'wbcom-demo-installer' ), s.live.join( ', ' ) ) ) }</b> ${ esc( __( 'The demo is made for a fresh site you use to show or try the products. On a site people use, sample people appear next to your real members until you finish the demo. Use a staging copy or a fresh install.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
 		const mem = s.memory && s.memory.low ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div><b>${ esc( sprintf( /* translators: %d: memory limit in MB. */ __( 'PHP memory is limited to %d MB.', 'wbcom-demo-installer' ), Math.round( s.memory.limit / 1048576 ) ) ) }</b> ${ esc( __( 'With all products active, WordPress needs about 165 MB before the demo adds anything, so a build step can stop. Ask your host to raise memory_limit to 256 MB, or add define( \'WP_MEMORY_LIMIT\', \'256M\' ); to wp-config.php.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
-		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( __( 'No supported product is active yet. Install the community set below, or activate a supported plugin such as BuddyPress, WooCommerce or LearnDash.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
+		const addonMissing = ( s.catalog || [] ).some( ( c ) => ( c.needed_by || [] ).length && 'active' !== c.state );
+		const none = ! Object.keys( s.recipes ).length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( addonMissing ? __( 'No supported product is active yet. Install the plugins your Reign add-ons are built for, ticked below, to start.', 'wbcom-demo-installer' ) : __( 'No supported product is active yet. Install the community set below, or activate a supported plugin such as BuddyPress, WooCommerce or LearnDash.', 'wbcom-demo-installer' ) ) }</div></div>` : '';
+		const wanted = S.wantRecipe && ( S.site.all_recipes || {} )[ S.wantRecipe ];
+		const want = wanted ? `<div class="wdi-callout">${ ic( 'plug' ) }<div>${ esc( sprintf( /* translators: %s: starting point name. */ __( 'The products the %s starting point needs are ticked below. Install them, then the wizard returns to Starting point with it chosen.', 'wbcom-demo-installer' ), wanted.name ) ) }</div></div>` : '';
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 0 ) + card(
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
-			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ installPanel() }`,
+			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ want }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ installPanel() }`,
 			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
 		);
+	}
+
+	// Starting points that need a Wbcom product this site does not have active yet, and that the wizard can install.
+	function unlockable() {
+		const cat = Object.fromEntries( ( S.site.catalog || [] ).map( ( c ) => [ c.id, c ] ) );
+		return Object.entries( S.site.all_recipes || {} ).filter( ( [ id, r ] ) => ! S.site.recipes[ id ] && ( r.needs || [] ).length && r.needs.every( ( n ) => cat[ n ] && ( 'active' === cat[ n ].state || cat[ n ].can ) ) )
+			.map( ( [ id, r ] ) => [ id, r, r.needs.filter( ( n ) => 'active' !== cat[ n ].state ).map( ( n ) => cat[ n ] ) ] );
 	}
 
 	function viewStart() {
@@ -280,7 +304,7 @@
 			locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ),
 			locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ),
 			`${ S.brief ? '' : aiPanel() }${ ideaNote( 'start' ) }${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
-			${ ! locked && Object.keys( recipes ).length < 7 ? `<details class="wdi-details"><summary>${ esc( __( 'More starting points', 'wbcom-demo-installer' ) ) }</summary><p>${ esc( __( 'Starting points appear for each product you activate: Learning (Learnomy), Events (Eventonomy), Job board (WP Career Board), Directory (WB Listora) and Services marketplace (WP Sell Services).', 'wbcom-demo-installer' ) ) }</p></details>` : '' }`,
+			${ ! locked && unlockable().length ? `<h2 class="wdi-install__title">${ esc( __( 'More starting points, installed for you', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-recipes">${ unlockable().map( ( [ id, r, missing ] ) => `<button type="button" class="wdi-opt" data-unlock="${ esc( id ) }">${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta"><span class="wdi-badge">${ esc( sprintf( /* translators: %s: product names. */ __( 'Installs %s', 'wbcom-demo-installer' ), missing.map( ( c ) => c.label ).join( ', ' ) ) ) }</span></span></button>` ).join( '' ) }</div>` : '' }`,
 			foot( 'check', 'products', { disabled: ! S.recipe } )
 		);
 	}
@@ -649,6 +673,15 @@
 			S.include = new Set( S.site.recipes[ S.recipe ].use );
 			render();
 			app.querySelector( `[data-recipe="${ S.recipe }"]` ).focus();
+			return;
+		}
+		const unlock = e.target.closest( '[data-unlock]' );
+		if ( unlock ) {
+			const r = S.site.all_recipes[ unlock.dataset.unlock ];
+			const cat = S.site.catalog || [];
+			S.pick = new Set( cat.filter( ( c ) => r.needs.includes( c.id ) && 'active' !== c.state && c.can ).map( ( c ) => c.id ) );
+			S.wantRecipe = unlock.dataset.unlock;
+			go( 'check' );
 			return;
 		}
 		const idea = e.target.closest( '[data-idea]' );

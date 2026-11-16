@@ -70,6 +70,44 @@ final class Installer {
 				'wporg' => 'buddyx',
 			),
 		);
+		// The plugin each Reign add-on is built for, offered only while that add-on is active (the pair rule: our
+		// add-on plus its plugin). Free from WordPress.org, except LearnDash. Listed in install order: WooCommerce
+		// before the marketplaces, WCFM's Frontend Manager before WCFM Marketplace.
+		$addon    = static fn( string $label, string $basename, string $wporg, array $addons ): array => array(
+			'label'    => $label,
+			'type'     => 'plugin',
+			'basename' => $basename,
+			'wporg'    => $wporg,
+			'for'      => $addons,
+		);
+		$catalog += array(
+			'woocommerce'   => $addon(
+				'WooCommerce',
+				'woocommerce/woocommerce.php',
+				'woocommerce',
+				array(
+					'reign-dokan-addon'     => 'Reign Dokan',
+					'reign-wcfm-addon'      => 'Reign WCFM',
+					'reign-wc-vendor-addon' => 'Reign WC Vendors',
+				)
+			),
+			'dokan'         => $addon( 'Dokan', 'dokan-lite/dokan.php', 'dokan-lite', array( 'reign-dokan-addon' => 'Reign Dokan' ) ),
+			'wcfm-frontend' => $addon( 'WCFM Frontend Manager', 'wc-frontend-manager/wc_frontend_manager.php', 'wc-frontend-manager', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
+			'wcfm'          => $addon( 'WCFM Marketplace', 'wc-multivendor-marketplace/wc-multivendor-marketplace.php', 'wc-multivendor-marketplace', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
+			'wcvendors'     => $addon( 'WC Vendors', 'wc-vendors/class-wc-vendors.php', 'wc-vendors', array( 'reign-wc-vendor-addon' => 'Reign WC Vendors' ) ),
+			'jobmanager'    => $addon( 'WP Job Manager', 'wp-job-manager/wp-job-manager.php', 'wp-job-manager', array( 'reign-wp-job-manager-addon' => 'Reign WP Job Manager' ) ),
+			'geodirectory'  => $addon( 'GeoDirectory', 'geodirectory/geodirectory.php', 'geodirectory', array( 'reign-geodirectory' => 'Reign GeoDirectory' ) ),
+			'tutorlms'      => $addon( 'Tutor LMS', 'tutor/tutor.php', 'tutor', array( 'reign-tutorlms-addon' => 'Reign TutorLMS' ) ),
+			'lifterlms'     => $addon( 'LifterLMS', 'lifterlms/lifterlms.php', 'lifterlms', array( 'reign-lifterlms-addon' => 'Reign LifterLMS' ) ),
+			// Sold by LearnDash, not on WordPress.org: named with where to get it, never installed from here.
+			'learndash'     => array(
+				'label'    => 'LearnDash',
+				'type'     => 'plugin',
+				'basename' => 'sfwd-lms/sfwd_lms.php',
+				'url'      => 'https://www.learndash.com/',
+				'for'      => array( 'reign-learndash-addon' => 'Reign LearnDash' ),
+			),
+		);
 		/**
 		 * Filter the products the wizard can install.
 		 *
@@ -86,21 +124,31 @@ final class Installer {
 	public static function overview(): array {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$plugins = get_plugins();
+		$folders = array_map( 'dirname', (array) get_option( 'active_plugins', array() ) );
 		$out     = array();
 		foreach ( self::catalog() as $id => $entry ) {
 			$state = self::state( (string) $id, $entry, $plugins );
 			if ( 'theme' === $entry['type'] && 'active' !== $state && self::wbcom_theme() ) {
 				continue; // A Wbcom theme is active: BuddyX is not offered over it.
 			}
+			// A Reign add-on's plugin shows only while one of its add-ons is active (matched by folder: the main
+			// file names differ, Reign GeoDirectory's is reign-geolocation.php).
+			$needed_by = array_values( array_intersect_key( (array) ( $entry['for'] ?? array() ), array_flip( $folders ) ) );
+			if ( isset( $entry['for'] ) && ! $needed_by ) {
+				continue;
+			}
+			$manual   = ! isset( $entry['wporg'] ) && ! isset( $entry['item_id'] );
 			$pro_file = (string) ( $entry['pro'] ?? '' );
 			$out[]    = array(
-				'id'    => (string) $id,
-				'label' => (string) $entry['label'],
-				'type'  => (string) $entry['type'],
-				'core'  => in_array( $id, self::CORE, true ),
-				'state' => $state,
-				'can'   => self::allowed( 'not_installed' === $state ? 'install' : 'activate', (string) $entry['type'] ),
-				'pro'   => '' === $pro_file ? '' : ( isset( $plugins[ $pro_file ] ) ? ( is_plugin_active( $pro_file ) ? 'active' : 'inactive' ) : 'not_installed' ),
+				'id'        => (string) $id,
+				'label'     => (string) $entry['label'],
+				'type'      => (string) $entry['type'],
+				'core'      => in_array( $id, self::CORE, true ),
+				'state'     => $state,
+				'can'       => ! ( $manual && 'not_installed' === $state ) && self::allowed( 'not_installed' === $state ? 'install' : 'activate', (string) $entry['type'] ),
+				'pro'       => '' === $pro_file ? '' : ( isset( $plugins[ $pro_file ] ) ? ( is_plugin_active( $pro_file ) ? 'active' : 'inactive' ) : 'not_installed' ),
+				'needed_by' => $needed_by,
+				'url'       => $manual ? (string) ( $entry['url'] ?? '' ) : '',
 			);
 		}
 		return $out;
@@ -124,6 +172,14 @@ final class Installer {
 			return true;
 		}
 		$action = 'not_installed' === $state ? 'install' : 'activate';
+		if ( 'install' === $action && ! isset( $entry['wporg'] ) && ! isset( $entry['item_id'] ) ) {
+			return new \WP_Error(
+				'wbcom_demo_manual_product',
+				/* translators: 1: product name, 2: where to get it. */
+				sprintf( __( '%1$s is not on WordPress.org. Get it from %2$s, upload it under Plugins > Add New, then come back.', 'wbcom-demo-installer' ), (string) $entry['label'], (string) ( $entry['url'] ?? '' ) ),
+				array( 'status' => 400 )
+			);
+		}
 		if ( ! self::allowed( $action, (string) $entry['type'] ) ) {
 			return new \WP_Error(
 				'wbcom_demo_cannot_install',
@@ -148,7 +204,12 @@ final class Installer {
 			switch_theme( (string) $entry['wporg'] );
 			return wp_get_theme()->get_stylesheet() === $entry['wporg'] ? true : new \WP_Error( 'wbcom_demo_theme', __( 'BuddyX was installed but could not be switched on. Activate it from Appearance > Themes.', 'wbcom-demo-installer' ) );
 		}
+		// This runs in a REST request. Some plugins send the browser to their setup screen and stop the request when
+		// they are activated (Tutor LMS), which the wizard reads as a failed install; they skip that for background
+		// requests, which this is.
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		$activated = activate_plugin( (string) $entry['basename'] );
+		remove_filter( 'wp_doing_ajax', '__return_true' );
 		return is_wp_error( $activated ) ? $activated : true;
 	}
 
