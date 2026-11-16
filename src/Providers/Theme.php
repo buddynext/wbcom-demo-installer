@@ -204,26 +204,33 @@ final class Theme extends Provider {
 		$crowd    = array();
 		$sections = array();
 		$people   = array();
-		foreach ( $this->included( $ctx ) as $p ) {
+		$parts    = array();
+		$lead     = -1;
+		foreach ( array_values( $this->included( $ctx ) ) as $p ) {
 			$part = $p->home( $ctx );
 			if ( ! $part ) {
 				continue;
 			}
+			$parts[] = array( $p, $part );
 			if ( ! empty( $part['hero'] ) ) {
 				if ( $p->community() ) {
 					$fallback = $fallback ? $fallback : $part['hero'];
-				} else {
-					$hero = $hero ? $hero : $part['hero'];
+				} elseif ( ! $hero ) {
+					$hero = $part['hero'];
+					$lead = count( $parts ) - 1;
 				}
 			}
+		}
+		if ( $lead > 0 ) {
+			array_unshift( $parts, $parts[ $lead ] ); // The product the hero is about leads its numbers and sections too.
+			unset( $parts[ $lead + 1 ] );
+		}
+		foreach ( $parts as list( $p, $part ) ) {
 			if ( $p->community() ) {
-				$crowd = array_merge( $crowd, (array) ( $part['stats'] ?? array() ) );
-			} else {
-				$stats = array_merge( $stats, (array) ( $part['stats'] ?? array() ) );
-			}
-			if ( $p->community() ) {
+				$crowd  = array_merge( $crowd, (array) ( $part['stats'] ?? array() ) );
 				$people = array_merge( $people, (array) ( $part['sections'] ?? array() ) );
 			} else {
+				$stats    = array_merge( $stats, (array) ( $part['stats'] ?? array() ) );
 				$sections = array_merge( $sections, (array) ( $part['sections'] ?? array() ) );
 			}
 		}
@@ -237,7 +244,7 @@ final class Theme extends Provider {
 		$parts  = array();
 		$body   = '';
 		if ( $hero ) {
-			$inner          = Blocks::heading( (string) $hero['title'], 1 ) . Blocks::paragraph( (string) $hero['text'] ) . ( ! empty( $hero['buttons'] ) ? Blocks::buttons( $hero['buttons'] ) : '' );
+			$inner          = Blocks::heading( (string) $hero['title'], 1, true ) . Blocks::paragraph( (string) $hero['text'] ) . ( ! empty( $hero['buttons'] ) ? Blocks::buttons( $hero['buttons'] ) : '' );
 			$photo          = ! empty( $hero['image'] ) ? $ctx->attachment( (string) $hero['image'], $admin, $this->id(), 'setup' ) : 0;
 			$parts['hero']  = $photo ? Blocks::cover( $photo, $inner ) : Blocks::section( $inner );
 			$layout['hero'] = array(

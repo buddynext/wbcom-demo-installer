@@ -31,10 +31,22 @@ final class Blocks {
 	 *
 	 * @param string $text  Text.
 	 * @param int    $level Level.
+	 * @param bool   $white White text (over a photo: themes that colour headings would otherwise win).
 	 */
-	public static function heading( string $text, int $level = 2 ): string {
-		$attrs = 2 === $level ? '' : ' {"level":' . $level . '}';
-		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading">%3$s</h%2$d><!-- /wp:heading -->', $attrs, $level, self::text( $text ) );
+	public static function heading( string $text, int $level = 2, bool $white = false ): string {
+		$json = array_filter(
+			array(
+				'level'     => 2 === $level ? null : $level,
+				'textColor' => $white ? 'white' : null,
+			)
+		);
+		return sprintf(
+			'<!-- wp:heading%1$s --><h%2$d class="wp-block-heading%3$s">%4$s</h%2$d><!-- /wp:heading -->',
+			$json ? ' ' . wp_json_encode( $json ) : '',
+			$level,
+			$white ? ' has-white-color has-text-color' : '',
+			self::text( $text )
+		);
 	}
 
 	/**
@@ -198,7 +210,7 @@ final class Blocks {
 	public static function cover( int $id, string $inner ): string {
 		$url = (string) wp_get_attachment_image_url( $id, 'full' );
 		return sprintf(
-			'<!-- wp:cover {"url":"%1$s","id":%2$d,"dimRatio":60,"minHeight":420,"isDark":true,"layout":{"type":"constrained"}} --><div class="wp-block-cover is-dark" style="min-height:420px"><img class="wp-block-cover__image-background wp-image-%2$d" alt="" src="%1$s" data-object-fit="cover"/><span aria-hidden="true" class="wp-block-cover__background has-background-dim-60 has-background-dim"></span><div class="wp-block-cover__inner-container">%3$s</div></div><!-- /wp:cover -->',
+			'<!-- wp:cover {"url":"%1$s","id":%2$d,"dimRatio":60,"minHeight":420,"isDark":true,"textColor":"white","layout":{"type":"constrained"}} --><div class="wp-block-cover is-dark has-white-color has-text-color" style="min-height:420px"><img class="wp-block-cover__image-background wp-image-%2$d" alt="" src="%1$s" data-object-fit="cover"/><span aria-hidden="true" class="wp-block-cover__background has-background-dim-60 has-background-dim"></span><div class="wp-block-cover__inner-container">%3$s</div></div><!-- /wp:cover -->',
 			esc_url( $url ),
 			$id,
 			$inner
