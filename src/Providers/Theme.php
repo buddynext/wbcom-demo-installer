@@ -243,7 +243,7 @@ final class Theme extends Provider {
 			$layout['hero'] = array(
 				'title'   => (string) $hero['title'],
 				'text'    => (string) $hero['text'],
-				'buttons' => array_slice( (array) ( $hero['buttons'] ?? array() ), 0, 2 ),
+				'buttons' => array_slice( $hero['buttons'], 0, 2 ),
 				'image'   => $photo ? array(
 					'id'  => $photo,
 					'url' => (string) wp_get_attachment_image_url( $photo, 'full' ),
