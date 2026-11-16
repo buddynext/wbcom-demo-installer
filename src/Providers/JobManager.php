@@ -9,6 +9,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Provider;
 
@@ -269,6 +270,72 @@ final class JobManager extends Provider {
 				return self::delete_post( $id );
 		}
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The job board's part of the designed home page. WP Job Manager has no job list block (only its [jobs]
+	 * shortcode), so the newest jobs are cards in core blocks (title, company, place, type) the owner can edit.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		global $wpdb;
+		$h         = (array) ( $this->content()['home'] ?? array() );
+		$board     = $this->jobs_page() ? (string) get_permalink( $this->jobs_page() ) : '';
+		$submit    = (int) get_option( 'job_manager_submit_job_form_page_id' );
+		$submit    = $submit && 'publish' === get_post_status( $submit ) ? (string) get_permalink( $submit ) : '';
+		$buttons   = array_values( array_filter( array( $board ? array( (string) $h['browse'], $board ) : null, $submit ? array( (string) $h['post'], $submit ) : null ) ) );
+		$companies = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one count per build; WP Job Manager has no company count.
+			"SELECT COUNT(DISTINCT pm.meta_value) FROM {$wpdb->postmeta} pm JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = '_company_name' AND pm.meta_value <> '' AND p.post_type = 'job_listing' AND p.post_status = 'publish'"
+		);
+		$stats     = array(
+			array( (int) ( wp_count_posts( 'job_listing' )->publish ?? 0 ), __( 'open jobs', 'wbcom-demo-installer' ) ),
+			array( $companies, __( 'companies hiring', 'wbcom-demo-installer' ) ),
+		);
+		$jobs      = get_posts(
+			array(
+				'post_type'   => 'job_listing',
+				'post_status' => 'publish',
+				'numberposts' => 6,
+			)
+		);
+
+		$cards = array();
+		foreach ( $jobs as $job ) {
+			$types   = wp_get_post_terms( $job->ID, 'job_listing_type', array( 'fields' => 'names' ) );
+			$where   = (string) get_post_meta( $job->ID, '_job_location', true );
+			$where   = '' !== $where ? $where : ( get_post_meta( $job->ID, '_remote_position', true ) ? __( 'Remote', 'wbcom-demo-installer' ) : '' );
+			$line    = array_filter( array( (string) get_post_meta( $job->ID, '_company_name', true ), $where, is_array( $types ) && $types ? (string) $types[0] : '' ) );
+			$cards[] = Blocks::link_heading( get_the_title( $job ), (string) get_permalink( $job ), 3 ) . Blocks::paragraph( implode( ' · ', $line ) );
+		}
+		if ( ! $cards ) {
+			return array();
+		}
+		$section = Blocks::heading( (string) $h['latest'][0] ) . Blocks::paragraph( (string) $h['latest'][1] );
+		foreach ( array_chunk( $cards, 3 ) as $row ) {
+			$section .= Blocks::columns( $row );
+		}
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) ( $submit ? $h['closing'] : $h['browse_closing'] ), // No submit page: invite browsing.
+				'cta'     => $submit ? array( (string) $h['post'], $submit ) : ( $buttons[0] ?? array() ),
+			),
+			'stats'    => $stats,
+			'sections' => array( $section . ( $board ? Blocks::button( (string) $h['all'], $board ) : '' ) ),
+		);
 	}
 
 	/**

@@ -8,6 +8,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -448,6 +449,70 @@ final class TutorLMS extends Provider {
 				return self::remove_unused_term( $id, (string) ( $meta['taxonomy'] ?? 'course-category' ) );
 		}
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The course site's part of the designed home page. Tutor LMS has no course list block, so the newest courses
+	 * are cards in core blocks (photo, title, summary) the owner can edit, then the course topics.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! $this->available() ) {
+			return array();
+		}
+		$h         = (array) ( $this->content()['home'] ?? array() );
+		$type      = (string) tutor()->course_post_type;
+		$catalog   = self::catalog();
+		$dashboard = (int) tutor_utils()->get_option( 'tutor_dashboard_page_id' ) ? (string) tutor_utils()->tutor_dashboard_url() : '';
+		$buttons   = array_values( array_filter( array( $catalog ? array( (string) $h['browse'], $catalog ) : null, $dashboard ? array( (string) $h['second'], $dashboard ) : null ) ) );
+		$stats     = array(
+			array( (int) ( wp_count_posts( $type )->publish ?? 0 ), __( 'courses', 'wbcom-demo-installer' ) ),
+			array( (int) ( wp_count_posts( (string) tutor()->lesson_post_type )->publish ?? 0 ), __( 'lessons', 'wbcom-demo-installer' ) ),
+			array( count( $ctx->people( 'student' ) ), __( 'students', 'wbcom-demo-installer' ) ),
+		);
+		$courses   = get_posts(
+			array(
+				'post_type'   => $type,
+				'post_status' => 'publish',
+				'numberposts' => 3,
+			)
+		);
+		$topics    = taxonomy_exists( 'course-category' ) ? LearnDash::course_topics( 'course-category' ) : array();
+
+		$cards = array();
+		foreach ( $courses as $course ) {
+			$photo   = (int) get_post_thumbnail_id( $course );
+			$cards[] = ( $photo ? Blocks::image( $photo ) : '' ) . Blocks::link_heading( get_the_title( $course ), (string) get_permalink( $course ), 3 ) . Blocks::paragraph( wp_strip_all_tags( get_the_excerpt( $course ) ) );
+		}
+		$sections = array();
+		if ( $cards ) {
+			$sections[] = Blocks::heading( (string) $h['featured'][0] ) . Blocks::paragraph( (string) $h['featured'][1] ) . Blocks::columns( $cards )
+				. ( $catalog ? Blocks::button( (string) $h['all'], $catalog ) : '' );
+		}
+		if ( $topics ) {
+			$sections[] = Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] ) . Blocks::columns( $topics );
+		}
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => $stats,
+			'sections' => $sections,
+		);
 	}
 
 	/**

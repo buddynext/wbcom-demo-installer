@@ -8,6 +8,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -528,6 +529,54 @@ final class LifterLMS extends Provider {
 	private static function catalog(): string {
 		$page = (int) get_option( 'lifterlms_shop_page_id' );
 		return $page && 'publish' === get_post_status( $page ) ? (string) get_permalink( $page ) : (string) get_post_type_archive_link( 'course' );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The course site's part of the designed home page: LifterLMS's own Courses block and the course topics.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		$h         = (array) ( $this->content()['home'] ?? array() );
+		$catalog   = self::catalog();
+		$account   = (int) get_option( 'lifterlms_myaccount_page_id' );
+		$dashboard = $account && 'publish' === get_post_status( $account ) ? (string) get_permalink( $account ) : '';
+		$buttons   = array_values( array_filter( array( $catalog ? array( (string) $h['browse'], $catalog ) : null, $dashboard ? array( (string) $h['second'], $dashboard ) : null ) ) );
+		$stats     = array(
+			array( (int) ( wp_count_posts( 'course' )->publish ?? 0 ), __( 'courses', 'wbcom-demo-installer' ) ),
+			array( (int) ( wp_count_posts( 'lesson' )->publish ?? 0 ), __( 'lessons', 'wbcom-demo-installer' ) ),
+			array( count( $ctx->people( 'student' ) ), __( 'students', 'wbcom-demo-installer' ) ),
+		);
+		$topics    = taxonomy_exists( 'course_cat' ) ? LearnDash::course_topics( 'course_cat' ) : array();
+
+		$sections = array(
+			Blocks::heading( (string) $h['featured'][0] ) . Blocks::paragraph( (string) $h['featured'][1] )
+				. '<!-- wp:llms/courses {"orderby":"date","order":"DESC","posts_per_page":6} /-->'
+				. ( $catalog ? Blocks::button( (string) $h['all'], $catalog ) : '' ),
+		);
+		if ( $topics ) {
+			$sections[] = Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] ) . Blocks::columns( $topics );
+		}
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => $stats,
+			'sections' => $sections,
+		);
 	}
 
 	/**

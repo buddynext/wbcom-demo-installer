@@ -15,6 +15,18 @@ return array(
 	'categories' => $wbcom_demo_learnomy['categories'],
 	'courses'    => $wbcom_demo_learnomy['courses'],
 	'reviews'    => $wbcom_demo_learnomy['reviews'],
+	// Designed home page: text only; the provider adds the links, counts and the course cards.
+	'home'       => array(
+		'title'    => 'Learn a new skill, one short lesson at a time',
+		'text'     => 'Practical courses in design, development, community building and wellbeing, taught by people who do the work every day.',
+		'image'    => 'photos/open-books.jpg',
+		'browse'   => 'Browse courses',
+		'second'   => 'Your dashboard',
+		'closing'  => 'Your next skill starts with one lesson. Pick a course and begin.',
+		'featured' => array( 'Popular courses', 'A few of the courses. Open one to see its lessons, its instructor and what students say.' ),
+		'cats'     => array( 'Browse by topic', 'Pick a topic to see every course in it.' ),
+		'all'      => 'See all courses',
+	),
 	// "Try the demo" page: text only; the provider adds people and links.
 	'guide'      => array(
 		'name'         => 'Tutor LMS',
