@@ -125,8 +125,8 @@ return array(
 		'roles'    => array( 'employer', 'vendor', 'listing_owner' ),
 	),
 	array(
-		'login'    => 'lucia.ferrari',
-		'name'     => 'Lucia Ferrari',
+		'login'    => 'lucia.moretti',
+		'name'     => 'Lucia Moretti',
 		'headline' => 'UX writer, turning jargon into plain words',
 		'job'      => 'UX Writer',
 		'location' => 'Milan, IT',

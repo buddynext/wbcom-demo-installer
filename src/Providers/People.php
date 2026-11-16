@@ -181,7 +181,7 @@ final class People extends Provider {
 					'user_login'           => $login,
 					'user_email'           => $person['login'] . '@' . QuietMode::DOMAIN,
 					'user_pass'            => wp_generate_password( 32, true, true ),
-					// Profile URLs and @handles read the nicename: show "@lucia-ferrari", not the "demo." login prefix. Core adds -2 on a clash.
+					// Profile URLs and @handles read the nicename: show "@lucia-moretti", not the "demo." login prefix. Core adds -2 on a clash.
 					'user_nicename'        => sanitize_title( str_replace( '.', '-', $person['login'] ) ),
 					'display_name'         => $person['name'],
 					'first_name'           => strtok( $person['name'], ' ' ),
