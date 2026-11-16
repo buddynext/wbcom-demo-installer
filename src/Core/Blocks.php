@@ -1,0 +1,173 @@
+<?php
+/**
+ * Core block markup the demo writes into pages (Wbcom Essential pages, the designed home page). Each method
+ * returns markup as the block editor itself saves it, so the owner can open and edit the page without
+ * "This block contains unexpected content".
+ *
+ * @package WbcomDemo
+ */
+
+namespace WbcomDemo\Core;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Block markup helpers.
+ */
+final class Blocks {
+
+	/**
+	 * Core heading block.
+	 *
+	 * @param string $text  Text.
+	 * @param int    $level Level.
+	 */
+	public static function heading( string $text, int $level = 2 ): string {
+		$attrs = 2 === $level ? '' : ' {"level":' . $level . '}';
+		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading">%3$s</h%2$d><!-- /wp:heading -->', $attrs, $level, esc_html( $text ) );
+	}
+
+	/**
+	 * Core paragraph block.
+	 *
+	 * @param string $text Text.
+	 */
+	public static function paragraph( string $text ): string {
+		return '<!-- wp:paragraph --><p>' . esc_html( $text ) . '</p><!-- /wp:paragraph -->';
+	}
+
+	/**
+	 * Core image block, a wide (21:9) banner crop.
+	 *
+	 * @param int $id Attachment id.
+	 */
+	public static function image( int $id ): string {
+		return sprintf(
+			// A wide crop (21:9) keeps the page photo a banner, not a screenful, on any theme width.
+			'<!-- wp:image {"id":%1$d,"aspectRatio":"21/9","scale":"cover","sizeSlug":"full","linkDestination":"none"} --><figure class="wp-block-image size-full"><img src="%2$s" alt="%3$s" class="wp-image-%1$d" style="aspect-ratio:21/9;object-fit:cover"/></figure><!-- /wp:image -->',
+			$id,
+			esc_url( (string) wp_get_attachment_image_url( $id, 'full' ) ),
+			esc_attr( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) )
+		);
+	}
+
+	/**
+	 * Core columns block, one column per inner markup.
+	 *
+	 * @param string[] $inner Inner blocks per column.
+	 */
+	public static function columns( array $inner ): string {
+		$cols = array_map( static fn( string $c ): string => '<!-- wp:column --><div class="wp-block-column">' . $c . '</div><!-- /wp:column -->', $inner );
+		return '<!-- wp:columns --><div class="wp-block-columns">' . implode( '', $cols ) . '</div><!-- /wp:columns -->';
+	}
+
+	/**
+	 * Core quote block.
+	 *
+	 * @param string $text Quote.
+	 * @param string $who  Who said it.
+	 */
+	public static function quote( string $text, string $who ): string {
+		return '<!-- wp:quote --><blockquote class="wp-block-quote">' . self::paragraph( $text ) . ( '' !== $who ? '<cite>' . esc_html( $who ) . '</cite>' : '' ) . '</blockquote><!-- /wp:quote -->';
+	}
+
+	/**
+	 * Core details block (question and answer).
+	 *
+	 * @param string $q Question.
+	 * @param string $a Answer.
+	 */
+	public static function details( string $q, string $a ): string {
+		return '<!-- wp:details --><details class="wp-block-details"><summary>' . esc_html( $q ) . '</summary>' . self::paragraph( $a ) . '</details><!-- /wp:details -->';
+	}
+
+	/**
+	 * Core buttons block with one button.
+	 *
+	 * @param string $text Label.
+	 * @param string $url  Link.
+	 */
+	public static function button( string $text, string $url ): string {
+		return self::buttons( array( array( $text, $url ) ) );
+	}
+
+	/**
+	 * Core buttons block: the first button filled, the others outlined.
+	 *
+	 * @param array<int,array{0:string,1:string}> $links Label and link per button.
+	 */
+	public static function buttons( array $links ): string {
+		$out = '';
+		foreach ( array_values( $links ) as $i => $link ) {
+			$outline = $i > 0;
+			$out    .= ( $outline ? '<!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline">' : '<!-- wp:button --><div class="wp-block-button">' )
+				. '<a class="wp-block-button__link wp-element-button" href="' . esc_url( $link[1] ) . '">' . esc_html( $link[0] ) . '</a></div><!-- /wp:button -->';
+		}
+		return '<!-- wp:buttons --><div class="wp-block-buttons">' . $out . '</div><!-- /wp:buttons -->';
+	}
+
+	/**
+	 * Core shortcode block, for a product's own server-rendered output (search, listings, map).
+	 *
+	 * @param string $code Shortcode with its brackets.
+	 */
+	public static function shortcode( string $code ): string {
+		return '<!-- wp:shortcode -->' . $code . '<!-- /wp:shortcode -->';
+	}
+
+	/**
+	 * Core group block holding one page section, spaced from the next. Spacing only: no colours, so the theme's
+	 * light and dark modes both read.
+	 *
+	 * @param string $inner Inner blocks.
+	 */
+	public static function section( string $inner ): string {
+		return '<!-- wp:group {"style":{"spacing":{"padding":{"top":"48px","bottom":"48px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group" style="padding-top:48px;padding-bottom:48px">' . $inner . '</div><!-- /wp:group -->';
+	}
+
+	/**
+	 * Core cover block: a photo with a dark overlay and the hero text over it.
+	 *
+	 * @param int    $id    Attachment id.
+	 * @param string $inner Inner blocks.
+	 */
+	public static function cover( int $id, string $inner ): string {
+		$url = (string) wp_get_attachment_image_url( $id, 'full' );
+		return sprintf(
+			'<!-- wp:cover {"url":"%1$s","id":%2$d,"dimRatio":60,"minHeight":420,"isDark":true,"layout":{"type":"constrained"}} --><div class="wp-block-cover is-dark" style="min-height:420px"><img class="wp-block-cover__image-background wp-image-%2$d" alt="" src="%1$s" data-object-fit="cover"/><span aria-hidden="true" class="wp-block-cover__background has-background-dim-60 has-background-dim"></span><div class="wp-block-cover__inner-container">%3$s</div></div><!-- /wp:cover -->',
+			esc_url( $url ),
+			$id,
+			$inner
+		);
+	}
+
+	/**
+	 * Core heading block whose text links somewhere.
+	 *
+	 * @param string $text  Text.
+	 * @param string $url   Link.
+	 * @param int    $level Level.
+	 */
+	public static function link_heading( string $text, string $url, int $level = 3 ): string {
+		$attrs = 2 === $level ? '' : ' {"level":' . $level . '}';
+		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading"><a href="%3$s">%4$s</a></h%2$d><!-- /wp:heading -->', $attrs, $level, esc_url( $url ), esc_html( $text ) );
+	}
+
+	/**
+	 * Rows of four people: a round photo and the name, both linking to the profile.
+	 *
+	 * @param array<int,array{0:string,1:string,2:string}> $people Name, profile link and photo link per person.
+	 */
+	public static function people( array $people ): string {
+		$out = '';
+		foreach ( array_chunk( $people, 4 ) as $row ) {
+			$cols = array();
+			foreach ( $row as $p ) {
+				$cols[] = '<!-- wp:image {"width":"96px","height":"96px","scale":"cover","sizeSlug":"thumbnail","linkDestination":"custom","align":"center","className":"is-style-rounded"} --><figure class="wp-block-image aligncenter size-thumbnail is-resized is-style-rounded"><a href="' . esc_url( $p[1] ) . '"><img src="' . esc_url( $p[2] ) . '" alt="' . esc_attr( $p[0] ) . '" style="object-fit:cover;width:96px;height:96px"/></a></figure><!-- /wp:image -->'
+					. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="' . esc_url( $p[1] ) . '">' . esc_html( $p[0] ) . '</a></p><!-- /wp:paragraph -->';
+			}
+			$out .= self::columns( $cols );
+		}
+		return $out;
+	}
+}

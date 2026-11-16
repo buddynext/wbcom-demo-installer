@@ -8,6 +8,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
@@ -590,6 +591,96 @@ final class GeoDirectory extends Provider {
 	 */
 	public function settings(): array {
 		return array( 'geodir_settings' => array( 'enable_hints' => 0 ) );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The directory's part of the designed home page, in GeoDirectory's own blocks (search, category tiles,
+	 * listings, map), so the owner edits them with GeoDirectory's settings.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		$h       = (array) ( $this->content()['home'] ?? array() );
+		$archive = (string) get_post_type_archive_link( self::TYPE );
+		$add     = function_exists( 'geodir_add_listing_page_url' ) ? (string) geodir_add_listing_page_url( self::TYPE ) : '';
+		$places  = (int) ( wp_count_posts( self::TYPE )->publish ?? 0 );
+		$cats    = (int) wp_count_terms(
+			array(
+				'taxonomy'   => self::TYPE . 'category',
+				'hide_empty' => true,
+			)
+		);
+		$buttons = array_values( array_filter( array( $archive ? array( (string) $h['browse'], $archive ) : null, $add ? array( (string) $h['add'], $add ) : null ) ) );
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+				'cta'     => $add ? array( (string) $h['add'], $add ) : ( $buttons[0] ?? array() ),
+			),
+			'stats'    => array(
+				array( $places, __( 'places listed', 'wbcom-demo-installer' ) ),
+				array( $cats, __( 'categories', 'wbcom-demo-installer' ) ),
+			),
+			'sections' => array(
+				self::gd_block( 'search', array(), "[gd_search mb='3']" ),
+				Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] )
+					. self::gd_block(
+						'categories',
+						array(
+							'hide_empty'  => true,
+							'design_type' => 'icon-top',
+							'icon_size'   => 'box-medium',
+						),
+						"[gd_categories post_type='0' hide_empty='true' sort_by='count' design_type='icon-top' icon_size='box-medium' mb='3']"
+					),
+				Blocks::heading( (string) $h['featured'][0] ) . Blocks::paragraph( (string) $h['featured'][1] )
+					. self::gd_block( 'listings', array( 'post_limit' => 6 ), "[gd_listings post_type='gd_place' post_limit='6' layout='3' title_tag='h3' mb='3']" )
+					. ( $archive ? Blocks::button( (string) $h['all'], $archive ) : '' ),
+				Blocks::heading( (string) $h['map'][0] ) . Blocks::paragraph( (string) $h['map'][1] )
+					. self::gd_block(
+						'map',
+						array(
+							'map_type'         => 'directory',
+							'search_filter'    => true,
+							'post_type_filter' => true,
+							'cat_filter'       => true,
+							'height'           => '425px',
+						),
+						"[gd_map map_type='directory' post_settings='true' search_filter='true' post_type_filter='true' cat_filter='true' child_collapse='true' scrollwheel='false' width='100%' height='425px' maptype='ROADMAP' mb='4']"
+					),
+			),
+		);
+	}
+
+	/**
+	 * One of GeoDirectory's widget blocks as its own editor saves it: attributes plus the shortcode it renders.
+	 *
+	 * @param string              $name      Widget name (search, categories, listings, map).
+	 * @param array<string,mixed> $attrs     Block attributes.
+	 * @param string              $shortcode The shortcode GeoDirectory renders for it.
+	 */
+	private static function gd_block( string $name, array $attrs, string $shortcode ): string {
+		$block = 'geodirectory/geodir-widget-' . $name;
+		$json  = (string) wp_json_encode(
+			$attrs + array(
+				'content'      => '',
+				'sd_shortcode' => $shortcode,
+			),
+			JSON_UNESCAPED_SLASHES
+		);
+		return '<!-- wp:' . $block . ' ' . $json . ' --><div class="wp-block-geodirectory-geodir-widget-' . $name . '"></div><!-- /wp:' . $block . ' -->';
 	}
 
 	/**

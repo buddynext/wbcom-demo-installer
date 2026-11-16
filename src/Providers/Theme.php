@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Guide;
 use WbcomDemo\Core\Ledger;
@@ -76,13 +77,17 @@ final class Theme extends Provider {
 	 */
 	public function plan(): array {
 		// BuddyX and BuddyX Pro also get the light-text logo for dark mode.
-		$dark = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
-		$plan = array(
+		$dark   = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
+		$home   = (bool) array_filter( Registry::all(), static fn( Provider $p ): bool => $p->available() && $p->offers_home() );
+		$plan   = array(
 			'menu' => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
-			'page' => array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
+			'page' => $home ? array( 2, 'setup', __( 'home page and Try the demo page', 'wbcom-demo-installer' ) ) : array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
 		);
-		if ( self::branded() ) {
-			$plan = array( 'attachment' => array( $dark ? 3 : 2, 'setup', __( 'logo and site icon', 'wbcom-demo-installer' ) ) ) + $plan;
+		$brand  = self::branded() ? ( $dark ? 3 : 2 ) : 0;
+		$photos = $brand + ( $home ? 1 : 0 );
+		if ( $photos ) {
+			$label = $brand ? ( $home ? __( 'logo, site icon and home page photo', 'wbcom-demo-installer' ) : __( 'logo and site icon', 'wbcom-demo-installer' ) ) : __( 'home page photo', 'wbcom-demo-installer' );
+			$plan  = array( 'attachment' => array( $photos, 'setup', $label ) ) + $plan;
 		}
 		return $plan;
 	}
@@ -105,7 +110,7 @@ final class Theme extends Provider {
 	public function run( string $step, Context $ctx ): void {
 		match ( $step ) {
 			'logo'  => $this->logo( $ctx ),
-			'home'  => $this->home( $ctx ),
+			'home'  => $this->home_step( $ctx ),
 			'guide' => $this->guide_step( $ctx ),
 			'menu'  => $this->menu( $ctx ),
 			'pages' => $this->pages( $ctx ),
@@ -165,15 +170,99 @@ final class Theme extends Provider {
 	 *
 	 * @param Context $ctx Context.
 	 */
-	private function home( Context $ctx ): void {
-		foreach ( $this->included( $ctx ) as $p ) {
+	private function home_step( Context $ctx ): void {
+		$page = $this->designed_home( $ctx );
+		foreach ( $page ? array() : $this->included( $ctx ) as $p ) {
 			$page = $p->front_page();
 			if ( $page ) {
-				Snapshot::write( 'show_on_front', 'page' );
-				Snapshot::write( 'page_on_front', $page );
-				return;
+				break;
 			}
 		}
+		if ( $page ) {
+			Snapshot::write( 'show_on_front', 'page' );
+			Snapshot::write( 'page_on_front', $page );
+		}
+	}
+
+	/**
+	 * The designed home page: a hero from the site's main product, its numbers, one section per product, the
+	 * community's members, and a closing call to action, in core and product blocks the owner can edit.
+	 * Full width. Returns the page id, or 0 when no included product offers a part of it.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function designed_home( Context $ctx ): int {
+		$hero     = array();
+		$fallback = array();
+		$stats    = array();
+		$crowd    = array();
+		$sections = array();
+		$people   = array();
+		foreach ( $this->included( $ctx ) as $p ) {
+			$part = $p->home( $ctx );
+			if ( ! $part ) {
+				continue;
+			}
+			if ( ! empty( $part['hero'] ) ) {
+				if ( $p->community() ) {
+					$fallback = $fallback ? $fallback : $part['hero'];
+				} else {
+					$hero = $hero ? $hero : $part['hero'];
+				}
+			}
+			if ( $p->community() ) {
+				$crowd = array_merge( $crowd, (array) ( $part['stats'] ?? array() ) );
+			} else {
+				$stats = array_merge( $stats, (array) ( $part['stats'] ?? array() ) );
+			}
+			if ( $p->community() ) {
+				$people = array_merge( $people, (array) ( $part['sections'] ?? array() ) );
+			} else {
+				$sections = array_merge( $sections, (array) ( $part['sections'] ?? array() ) );
+			}
+		}
+		if ( ! $sections && ! $people ) {
+			return 0;
+		}
+		$hero  = $hero ? $hero : $fallback;
+		$stats = array_merge( $stats, $crowd ); // The product's numbers lead, the community's follow.
+		$admin = (int) get_current_user_id();
+		$body  = '';
+		if ( $hero ) {
+			$inner = Blocks::heading( (string) $hero['title'], 1 ) . Blocks::paragraph( (string) $hero['text'] ) . ( ! empty( $hero['buttons'] ) ? Blocks::buttons( $hero['buttons'] ) : '' );
+			$photo = ! empty( $hero['image'] ) ? $ctx->attachment( (string) $hero['image'], $admin, $this->id(), 'setup' ) : 0;
+			$body .= $photo ? Blocks::cover( $photo, $inner ) : Blocks::section( $inner );
+		}
+		if ( $stats ) {
+			// The four that matter most: products list theirs first, the community's follow.
+			$cols  = array_map( static fn( array $s ): string => Blocks::heading( number_format_i18n( (int) $s[0] ), 3 ) . Blocks::paragraph( (string) $s[1] ), array_slice( $stats, 0, 4 ) );
+			$body .= Blocks::section( Blocks::columns( $cols ) );
+		}
+		foreach ( array_merge( $sections, $people ) as $section ) {
+			$body .= Blocks::section( (string) $section );
+		}
+		if ( $hero && ! empty( $hero['buttons'] ) ) {
+			$cta   = ! empty( $hero['cta'] ) ? $hero['cta'] : $hero['buttons'][0];
+			$body .= Blocks::section( Blocks::heading( (string) ( $hero['closing'] ?? $hero['title'] ) ) . Blocks::buttons( array( $cta ) ) );
+		}
+		$id = wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => __( 'Home', 'wbcom-demo-installer' ),
+				'post_name'    => 'home',
+				'post_content' => $body,
+				'post_author'  => $admin,
+			),
+			true
+		);
+		if ( is_wp_error( $id ) ) {
+			$ctx->warn( $this->id(), 'home page', $id );
+			return 0;
+		}
+		$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
+		self::no_sidebar( (int) $id );
+		return (int) $id;
 	}
 
 	/**

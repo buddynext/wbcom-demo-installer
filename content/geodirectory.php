@@ -139,6 +139,18 @@ return array(
 	// Location of every place: GeoDirectory's own default location.
 	'city'       => array( 'Philadelphia', 'Pennsylvania', 'United States' ),
 	// "Try the demo" page: text only; the provider adds people and links.
+	'home'       => array(
+		'title'    => 'Find the best of Philadelphia, picked by locals',
+		'text'     => 'Cafés, restaurants, parks and places to stay, all in one directory with a map, search and the people who know where to go.',
+		'image'    => 'photos/cafe-friends.jpg',
+		'browse'   => 'Browse places',
+		'add'      => 'Add your listing',
+		'closing'  => 'Know a place everyone should find? Add it to the directory.',
+		'cats'     => array( 'Browse by category', 'Pick a category to see every place in it, on a list and on the map.' ),
+		'featured' => array( 'Places people love', 'A few of the listings, each with photos, opening hours, reviews and its spot on the map.' ),
+		'all'      => 'See all places',
+		'map'      => array( 'See it on the map', 'Every place in the directory on one map. Filter by category or search by name.' ),
+	),
 	'guide'      => array(
 		'name'         => 'GeoDirectory',
 		'tab'          => 'Places',

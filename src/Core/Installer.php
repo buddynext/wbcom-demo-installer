@@ -81,6 +81,23 @@ final class Installer {
 			'for'      => $addons,
 		);
 		$catalog += array(
+			// The member side of a Reign add-on (places, courses, orders in profiles and activity). Offered only while
+			// the site has no community plugin; see overview().
+			'buddypress'    => $addon(
+				'BuddyPress',
+				'buddypress/bp-loader.php',
+				'buddypress',
+				array(
+					'reign-geodirectory'         => 'Reign GeoDirectory',
+					'reign-dokan-addon'          => 'Reign Dokan',
+					'reign-learndash-addon'      => 'Reign LearnDash',
+					'reign-tutorlms-addon'       => 'Reign TutorLMS',
+					'reign-lifterlms-addon'      => 'Reign LifterLMS',
+					'reign-wcfm-addon'           => 'Reign WCFM',
+					'reign-wc-vendor-addon'      => 'Reign WC Vendors',
+					'reign-wp-job-manager-addon' => 'Reign WP Job Manager',
+				)
+			) + array( 'community' => true ),
 			'woocommerce'   => $addon(
 				'WooCommerce',
 				'woocommerce/woocommerce.php',
@@ -137,6 +154,9 @@ final class Installer {
 			if ( isset( $entry['for'] ) && ! $needed_by ) {
 				continue;
 			}
+			if ( ! empty( $entry['community'] ) && array_intersect( array( 'buddypress', 'buddyboss-platform', 'peepso', 'peepso-core', 'buddynext' ), $folders ) ) {
+				continue; // The site already has its community.
+			}
 			$manual   = ! isset( $entry['wporg'] ) && ! isset( $entry['item_id'] );
 			$pro_file = (string) ( $entry['pro'] ?? '' );
 			$out[]    = array(
@@ -148,6 +168,7 @@ final class Installer {
 				'can'       => ! ( $manual && 'not_installed' === $state ) && self::allowed( 'not_installed' === $state ? 'install' : 'activate', (string) $entry['type'] ),
 				'pro'       => '' === $pro_file ? '' : ( isset( $plugins[ $pro_file ] ) ? ( is_plugin_active( $pro_file ) ? 'active' : 'inactive' ) : 'not_installed' ),
 				'needed_by' => $needed_by,
+				'community' => ! empty( $entry['community'] ),
 				'url'       => $manual ? (string) ( $entry['url'] ?? '' ) : '',
 			);
 		}

@@ -57,6 +57,34 @@ abstract class Provider {
 	}
 
 	/**
+	 * This provider's part of the designed home page, built once its content exists. All keys are optional:
+	 * - 'hero': title, text, image (a media path), buttons (label, link), closing (the heading over the last
+	 *   call to action) and cta (its button; the first button when not set) when this is the site's main product;
+	 * - 'stats': counts to show under the hero, as [ count, label ];
+	 * - 'sections': block markup, one entry per home page section, in order.
+	 *
+	 * @param Context $ctx Context.
+	 * @return array{hero?:array{title:string,text:string,image:string,buttons:array<int,array{0:string,1:string}>,closing?:string,cta?:array{0:string,1:string}},stats?:array<int,array{0:int,1:string}>,sections?:string[]}
+	 */
+	public function home( Context $ctx ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- the contract passes it for providers that record what they add.
+		return array();
+	}
+
+	/**
+	 * Whether home() adds to the designed home page (for exact Review counts before anything is built).
+	 */
+	public function offers_home(): bool {
+		return false;
+	}
+
+	/**
+	 * A community platform (members, groups, activity): its home section follows the products' sections.
+	 */
+	public function community(): bool {
+		return false;
+	}
+
+	/**
 	 * Post types whose archive, taxonomy archives and single pages the theme shows without sidebars, on themes
 	 * that keep a layout per type (Reign). A directory or catalogue brings its own columns, filters and map.
 	 *

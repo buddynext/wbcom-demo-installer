@@ -327,7 +327,7 @@ final class WooCommerce extends Provider {
 				if ( $gone && 'product_cat' === $taxonomy ) {
 					// WooCommerce adds a category to its analytics lookup table on create and edit but never removes
 					// it on delete; its own rebuild action drops the rows of categories that no longer exist.
-					do_action( 'generate_category_lookup_table' );
+					do_action( 'generate_category_lookup_table' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce's own rebuild action.
 				}
 				return $gone;
 		}

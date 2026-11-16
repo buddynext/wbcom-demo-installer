@@ -172,7 +172,9 @@
 			const needs = ( c.needed_by || [] ).join( ', ' );
 			const source = ! needs ? '' : ( c.url
 				? sprintf( /* translators: 1: where to get it, 2: Reign add-on names. */ __( 'Not on WordPress.org: get it from %1$s and upload it under Plugins. Needed by %2$s.', 'wbcom-demo-installer' ), c.url, needs )
-				: sprintf( /* translators: %s: Reign add-on names. */ __( 'Free from WordPress.org. Needed by %s.', 'wbcom-demo-installer' ), needs ) );
+				: ( c.community
+					? sprintf( /* translators: %s: Reign add-on names. */ __( 'Free from WordPress.org. Gives %s its members: profiles, groups and an activity feed.', 'wbcom-demo-installer' ), needs )
+					: sprintf( /* translators: %s: Reign add-on names. */ __( 'Free from WordPress.org. Needed by %s.', 'wbcom-demo-installer' ), needs ) ) );
 			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro && 'not_installed' !== c.state ? pro[ c.pro ] : '', source, ! c.can && ! c.url && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
 			return `<li>${ box }<div>${ esc( c.label ) }${ note.map( ( n ) => `<small${ n === st ? ' class="wdi-install__error" role="alert"' : '' }>${ esc( n ) }</small>` ).join( '' ) }</div>${ badge }</li>`;
 		};

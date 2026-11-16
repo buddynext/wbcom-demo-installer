@@ -7,6 +7,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -185,9 +186,9 @@ final class Pages extends Provider {
 			foreach ( $post['body'] as $part ) {
 				list( $heading, $text ) = $part;
 				if ( '' !== $heading ) {
-					$body[] = self::heading( $heading );
+					$body[] = Blocks::heading( $heading );
 				}
-				$body[] = self::paragraph( $text );
+				$body[] = Blocks::paragraph( $text );
 			}
 			$date = $ctx->date( $i, $n, 45 );
 			$id   = wp_insert_post(
@@ -229,35 +230,35 @@ final class Pages extends Provider {
 		$join_image = $ctx->attachment( $c['join']['image'], $admin, $this->id() );
 		$cols       = array();
 		foreach ( $about['values'] as $value ) {
-			$cols[] = self::heading( $value[0], 3 ) . "\n" . self::paragraph( $value[1] );
+			$cols[] = Blocks::heading( $value[0], 3 ) . "\n" . Blocks::paragraph( $value[1] );
 		}
 		$quoted = get_userdata( $ctx->person( (int) $about['quote'][1] ) );
 		$blocks = array(
 			'about' => array(
-				$image ? self::image( $image ) : '',
-				self::paragraph( $about['intro'] ),
-				self::columns( $cols ),
-				self::quote( $about['quote'][0], $quoted ? $quoted->display_name : '' ),
-				self::heading( __( 'From the blog', 'wbcom-demo-installer' ) ),
+				$image ? Blocks::image( $image ) : '',
+				Blocks::paragraph( $about['intro'] ),
+				Blocks::columns( $cols ),
+				Blocks::quote( $about['quote'][0], $quoted ? $quoted->display_name : '' ),
+				Blocks::heading( __( 'From the blog', 'wbcom-demo-installer' ) ),
 				self::posts_block( $cats, 'grid', 3 ), // One row of three: no carousel arrows over the cards.
 			),
 			'join'  => array(
-				$join_image ? self::image( $join_image ) : '',
-				self::paragraph( $c['join']['intro'] ),
-				self::columns(
+				$join_image ? Blocks::image( $join_image ) : '',
+				Blocks::paragraph( $c['join']['intro'] ),
+				Blocks::columns(
 					array_map(
-						static fn( array $step ): string => self::heading( $step[0], 3 ) . "\n" . self::paragraph( $step[1] ),
+						static fn( array $step ): string => Blocks::heading( $step[0], 3 ) . "\n" . Blocks::paragraph( $step[1] ),
 						$c['join']['steps']
 					)
 				),
-				self::button( $c['join']['button'], wp_registration_url() ),
+				Blocks::button( $c['join']['button'], wp_registration_url() ),
 			),
 			'faq'   => array_merge(
-				array( self::paragraph( $c['faq']['intro'] ) ),
-				array_map( static fn( array $qa ): string => self::details( $qa[0], $qa[1] ), $c['faq']['items'] )
+				array( Blocks::paragraph( $c['faq']['intro'] ) ),
+				array_map( static fn( array $qa ): string => Blocks::details( $qa[0], $qa[1] ), $c['faq']['items'] )
 			),
 			'blog'  => array(
-				self::paragraph( $c['blog']['intro'] ),
+				Blocks::paragraph( $c['blog']['intro'] ),
 				// Wbcom Essential's blocks are rendered on the server, so they never go stale in the editor; theme colours
 				// keep them matched to BuddyX, BuddyX Pro, Reign or any theme with a palette.
 				'<!-- wp:wbcom-essential/category-grid ' . wp_json_encode(
@@ -270,7 +271,7 @@ final class Pages extends Provider {
 						'overlayColor'       => '#111111', // Titles stay readable on bright photos.
 					)
 				) . ' /-->',
-				self::heading( __( 'Latest posts', 'wbcom-demo-installer' ) ),
+				Blocks::heading( __( 'Latest posts', 'wbcom-demo-installer' ) ),
 				self::posts_block( $cats, 'grid', 9 ),
 			),
 		);
@@ -311,81 +312,6 @@ final class Pages extends Provider {
 			return self::remove_unused_term( $id, 'category' );
 		}
 		return self::delete_post( $id, 'attachment' === $row->object_type );
-	}
-
-	/**
-	 * Core heading block.
-	 *
-	 * @param string $text  Text.
-	 * @param int    $level Level.
-	 */
-	private static function heading( string $text, int $level = 2 ): string {
-		$attrs = 2 === $level ? '' : ' {"level":' . $level . '}';
-		return sprintf( '<!-- wp:heading%1$s --><h%2$d class="wp-block-heading">%3$s</h%2$d><!-- /wp:heading -->', $attrs, $level, esc_html( $text ) );
-	}
-
-	/**
-	 * Core paragraph block.
-	 *
-	 * @param string $text Text.
-	 */
-	private static function paragraph( string $text ): string {
-		return '<!-- wp:paragraph --><p>' . esc_html( $text ) . '</p><!-- /wp:paragraph -->';
-	}
-
-	/**
-	 * Core image block.
-	 *
-	 * @param int $id Attachment id.
-	 */
-	private static function image( int $id ): string {
-		return sprintf(
-			// A wide crop (21:9) keeps the page photo a banner, not a screenful, on any theme width.
-			'<!-- wp:image {"id":%1$d,"aspectRatio":"21/9","scale":"cover","sizeSlug":"full","linkDestination":"none"} --><figure class="wp-block-image size-full"><img src="%2$s" alt="%3$s" class="wp-image-%1$d" style="aspect-ratio:21/9;object-fit:cover"/></figure><!-- /wp:image -->',
-			$id,
-			esc_url( (string) wp_get_attachment_image_url( $id, 'full' ) ),
-			esc_attr( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) )
-		);
-	}
-
-	/**
-	 * Core columns block, one column per inner markup.
-	 *
-	 * @param string[] $inner Inner blocks per column.
-	 */
-	private static function columns( array $inner ): string {
-		$cols = array_map( static fn( string $c ): string => '<!-- wp:column --><div class="wp-block-column">' . $c . '</div><!-- /wp:column -->', $inner );
-		return '<!-- wp:columns --><div class="wp-block-columns">' . implode( '', $cols ) . '</div><!-- /wp:columns -->';
-	}
-
-	/**
-	 * Core quote block.
-	 *
-	 * @param string $text Quote.
-	 * @param string $who  Who said it.
-	 */
-	private static function quote( string $text, string $who ): string {
-		return '<!-- wp:quote --><blockquote class="wp-block-quote">' . self::paragraph( $text ) . ( '' !== $who ? '<cite>' . esc_html( $who ) . '</cite>' : '' ) . '</blockquote><!-- /wp:quote -->';
-	}
-
-	/**
-	 * Core details block (question and answer).
-	 *
-	 * @param string $q Question.
-	 * @param string $a Answer.
-	 */
-	private static function details( string $q, string $a ): string {
-		return '<!-- wp:details --><details class="wp-block-details"><summary>' . esc_html( $q ) . '</summary>' . self::paragraph( $a ) . '</details><!-- /wp:details -->';
-	}
-
-	/**
-	 * Core button block.
-	 *
-	 * @param string $text Label.
-	 * @param string $url  Link.
-	 */
-	private static function button( string $text, string $url ): string {
-		return '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="' . esc_url( $url ) . '">' . esc_html( $text ) . '</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
 	}
 
 	/**

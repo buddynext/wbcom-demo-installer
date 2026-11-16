@@ -8,6 +8,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
@@ -853,5 +854,84 @@ final class BuddyPress extends Provider {
 	 */
 	public function keeps_logs(): string {
 		return defined( 'BP_PLATFORM_VERSION' ) ? __( 'BuddyBoss Platform keeps its reaction counts for the removed sample posts; the reactions themselves are removed and nothing shows on the site.', 'wbcom-demo-installer' ) : '';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function community(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The members and groups part of the designed home page; its hero is used only on a community-only site.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! function_exists( 'bp_core_fetch_avatar' ) ) {
+			return array();
+		}
+		$h      = (array) ( $this->content()['home'] ?? array() );
+		$people = array();
+		foreach ( array_slice( $ctx->people(), 0, 8 ) as $id ) {
+			$url      = function_exists( 'bp_members_get_user_url' ) ? (string) bp_members_get_user_url( $id ) : (string) bp_core_get_user_domain( $id );
+			$photo    = (string) bp_core_fetch_avatar(
+				array(
+					'item_id' => $id,
+					'type'    => 'full',
+					'html'    => false,
+				)
+			);
+			$people[] = array( (string) ( $ctx->profile( $id )['name'] ?? get_the_author_meta( 'display_name', $id ) ), $url, $photo );
+		}
+		$activity = function_exists( 'bp_get_activity_directory_permalink' ) && bp_is_active( 'activity' ) ? (string) bp_get_activity_directory_permalink() : '';
+		$section  = Blocks::heading( (string) $h['people'][0] ) . Blocks::paragraph( (string) $h['people'][1] ) . Blocks::people( $people );
+		$stats    = array( array( count( $ctx->people() ), __( 'members', 'wbcom-demo-installer' ) ) );
+		$buttons  = $activity ? array( array( (string) $h['join'], $activity ) ) : array();
+		if ( function_exists( 'groups_get_groups' ) && bp_is_active( 'groups' ) ) {
+			$groups = groups_get_groups(
+				array(
+					'type'     => 'popular',
+					'per_page' => 3,
+				)
+			);
+			$cards  = array();
+			foreach ( (array) ( $groups['groups'] ?? array() ) as $g ) {
+				$link    = function_exists( 'bp_get_group_url' ) ? (string) bp_get_group_url( $g ) : (string) bp_get_group_permalink( $g );
+				$cards[] = Blocks::link_heading( (string) $g->name, $link, 3 ) . Blocks::paragraph( wp_strip_all_tags( (string) $g->description ) );
+			}
+			if ( $cards ) {
+				$section .= Blocks::heading( (string) $h['popular'], 3 ) . Blocks::columns( $cards );
+			}
+			$dir = function_exists( 'bp_get_groups_directory_url' ) ? (string) bp_get_groups_directory_url() : ( function_exists( 'bp_get_groups_directory_permalink' ) ? (string) bp_get_groups_directory_permalink() : '' );
+			if ( $dir ) {
+				$buttons[] = array( (string) $h['groups'], $dir );
+			}
+			$stats[] = array( (int) ( $groups['total'] ?? 0 ), __( 'groups', 'wbcom-demo-installer' ) );
+		}
+		if ( $buttons ) {
+			$section .= Blocks::buttons( $buttons );
+		}
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => $stats,
+			'sections' => array( $section ),
+		);
 	}
 }

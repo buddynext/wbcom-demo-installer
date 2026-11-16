@@ -95,7 +95,7 @@ final class LearnDash extends Provider {
 				$topics += count( $section[1] );
 			}
 		}
-		$plan  = array(
+		$plan = array(
 			'course'     => array( count( $c['courses'] ), 'sample', __( 'courses', 'wbcom-demo-installer' ) ),
 			'lesson'     => array( $lessons, 'sample', __( 'lessons', 'wbcom-demo-installer' ) ),
 			'topic'      => array( $topics, 'sample', __( 'topics', 'wbcom-demo-installer' ) ),
@@ -327,9 +327,9 @@ final class LearnDash extends Provider {
 				$total = 0;
 				$plan  = array();
 				foreach ( $lessons as $lesson ) {
-					$topics             = (array) learndash_get_topic_list( $lesson->ID, $course_id );
+					$topics              = (array) learndash_get_topic_list( $lesson->ID, $course_id );
 					$plan[ $lesson->ID ] = $topics;
-					$total             += max( 1, count( $topics ) );
+					$total              += max( 1, count( $topics ) );
 				}
 				$left = (int) floor( $total * $share );
 				foreach ( $plan as $lesson_id => $topics ) {

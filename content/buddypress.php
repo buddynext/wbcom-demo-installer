@@ -22,6 +22,16 @@ return array(
 	'photos'   => $wbcom_demo_bn['photos'],
 	'links'    => $wbcom_demo_bn['links'],
 	'comments' => $wbcom_demo_bn['comments'],
+	'home'     => array(
+		'title'   => 'A community that knows each other',
+		'text'    => 'Members share updates and photos, join groups around what they love and keep up with each other in one feed.',
+		'image'   => 'photos/festival-friends.jpg',
+		'join'    => 'Join the conversation',
+		'groups'  => 'All groups',
+		'closing' => 'Come and say hello. The community is waiting.',
+		'people'  => array( 'Meet the members', 'Members share tips, plan meetups and join groups around what they love.' ),
+		'popular' => 'Popular groups',
+	),
 	'guide'    => array(
 		'tab'          => 'Community',
 		'member_label' => 'As a member',
