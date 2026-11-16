@@ -31,6 +31,7 @@ return array(
 		'closing' => 'Come and say hello. The community is waiting.',
 		'people'  => array( 'Meet the members', 'Members share tips, plan meetups and join groups around what they love.' ),
 		'popular' => 'Popular groups',
+		'feed'    => 'What members are sharing',
 	),
 	'guide'    => array(
 		'tab'          => 'Community',

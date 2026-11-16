@@ -895,9 +895,40 @@ final class BuddyPress extends Provider {
 			$people[] = array( (string) ( $ctx->profile( $id )['name'] ?? get_the_author_meta( 'display_name', $id ) ), $url, $photo );
 		}
 		$activity = function_exists( 'bp_get_activity_directory_permalink' ) && bp_is_active( 'activity' ) ? (string) bp_get_activity_directory_permalink() : '';
-		$section  = Blocks::heading( (string) $h['people'][0] ) . Blocks::paragraph( (string) $h['people'][1] ) . Blocks::people( $people );
-		$stats    = array( array( count( $ctx->people() ), __( 'members', 'wbcom-demo-installer' ) ) );
-		$buttons  = $activity ? array( array( (string) $h['join'], $activity ) ) : array();
+		// Wbcom Essential's member, feed and group blocks when it is active (server-rendered, live, editable in the
+		// editor); core blocks otherwise.
+		$essential = Blocks::has( 'wbcom-essential/members-grid' );
+		$look      = array(
+			'cardBg'      => 'transparent',
+			'accentColor' => 'var(--reign-colors-theme, var(--wp--preset--color--primary, #2563eb))',
+		);
+		$section   = Blocks::heading( (string) $h['people'][0] ) . Blocks::paragraph( (string) $h['people'][1] )
+			. ( $essential
+				? Blocks::dynamic(
+					'wbcom-essential/members-grid',
+					array(
+						'uniqueId'      => 'wdihomemembers',
+						'totalMembers'  => 8,
+						'columns'       => 4,
+						'columnsTablet' => 4,
+						'columnsMobile' => 2,
+						'sortType'      => 'newest', // The sample people; 'active' would lead with the site's own admin.
+						'cardBg'        => $look['cardBg'],
+					)
+				)
+				: Blocks::people( $people ) );
+		if ( $essential && $activity && Blocks::has( 'wbcom-essential/activity-feed' ) ) {
+			$section .= Blocks::heading( (string) $h['feed'], 3 ) . Blocks::dynamic(
+				'wbcom-essential/activity-feed',
+				array(
+					'uniqueId'        => 'wdihomefeed',
+					'totalActivities' => 4,
+					'activityType'    => 'activity_update',
+				) + $look
+			);
+		}
+		$stats   = array( array( count( $ctx->people() ), __( 'members', 'wbcom-demo-installer' ) ) );
+		$buttons = $activity ? array( array( (string) $h['join'], $activity ) ) : array();
 		if ( function_exists( 'groups_get_groups' ) && bp_is_active( 'groups' ) ) {
 			$groups = groups_get_groups(
 				array(
@@ -906,6 +937,20 @@ final class BuddyPress extends Provider {
 				)
 			);
 			$cards  = array();
+			if ( $essential && Blocks::has( 'wbcom-essential/groups-grid' ) ) {
+				$groups['groups'] = array(); // Essential lists them itself.
+				$section         .= Blocks::heading( (string) $h['popular'], 3 ) . Blocks::dynamic(
+					'wbcom-essential/groups-grid',
+					array(
+						'uniqueId'      => 'wdihomegroups',
+						'totalGroups'   => 3,
+						'columns'       => 3,
+						'columnsMobile' => 1,
+						'sortType'      => 'popular',
+						'cardBg'        => $look['cardBg'],
+					)
+				);
+			}
 			foreach ( (array) ( $groups['groups'] ?? array() ) as $g ) {
 				$link    = function_exists( 'bp_get_group_url' ) ? (string) bp_get_group_url( $g ) : (string) bp_get_group_permalink( $g );
 				$cards[] = Blocks::link_heading( (string) $g->name, $link, 3 ) . Blocks::paragraph( wp_strip_all_tags( (string) $g->description ) );

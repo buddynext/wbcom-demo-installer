@@ -156,7 +156,8 @@
 			// A Reign add-on's owner came for that add-on: its plugin is ticked and the community set stays their choice.
 			const community = products().some( ( p ) => [ 'buddypress', 'peepso' ].includes( p.id ) );
 			const addon = cat.some( ( c ) => ( c.needed_by || [] ).length && 'active' !== c.state );
-			S.pick = new Set( cat.filter( ( c ) => 'active' !== c.state && c.can && ( ( c.core && ! community && ! addon ) || ( c.needed_by || [] ).length ) ).map( ( c ) => c.id ) );
+			// Wbcom Essential is always ticked: its blocks make the designed home page and the regular pages.
+			S.pick = new Set( cat.filter( ( c ) => 'active' !== c.state && c.can && ( 'pages' === c.id || ( c.core && ! community && ! addon ) || ( c.needed_by || [] ).length ) ).map( ( c ) => c.id ) );
 		}
 		const busy = Object.values( S.installing ).includes( 'busy' );
 		const label = { active: __( 'Active', 'wbcom-demo-installer' ), inactive: __( 'Installed, not active', 'wbcom-demo-installer' ), not_installed: __( 'Not installed', 'wbcom-demo-installer' ) };
@@ -175,7 +176,7 @@
 				: ( c.community
 					? sprintf( /* translators: %s: Reign add-on names. */ __( 'Free from WordPress.org. Gives %s its members: profiles, groups and an activity feed.', 'wbcom-demo-installer' ), needs )
 					: sprintf( /* translators: %s: Reign add-on names. */ __( 'Free from WordPress.org. Needed by %s.', 'wbcom-demo-installer' ), needs ) ) );
-			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', c.pro && 'not_installed' !== c.state ? pro[ c.pro ] : '', source, ! c.can && ! c.url && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
+			const note = [ 'theme' === c.type && 'active' !== c.state ? __( 'Free theme. Switches your theme; Finish demo does not switch it back.', 'wbcom-demo-installer' ) : '', 'pages' === c.id && 'active' !== c.state ? __( 'Free. Its blocks build your home page and the About, Blog and FAQ pages, and you edit them like any block.', 'wbcom-demo-installer' ) : '', c.pro && 'not_installed' !== c.state ? pro[ c.pro ] : '', source, ! c.can && ! c.url && 'active' !== c.state ? __( 'Your account or this site does not allow installing here.', 'wbcom-demo-installer' ) : '', st && ! [ 'busy', 'done' ].includes( st ) ? st : '' ].filter( Boolean );
 			return `<li>${ box }<div>${ esc( c.label ) }${ note.map( ( n ) => `<small${ n === st ? ' class="wdi-install__error" role="alert"' : '' }>${ esc( n ) }</small>` ).join( '' ) }</div>${ badge }</li>`;
 		};
 		const group = ( title, rows ) => rows.length ? `${ title ? `<h2 class="wdi-install__title">${ esc( title ) }</h2>` : '' }<ul class="wdi-checks">${ rows.map( row ).join( '' ) }</ul>` : '';

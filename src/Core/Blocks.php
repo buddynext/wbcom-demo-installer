@@ -127,6 +127,26 @@ final class Blocks {
 	}
 
 	/**
+	 * A server-rendered block (a product's own, or Wbcom Essential's): only its name and settings are saved, so it is
+	 * valid in the editor whatever the block's code does later.
+	 *
+	 * @param string              $name  Block name.
+	 * @param array<string,mixed> $attrs Settings.
+	 */
+	public static function dynamic( string $name, array $attrs = array() ): string {
+		return '<!-- wp:' . $name . ( $attrs ? ' ' . wp_json_encode( $attrs ) : '' ) . ' /-->';
+	}
+
+	/**
+	 * Whether a block is registered on this site (a Wbcom Essential block when that plugin is active).
+	 *
+	 * @param string $name Block name.
+	 */
+	public static function has( string $name ): bool {
+		return \WP_Block_Type_Registry::get_instance()->is_registered( $name );
+	}
+
+	/**
 	 * Core group block holding one page section, spaced from the next. Spacing only: no colours, so the theme's
 	 * light and dark modes both read.
 	 *
