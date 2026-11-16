@@ -290,7 +290,7 @@ html, body { margin: 0; }
 .wdi-demos { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--wdi-space-md); margin-block-end: var(--wdi-space-lg); }
 .wdi-demo { display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--wdi-border); border-radius: var(--wdi-r-md); background: var(--wdi-surface); overflow: hidden; font-size: 13.5px; }
 .wdi-demo.is-on { border-color: var(--wdi-accent); box-shadow: inset 0 0 0 1px var(--wdi-accent); }
-.wdi-demo__img { display: block; inline-size: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; background: var(--wdi-bg); border-block-end: 1px solid var(--wdi-border); }
+.wdi-demo__img { display: block; inline-size: 100%; block-size: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; background: var(--wdi-bg); border-block-end: 1px solid var(--wdi-border); }
 .wdi-demo__img--none { display: grid; place-items: center; color: var(--wdi-text-2); }
 .wdi-demo__body { display: grid; align-content: start; gap: var(--wdi-space-sm); padding: var(--wdi-space-md); flex: 1; }
 .wdi-demo__body b { font-size: 14px; }
