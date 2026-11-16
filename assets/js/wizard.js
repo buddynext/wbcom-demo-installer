@@ -213,6 +213,15 @@
 			} catch ( e ) {}
 			render();
 		}
+		// Some plugins finish their first-run setup (tables, roles, pages) only on a wp-admin page load, which the
+		// wizard's REST calls never make: load this page once in the background, then read the site again.
+		if ( todo.length ) {
+			try {
+				await fetch( window.location.href, { credentials: 'same-origin' } );
+				const res = await api( '/site' );
+				S.site = res.site;
+			} catch ( e ) {}
+		}
 		S.recipe = '';
 		route();
 		if ( S.wantRecipe && S.site.recipes[ S.wantRecipe ] ) {

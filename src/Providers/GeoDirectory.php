@@ -133,6 +133,7 @@ final class GeoDirectory extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
+		self::ensure_installed();
 		$c     = $this->content();
 		$plan  = array(
 			'place'      => array( count( $c['places'] ), 'sample', __( 'places', 'wbcom-demo-installer' ) ),
@@ -251,6 +252,7 @@ final class GeoDirectory extends Provider {
 	 * @param Context $ctx  See parent.
 	 */
 	public function run( string $step, Context $ctx ): void {
+		self::ensure_installed();
 		list( $name, $offset ) = array_pad( explode( ':', $step, 2 ), 2, '0' );
 		match ( $name ) {
 			'setup'   => $this->setup( $ctx ),
@@ -258,6 +260,23 @@ final class GeoDirectory extends Provider {
 			'reviews' => $this->reviews( $ctx ),
 			default   => null,
 		};
+	}
+
+	/**
+	 * GeoDirectory creates its tables, default fields and pages only on a wp-admin or WP-CLI request after it is
+	 * activated. Installed from the wizard and built over REST, no such request comes between, so its tables do not
+	 * exist yet; run GeoDirectory's own installer first, as its first admin page load would.
+	 */
+	private static function ensure_installed(): void {
+		if ( ! defined( 'GEODIRECTORY_VERSION' ) || GEODIRECTORY_VERSION === get_option( 'geodirectory_version' ) ) {
+			return;
+		}
+		if ( ! class_exists( 'GeoDir_Admin_Install' ) && defined( 'GEODIRECTORY_PLUGIN_DIR' ) && is_readable( GEODIRECTORY_PLUGIN_DIR . 'includes/admin/class-geodir-admin-install.php' ) ) {
+			require_once GEODIRECTORY_PLUGIN_DIR . 'includes/admin/class-geodir-admin-install.php';
+		}
+		if ( class_exists( 'GeoDir_Admin_Install' ) ) {
+			\GeoDir_Admin_Install::install();
+		}
 	}
 
 	/**
