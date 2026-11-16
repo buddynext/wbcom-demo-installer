@@ -157,7 +157,9 @@ final class BuddyPress extends Provider {
 	 */
 	public function settings(): array {
 		$off = $this->components_off();
-		return $off ? array( 'bp-active-components' => array_fill_keys( $off, '1' ) ) : array();
+		// Visitors see the site, not BuddyPress's "Log In" toolbar across the top (restored by Remove everything).
+		$out = array( 'hide-loggedout-adminbar' => '1' );
+		return $off ? array( 'bp-active-components' => array_fill_keys( $off, '1' ) ) + $out : $out;
 	}
 
 	/**
