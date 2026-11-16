@@ -14,8 +14,7 @@ remove the samples and keep their setup.
 Supports the Wbcom product family (BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board,
 WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and their Pro add-ons) with the BuddyX, BuddyX Pro and Reign themes.
 Third-party plugins are added one at a time: BuddyPress or BuddyBoss Platform (member photos, groups, friendships and
-a feed), PeepSo (stream posts), WooCommerce (a store with products, photos, sale prices and reviews) , LearnDash
-(courses with lessons, topics and students part way through), Tutor LMS (courses with topics, lessons, ratings and
+a feed), PeepSo (stream posts), WooCommerce (a store with products, photos, sale prices and reviews), LearnDash
 (courses with lessons, topics and students part way through), Tutor LMS (courses with topics, lessons, ratings and
 students part way through), LifterLMS (courses with sections, lessons, access plans, reviews and students part way
 through), Dokan, WCFM Marketplace and WC Vendors (stores selling the sample products), WP Job Manager (job listings with
