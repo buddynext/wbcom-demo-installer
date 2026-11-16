@@ -73,13 +73,27 @@ final class Installer {
 		// The plugin each Reign add-on is built for, offered only while that add-on is active (the pair rule: our
 		// add-on plus its plugin). Free from WordPress.org, except LearnDash. Listed in install order: WooCommerce
 		// before the marketplaces, WCFM's Frontend Manager before WCFM Marketplace.
-		$addon    = static fn( string $label, string $basename, string $wporg, array $addons ): array => array(
+		$addon = static fn( string $label, string $basename, string $wporg, array $addons ): array => array(
 			'label'    => $label,
 			'type'     => 'plugin',
 			'basename' => $basename,
 			'wporg'    => $wporg,
 			'for'      => $addons,
 		);
+		// Public repositories: the latest release zip comes straight from GitHub (always the newest release); the
+		// store's free channel stays the fallback, and the only source for private repositories.
+		foreach ( array(
+			'mediaverse'   => 'vapvarun/wpmediaverse',
+			'jetonomy'     => 'vapvarun/jetonomy',
+			'careerboard'  => 'vapvarun/wp-career-board',
+			'listora'      => 'wbcomdesigns/wb-listora',
+			'sellservices' => 'vapvarun/wp-sell-services',
+			'mediashield'  => 'vapvarun/mediashield',
+			'gamification' => 'vapvarun/wb-gamification',
+			'pages'        => 'vapvarun/wbcom-essential',
+		) as $id => $repo ) {
+			$catalog[ $id ]['github'] = $repo;
+		}
 		$catalog += array(
 			// The member side of a Reign add-on (places, courses, orders in profiles and activity). Offered only while
 			// the site has no community plugin; see overview().
@@ -165,7 +179,8 @@ final class Installer {
 				'type'      => (string) $entry['type'],
 				'core'      => in_array( $id, self::CORE, true ),
 				'state'     => $state,
-				'can'       => ! ( $manual && 'not_installed' === $state ) && self::allowed( 'not_installed' === $state ? 'install' : 'activate', (string) $entry['type'] ),
+				'can'       => ! ( $manual && 'not_installed' === $state ) && self::allowed( in_array( $state, array( 'not_installed', 'outdated' ), true ) ? 'install' : 'activate', (string) $entry['type'] ),
+				'version'   => 'outdated' === $state ? (string) Registry::get( (string) $id )?->version() : '',
 				'pro'       => '' === $pro_file ? '' : ( isset( $plugins[ $pro_file ] ) ? ( is_plugin_active( $pro_file ) ? 'active' : 'inactive' ) : 'not_installed' ),
 				'needed_by' => $needed_by,
 				'community' => ! empty( $entry['community'] ),
@@ -192,7 +207,10 @@ final class Installer {
 		if ( 'active' === $state ) {
 			return true;
 		}
-		$action = 'not_installed' === $state ? 'install' : 'activate';
+		$action = array(
+			'not_installed' => 'install',
+			'outdated'      => 'update',
+		)[ $state ] ?? 'activate';
 		if ( 'install' === $action && ! isset( $entry['wporg'] ) && ! isset( $entry['item_id'] ) ) {
 			return new \WP_Error(
 				'wbcom_demo_manual_product',
@@ -201,7 +219,7 @@ final class Installer {
 				array( 'status' => 400 )
 			);
 		}
-		if ( ! self::allowed( $action, (string) $entry['type'] ) ) {
+		if ( ! self::allowed( 'activate' === $action ? 'activate' : 'install', (string) $entry['type'] ) ) {
 			return new \WP_Error(
 				'wbcom_demo_cannot_install',
 				! wp_is_file_mod_allowed( 'wbcom_demo_install' )
@@ -210,12 +228,13 @@ final class Installer {
 				array( 'status' => 403 )
 			);
 		}
-		if ( 'install' === $action ) {
-			$package = isset( $entry['wporg'] ) ? self::wporg_package( (string) $entry['wporg'], (string) $entry['type'] ) : self::store_package( (int) $entry['item_id'], (string) $entry['key'] );
+		if ( 'activate' !== $action ) {
+			$package = self::package( $entry );
 			if ( is_wp_error( $package ) ) {
 				return $package;
 			}
-			$installed = self::unpack( $package, (string) $entry['type'] );
+			// An update replaces the older copy in place; the plugin stays active and keeps its settings.
+			$installed = self::unpack( $package, (string) $entry['type'], 'update' === $action );
 			if ( is_wp_error( $installed ) ) {
 				return $installed;
 			}
@@ -255,7 +274,52 @@ final class Installer {
 			$provider = Registry::get( $id );
 			return $provider && $provider->available() ? 'active' : 'not_installed';
 		}
+		$provider = Registry::get( $id );
+		if ( $provider && $provider->available() && ! $provider->supported() && ( isset( $entry['github'] ) || isset( $entry['item_id'] ) || isset( $entry['wporg'] ) ) ) {
+			return 'outdated'; // Older than the demo needs: the site check updates it to the latest release.
+		}
 		return is_plugin_active( $file ) ? 'active' : 'inactive';
+	}
+
+	/**
+	 * Where a product's latest release comes from: GitHub for a public repository, else the store or WordPress.org.
+	 *
+	 * @param array<string,mixed> $entry Catalog entry.
+	 * @return string|\WP_Error Package URL.
+	 */
+	private static function package( array $entry ) {
+		if ( isset( $entry['github'] ) ) {
+			$url = self::github_package( (string) $entry['github'], dirname( (string) $entry['basename'] ) );
+			if ( ! is_wp_error( $url ) || ! isset( $entry['item_id'] ) ) {
+				return $url;
+			}
+		}
+		return isset( $entry['wporg'] ) ? self::wporg_package( (string) $entry['wporg'], (string) $entry['type'] ) : self::store_package( (int) $entry['item_id'], (string) $entry['key'] );
+	}
+
+	/**
+	 * The plugin zip attached to a public repository's latest GitHub release.
+	 *
+	 * @param string $repo   owner/name.
+	 * @param string $folder Plugin folder, which starts the zip's name.
+	 * @return string|\WP_Error
+	 */
+	private static function github_package( string $repo, string $folder ) {
+		$res  = wp_remote_get(
+			'https://api.github.com/repos/' . $repo . '/releases/latest',
+			array(
+				'timeout' => 20,
+				'headers' => array( 'Accept' => 'application/vnd.github+json' ),
+			)
+		);
+		$body = json_decode( (string) wp_remote_retrieve_body( $res ), true );
+		foreach ( (array) ( is_array( $body ) ? ( $body['assets'] ?? array() ) : array() ) as $asset ) {
+			$name = (string) ( $asset['name'] ?? '' );
+			if ( str_starts_with( $name, $folder . '-' ) && str_ends_with( $name, '.zip' ) ) {
+				return self::trusted( (string) ( $asset['browser_download_url'] ?? '' ), 'github.com' );
+			}
+		}
+		return new \WP_Error( 'wbcom_demo_github', __( 'The latest release could not be found on GitHub.', 'wbcom-demo-installer' ) );
 	}
 
 	/**
@@ -378,9 +442,10 @@ final class Installer {
 	 *
 	 * @param string $package Package URL.
 	 * @param string $type    'plugin' or 'theme'.
+	 * @param bool   $replace Replace an installed older copy.
 	 * @return true|\WP_Error
 	 */
-	private static function unpack( string $package, string $type ) {
+	private static function unpack( string $package, string $type, bool $replace = false ) {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -389,7 +454,7 @@ final class Installer {
 		}
 		$skin     = new \WP_Ajax_Upgrader_Skin();
 		$upgrader = 'theme' === $type ? new \Theme_Upgrader( $skin ) : new \Plugin_Upgrader( $skin );
-		$result   = $upgrader->install( $package );
+		$result   = $upgrader->install( $package, array( 'overwrite_package' => $replace ) );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
