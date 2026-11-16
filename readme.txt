@@ -99,6 +99,8 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * Fix      - Every sample forum discussion has replies that answer it, and tags that fit it.
 * Fix      - BuddyPress replies show real mentions instead of placeholder text.
 * Fix      - Review counts spaces and sub-spaces together, as the spaces directory shows them.
+* Fix      - Remove everything leaves a WooCommerce store exactly as it was: no Cart page revision, no store-is-live note, and a fresh site stays marked fresh.
+* Fix      - Learnomy in-app notifications from the demo go to sample people only, never the site's admin.
 * Fix      - Remove everything no longer leaves sample groups behind on a fresh BuddyPress site.
 * Fix      - A plugin the wizard installs that finishes its own setup only on an admin page, such as GeoDirectory, now builds its demo without errors.
 * Fix      - Remove everything puts back settings that other plugins also change, such as GeoDirectory's and the theme's menu locations, instead of reporting them as kept.
@@ -108,6 +110,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * Security - Learnomy sample settings never switch a site in live payment mode to the test gateway.
 * Dev      - WP-CLI commands ideas, install and adopt, plus build --add, --describe, --idea, --name and --tagline.
 * Dev      - REST routes POST /ideas and POST /add, and the provider methods full_width_archives(), settings(), home(), offers_home() and community().
+* Compat   - Ships with Wbcom Essential 4.7.2 and Reign 8.1.0. Install both updates together.
 
 = 1.0.0 - November 2026 =
 
