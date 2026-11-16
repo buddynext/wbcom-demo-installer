@@ -107,6 +107,7 @@ final class Registry {
 			Providers\WooSellServices::class,
 			Providers\Gamification::class,
 			Providers\MediaShield::class,
+			Providers\WooCommerce::class,
 			Providers\Roadmap::class,
 			Providers\Pages::class,
 			Providers\Theme::class,

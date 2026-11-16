@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-11T07:20:47+00:00\n"
+"POT-Creation-Date: 2026-11-16T04:02:17+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -136,37 +136,45 @@ msgid_plural "%d comments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Core/Engine.php:216
+#: src/Core/Engine.php:217
 msgid "A demo is already on this site. Finish it before building another."
 msgstr ""
 
 #. translators: %s: what the site already has, e.g. "3 other members, 12 blog posts".
-#: src/Core/Engine.php:223
+#: src/Core/Engine.php:224
 #, php-format
 msgid "This site already has %s. The demo is made for a fresh site; confirm that you want sample content added here."
 msgstr ""
 
-#: src/Core/Engine.php:228
+#: src/Core/Engine.php:229
 msgid "Choose one of the starting points shown on this site."
 msgstr ""
 
-#: src/Core/Engine.php:233
+#: src/Core/Engine.php:234
 msgid "Choose at least one product."
 msgstr ""
 
+#: src/Core/Engine.php:303
+msgid "There is no finished demo to add to. Build one first."
+msgstr ""
+
+#: src/Core/Engine.php:309
+msgid "Every product named is already in the demo or not available here."
+msgstr ""
+
 #. translators: %s: product name.
-#: src/Core/Engine.php:379
+#: src/Core/Engine.php:427
 #, php-format
 msgid "%s: a step stopped the request twice (often the PHP memory limit), so the rest of this product was skipped."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:440
+#: src/Core/Engine.php:492
 #, php-format
 msgid "the text for %s"
 msgstr ""
 
-#: src/Core/Engine.php:460
+#: src/Core/Engine.php:512
 msgid "sample content"
 msgstr ""
 
@@ -181,6 +189,102 @@ msgstr ""
 
 #: src/Core/Finisher.php:265
 msgid "Remove the sample content first. Only settings, pages, menus and categories can be kept as yours."
+msgstr ""
+
+#: src/Core/Guide.php:57
+#: assets/js/tour-block.js:8
+msgid "Demo tour"
+msgstr ""
+
+#: src/Core/Guide.php:280
+msgid "Site owner"
+msgstr ""
+
+#: src/Core/Guide.php:281
+msgid "Runs the site"
+msgstr ""
+
+#: src/Core/Guide.php:307
+msgid "Pick who you want to be"
+msgstr ""
+
+#: src/Core/Guide.php:308
+msgid "One click puts you in that person's account, with their content, activity and messages already in place."
+msgstr ""
+
+#: src/Core/Guide.php:318
+msgid "Start the tour"
+msgstr ""
+
+#: src/Core/Guide.php:321
+msgid "Open the dashboard"
+msgstr ""
+
+#. translators: %s: person's first name
+#: src/Core/Guide.php:325
+#, php-format
+msgid "Explore as %s"
+msgstr ""
+
+#: src/Core/Guide.php:337
+msgid "You are here"
+msgstr ""
+
+#: src/Core/Guide.php:356
+msgid "Every one of these accounts is ready in your own copy"
+msgstr ""
+
+#: src/Core/Guide.php:357
+msgid "Your private demo opens in about a minute, signed in as the site owner. Nothing is charged."
+msgstr ""
+
+#: src/Core/Guide.php:359
+msgid "Launch your free demo"
+msgstr ""
+
+#: src/Core/Guide.php:377
+#: src/Core/Guide.php:379
+msgid "Guided tour"
+msgstr ""
+
+#: src/Core/Guide.php:378
+msgid "Each step opens the right screen as the right person, so you can follow the whole story in a few minutes."
+msgstr ""
+
+#: src/Core/Guide.php:437
+msgid "As a member"
+msgstr ""
+
+#: src/Core/Guide.php:451
+msgid "As the owner"
+msgstr ""
+
+#. translators: %d: step number
+#: src/Core/Guide.php:483
+#, php-format
+msgid "Step %d"
+msgstr ""
+
+#: src/Core/Guide.php:488
+msgid "Open"
+msgstr ""
+
+#: src/Core/Guide.php:513
+msgid "Everything in this demo"
+msgstr ""
+
+#: src/Core/Guide.php:514
+msgid "Each part is its own plugin, and they work together on one site."
+msgstr ""
+
+#. translators: %s: product name
+#: src/Core/Guide.php:517
+#, php-format
+msgid "What comes with %s"
+msgstr ""
+
+#: src/Core/Guide.php:518
+msgid "Everything you clicked through above ships in the plugin."
 msgstr ""
 
 #: src/Core/Installer.php:118
@@ -230,6 +334,7 @@ msgid "The download could not be installed."
 msgstr ""
 
 #: src/Core/Recipes.php:27
+#: src/Providers/BuddyPress.php:828
 msgid "Community"
 msgstr ""
 
@@ -262,7 +367,7 @@ msgid "Employers, jobs and candidate profiles"
 msgstr ""
 
 #: src/Core/Recipes.php:51
-#: src/Providers/Listora.php:338
+#: src/Providers/Listora.php:417
 msgid "Directory"
 msgstr ""
 
@@ -288,7 +393,7 @@ msgstr ""
 
 #: src/Providers/BuddyNext.php:78
 #: src/Providers/CareerBoard.php:84
-#: src/Providers/Eventonomy.php:83
+#: src/Providers/Eventonomy.php:93
 #: src/Providers/Jetonomy.php:77
 #: src/Providers/Learnomy.php:81
 #: src/Providers/Listora.php:84
@@ -335,16 +440,36 @@ msgstr ""
 msgid "hashtags"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:920
+#: src/Providers/BuddyNext.php:985
 msgid "Activity"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:921
+#: src/Providers/BuddyNext.php:986
 msgid "Members"
 msgstr ""
 
-#: src/Providers/BuddyNext.php:922
+#: src/Providers/BuddyNext.php:987
 msgid "Spaces"
+msgstr ""
+
+#: src/Providers/BuddyPress.php:125
+msgid "Member photos, groups, friendships and a feed of updates, photos, links and comments"
+msgstr ""
+
+#: src/Providers/BuddyPress.php:203
+msgid "member photos"
+msgstr ""
+
+#: src/Providers/BuddyPress.php:204
+msgid "feed updates and comments"
+msgstr ""
+
+#: src/Providers/BuddyPress.php:207
+msgid "groups"
+msgstr ""
+
+#: src/Providers/BuddyPress.php:210
+msgid "friendships"
 msgstr ""
 
 #. translators: 1: companies, 2: jobs
@@ -377,53 +502,53 @@ msgstr ""
 msgid "resume files"
 msgstr ""
 
-#: src/Providers/CareerBoard.php:366
+#: src/Providers/CareerBoard.php:430
 msgid "Jobs"
 msgstr ""
 
 #. translators: 1: upcoming events, 2: past events
-#: src/Providers/Eventonomy.php:93
+#: src/Providers/Eventonomy.php:103
 #, php-format
 msgid "%1$d upcoming and %2$d past events, online and in person, with venues, organizers and RSVPs"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:131
+#: src/Providers/Eventonomy.php:141
 msgid "event categories"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:132
+#: src/Providers/Eventonomy.php:142
 msgid "venues"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:133
+#: src/Providers/Eventonomy.php:143
 msgid "organizers"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:134
+#: src/Providers/Eventonomy.php:144
 msgid "events"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:135
+#: src/Providers/Eventonomy.php:145
 msgid "event images"
 msgstr ""
 
-#: src/Providers/Eventonomy.php:309
+#: src/Providers/Eventonomy.php:378
 msgid "Events"
 msgstr ""
 
-#: src/Providers/Gamification.php:83
+#: src/Providers/Gamification.php:92
 msgid "Points history, levels, earned badges and kudos between the sample people, so the leaderboard and profiles have a real spread"
 msgstr ""
 
-#: src/Providers/Gamification.php:120
+#: src/Providers/Gamification.php:129
 msgid "points histories"
 msgstr ""
 
-#: src/Providers/Gamification.php:121
+#: src/Providers/Gamification.php:130
 msgid "badge sets"
 msgstr ""
 
-#: src/Providers/Gamification.php:221
+#: src/Providers/Gamification.php:280
 msgid "Leaderboard"
 msgstr ""
 
@@ -449,7 +574,7 @@ msgstr ""
 msgid "discussions"
 msgstr ""
 
-#: src/Providers/Jetonomy.php:420
+#: src/Providers/Jetonomy.php:490
 msgid "Forums"
 msgstr ""
 
@@ -479,7 +604,7 @@ msgstr ""
 msgid "course images"
 msgstr ""
 
-#: src/Providers/Learnomy.php:406
+#: src/Providers/Learnomy.php:497
 msgid "Courses"
 msgstr ""
 
@@ -557,7 +682,7 @@ msgstr ""
 msgid "Dishes worth travelling for."
 msgstr ""
 
-#: src/Providers/MediaVerse.php:346
+#: src/Providers/MediaVerse.php:407
 msgid "Media"
 msgstr ""
 
@@ -595,20 +720,44 @@ msgstr ""
 msgid "Latest posts"
 msgstr ""
 
-#: src/Providers/People.php:62
+#: src/Providers/PeepSo.php:88
+msgid "A stream of member posts and link shares, with comments and reactions"
+msgstr ""
+
+#: src/Providers/PeepSo.php:118
+msgid "PeepSo member profiles"
+msgstr ""
+
+#: src/Providers/PeepSo.php:119
+msgid "stream posts"
+msgstr ""
+
+#: src/Providers/PeepSo.php:120
+msgid "comments"
+msgstr ""
+
+#: src/Providers/PeepSo.php:121
+msgid "posts with reactions"
+msgstr ""
+
+#: src/Providers/People.php:112
 msgid "Sample people"
 msgstr ""
 
-#: src/Providers/People.php:83
+#: src/Providers/People.php:133
 msgid "One cast of 20 people shared by every product."
 msgstr ""
 
-#: src/Providers/People.php:97
+#: src/Providers/People.php:147
 #: assets/js/wizard.js:70
 msgid "sample people"
 msgstr ""
 
-#: src/Providers/People.php:212
+#: src/Providers/People.php:150
+msgid "profile photos"
+msgstr ""
+
+#: src/Providers/People.php:280
 msgid "Sample people are still on the site."
 msgstr ""
 
@@ -641,54 +790,101 @@ msgstr ""
 msgid "%d services from sample freelancers with packages, completed orders from buyers and reviews"
 msgstr ""
 
-#: src/Providers/SellServices.php:110
+#: src/Providers/SellServices.php:116
 msgid "service categories"
 msgstr ""
 
-#: src/Providers/SellServices.php:111
+#: src/Providers/SellServices.php:117
 msgid "services"
 msgstr ""
 
-#: src/Providers/SellServices.php:112
+#: src/Providers/SellServices.php:118
 msgid "orders"
 msgstr ""
 
-#: src/Providers/SellServices.php:113
+#: src/Providers/SellServices.php:119
 msgid "service images"
 msgstr ""
 
-#: src/Providers/SellServices.php:338
+#: src/Providers/SellServices.php:439
 msgid "Services"
 msgstr ""
 
-#: src/Providers/Theme.php:48
+#: src/Providers/Theme.php:50
 msgid "Logo, home page and menu"
 msgstr ""
 
-#: src/Providers/Theme.php:67
+#: src/Providers/Theme.php:69
 msgid "Block theme"
 msgstr ""
 
-#: src/Providers/Theme.php:68
+#: src/Providers/Theme.php:70
 msgid "Classic theme"
 msgstr ""
 
-#: src/Providers/Theme.php:79
+#: src/Providers/Theme.php:81
 msgid "logo and site icon"
 msgstr ""
 
-#: src/Providers/Theme.php:80
+#: src/Providers/Theme.php:82
 msgid "menu"
 msgstr ""
 
-#: src/Providers/Theme.php:168
+#: src/Providers/Theme.php:83
+msgid "Try the demo page"
+msgstr ""
+
+#: src/Providers/Theme.php:199
+#: src/Providers/Theme.php:263
+msgid "Try the demo"
+msgstr ""
+
+#: src/Providers/Theme.php:240
 msgid "Demo menu"
 msgstr ""
 
 #. translators: %d: number
-#: src/Providers/Theme.php:172
+#: src/Providers/Theme.php:244
 #, php-format
 msgid "Demo menu %d"
+msgstr ""
+
+#. translators: 1: products, 2: categories
+#: src/Providers/WooCommerce.php:83
+#, php-format
+msgid "A store with %1$d products in %2$d categories, sale prices, stock and reviews"
+msgstr ""
+
+#: src/Providers/WooCommerce.php:113
+msgid "products"
+msgstr ""
+
+#: src/Providers/WooCommerce.php:114
+msgid "product photos"
+msgstr ""
+
+#: src/Providers/WooCommerce.php:115
+msgid "reviews"
+msgstr ""
+
+#: src/Providers/WooCommerce.php:119
+msgid "product categories"
+msgstr ""
+
+#: src/Providers/WooCommerce.php:204
+msgid "WooCommerce did not save it."
+msgstr ""
+
+#: src/Providers/WooCommerce.php:302
+msgid "Shop"
+msgstr ""
+
+#: src/Providers/WooSellServices.php:31
+msgid "Woo Sell Services"
+msgstr ""
+
+#: src/Providers/WooSellServices.php:52
+msgid "A guided tour of the services, orders and conversations already on this site"
 msgstr ""
 
 #: assets/js/wizard.js:42
