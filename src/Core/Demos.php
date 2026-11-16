@@ -281,7 +281,8 @@ final class Demos {
 	 */
 	private static function active_community(): string {
 		foreach ( self::COMMUNITY as $id ) {
-			if ( 'active' === Installer::status( $id )['state'] ) {
+			// Outdated is active too (older than the demo needs; the card updates it), never "no community plugin".
+			if ( in_array( Installer::status( $id )['state'], array( 'active', 'outdated' ), true ) ) {
 				return $id;
 			}
 		}
