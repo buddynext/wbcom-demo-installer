@@ -20,8 +20,77 @@ $wbcom_demo_ours = array( 'learnomy', 'eventonomy', 'jetonomy', 'careerboard' );
 $wbcom_demo_bn   = array( 'buddynext', 'mediaverse', 'jetonomy', 'eventonomy', 'gamification', 'careerboard' );
 
 return array(
+	// Our products, one per purpose. Shown first on any theme; a third-party demo for the same purpose takes the
+	// place only when the site already has that plugin or its Reign add-on. "members" is the community plugin the
+	// site runs, else BuddyNext with WPMediaVerse, Jetonomy and WB Gamification.
+	'community'                 => array(
+		'group'    => 'ours',
+		'purpose'  => 'community',
+		'theme'    => '*',
+		'name'     => 'BuddyNext community',
+		'desc'     => 'Members, spaces, a feed with photos and video, forums, a roadmap and points.',
+		'requires' => array( 'buddynext', 'mediaverse', 'jetonomy', 'roadmap', 'gamification', 'pages' ),
+		'preview'  => 'https://buddynext.instawp.link/',
+	),
+	'learning'                  => array(
+		'group'    => 'ours',
+		'purpose'  => 'learning',
+		'theme'    => '*',
+		'name'     => 'Learnomy courses',
+		'desc'     => 'Courses with lessons, instructors and students making progress, inside a member community.',
+		'requires' => array( 'members', 'learnomy', 'mediashield', 'pages' ),
+		'preview'  => 'https://learnomy.instawp.co/',
+	),
+	'events'                    => array(
+		'group'    => 'ours',
+		'purpose'  => 'events',
+		'theme'    => '*',
+		'name'     => 'Eventonomy events',
+		'desc'     => 'Meetups with tickets, RSVPs and venues, and the members who come.',
+		'requires' => array( 'members', 'eventonomy', 'pages' ),
+		'preview'  => 'https://eventonomy.instawp.co/',
+	),
+	'jobs'                      => array(
+		'group'    => 'ours',
+		'purpose'  => 'jobs',
+		'theme'    => '*',
+		'name'     => 'WP Career Board jobs',
+		'desc'     => 'Employers, job listings and candidate profiles, with members around them.',
+		'requires' => array( 'members', 'careerboard', 'pages' ),
+		'preview'  => 'https://wpcareerboard.instawp.co/',
+	),
+	'directory'                 => array(
+		'group'    => 'ours',
+		'purpose'  => 'directory',
+		'theme'    => '*',
+		'name'     => 'WB Listora directory',
+		'desc'     => 'Listings with photos, reviews, maps and favorites, and the members who use them.',
+		'requires' => array( 'members', 'listora', 'pages' ),
+		'preview'  => 'https://wblistora.instawp.co/',
+	),
+	'services'                  => array(
+		'group'    => 'ours',
+		'purpose'  => 'services',
+		'theme'    => '*',
+		'name'     => 'WP Sell Services marketplace',
+		'desc'     => 'Freelancers selling services, with orders, messages and reviews.',
+		'requires' => array( 'members', 'sellservices', 'pages' ),
+		'preview'  => 'https://wpsellservices.instawp.co/',
+	),
+	'shop'                      => array(
+		'group'    => 'ours',
+		'purpose'  => 'shop',
+		'theme'    => '*',
+		'name'     => 'WooCommerce store',
+		'desc'     => 'A store with product photos, sale prices, stock and reviews.',
+		'requires' => array( 'woocommerce', 'pages' ),
+		'preview'  => 'https://reign-shop.instawp.xyz/',
+	),
 	// Theme demos: Reign.
 	'reign-buddypress'          => array(
+		'purpose'  => 'community',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'buddypress' ),
 		'group'    => 'theme',
 		'theme'    => 'Reign',
 		'name'     => 'Reign + BuddyPress',
@@ -31,6 +100,9 @@ return array(
 		'preview'  => 'https://dmine-base-nice.instawp.xyz/',
 	),
 	'reign-buddyboss'           => array(
+		'purpose'  => 'community',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'buddyboss' ),
 		'group'    => 'theme',
 		'theme'    => 'Reign',
 		'name'     => 'Reign + BuddyBoss',
@@ -40,6 +112,9 @@ return array(
 		'preview'  => 'https://buddyboss.reigntheme.com/',
 	),
 	'reign-peepso'              => array(
+		'purpose'  => 'community',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'peepso' ),
 		'group'    => 'theme',
 		'theme'    => 'Reign',
 		'name'     => 'Reign + PeepSo',
@@ -92,6 +167,9 @@ return array(
 	),
 	// Theme demos: BuddyX and BuddyX Pro.
 	'buddyx-buddypress'         => array(
+		'purpose'  => 'community',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'buddypress' ),
 		'group'    => 'theme',
 		'theme'    => 'BuddyX',
 		'name'     => 'BuddyX + BuddyPress',
@@ -108,6 +186,9 @@ return array(
 		'preview'  => 'https://buddynext-buddyx.instawp.co/',
 	),
 	'buddyxpro-buddypress'      => array(
+		'purpose'  => 'community',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'buddypress' ),
 		'group'    => 'theme',
 		'theme'    => 'BuddyX Pro',
 		'name'     => 'BuddyX Pro + BuddyPress',
@@ -116,6 +197,9 @@ return array(
 		'preview'  => 'https://buddyxpro-buddypress.instawp.xyz/',
 	),
 	'buddyxpro-buddyboss'       => array(
+		'purpose'  => 'community',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'buddyboss' ),
 		'group'    => 'theme',
 		'theme'    => 'BuddyX Pro',
 		'name'     => 'BuddyX Pro + BuddyBoss',
@@ -133,6 +217,9 @@ return array(
 	),
 	// Add-on demos: one per Reign add-on.
 	'reign-learndash'           => array(
+		'purpose'  => 'learning',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'learndash' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign LearnDash',
@@ -142,6 +229,9 @@ return array(
 		'preview'  => 'https://reign-learndash-dashboard.instawp.xyz/',
 	),
 	'reign-tutorlms'            => array(
+		'purpose'  => 'learning',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'tutorlms' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign Tutor LMS',
@@ -151,6 +241,9 @@ return array(
 		'preview'  => 'https://reign-tutorlms.instawp.xyz/',
 	),
 	'reign-lifterlms'           => array(
+		'purpose'  => 'learning',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'lifterlms' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign LifterLMS',
@@ -160,6 +253,9 @@ return array(
 		'preview'  => 'https://reign-wcfm.instawp.xyz/',
 	),
 	'reign-sensei'              => array(
+		'purpose'  => 'learning',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'sensei' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign Sensei LMS',
@@ -169,6 +265,9 @@ return array(
 		'preview'  => '',
 	),
 	'reign-dokan'               => array(
+		'purpose'  => 'shop',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'dokan' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign Dokan',
@@ -178,6 +277,9 @@ return array(
 		'preview'  => 'https://dmine-base-nice.instawp.xyz/',
 	),
 	'reign-wcfm'                => array(
+		'purpose'  => 'shop',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'wcfm' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign WCFM',
@@ -187,6 +289,9 @@ return array(
 		'preview'  => 'https://reign-wcfm.instawp.xyz/',
 	),
 	'reign-wc-vendors'          => array(
+		'purpose'  => 'shop',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'wcvendors' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign WC Vendors',
@@ -196,6 +301,9 @@ return array(
 		'preview'  => 'https://reign-wc-vendor.instawp.xyz/',
 	),
 	'reign-geodirectory'        => array(
+		'purpose'  => 'directory',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'geodirectory' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign GeoDirectory',
@@ -205,6 +313,9 @@ return array(
 		'preview'  => 'https://reign-geodirectory.instawp.xyz/',
 	),
 	'reign-wp-job-manager'      => array(
+		'purpose'  => 'jobs',
+		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
+		'trigger'  => array( 'jobmanager' ),
 		'group'    => 'addon',
 		'theme'    => 'Reign',
 		'name'     => 'Reign WP Job Manager',

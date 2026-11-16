@@ -18,7 +18,13 @@ defined( 'ABSPATH' ) || exit;
 final class Demos {
 
 	/** Community plugins that give any demo its members (catalog ids). */
-	private const COMMUNITY = array( 'buddypress', 'buddyboss', 'peepso', 'buddynext' );
+	private const COMMUNITY = array( 'buddyboss', 'peepso', 'buddynext', 'buddypress' ); // BuddyBoss first: it also answers to BuddyPress's functions.
+
+	/** Purposes, in the order the gallery shows them. */
+	private const PURPOSES = array( 'community', 'learning', 'events', 'jobs', 'directory', 'services', 'shop' );
+
+	/** BuddyNext with what makes a BuddyNext community: "members" on a site without a community plugin. */
+	private const OUR_MEMBERS = array( 'buddynext', 'mediaverse', 'jetonomy', 'gamification' );
 
 	/**
 	 * Every demo, as content/demos.php defines it.
@@ -43,10 +49,11 @@ final class Demos {
 		$family = Theme::theme_family();
 		$out    = array();
 		foreach ( self::all() as $id => $demo ) {
-			if ( ( $demo['theme'] ?? '' ) !== $family ) {
+			if ( '*' !== ( $demo['theme'] ?? '' ) && ( $demo['theme'] ?? '' ) !== $family ) {
 				continue;
 			}
-			$rows = array();
+			$demo['requires'] = self::expand( (array) $demo['requires'] );
+			$rows             = array();
 			if ( ! empty( $demo['addon'] ) ) {
 				$rows[] = self::addon_row( (array) $demo['addon'], true );
 			}
@@ -72,9 +79,89 @@ final class Demos {
 				// uploads something first (a paid add-on or plugin).
 				'state'    => $conflict ? 'conflict' : ( ! $needed ? 'ready' : ( array_filter( $needed, static fn( array $r ): bool => ! $r['can'] ) ? 'blocked' : 'fixable' ) ),
 				'fix'      => array_values( array_map( static fn( array $r ): string => (string) $r['id'], array_filter( $needed, static fn( array $r ): bool => $r['can'] ) ) ),
+				'purpose'  => (string) ( $demo['purpose'] ?? '' ),
+				'ours'     => 'ours' === ( $demo['group'] ?? '' ),
+				'yours'    => self::triggered( $demo ),
+				'featured' => false,
 			);
 		}
-		return $out;
+		return self::feature( $out );
+	}
+
+	/**
+	 * One card per purpose on top: the demo for a third-party plugin the site already has (the owner chose it), else
+	 * ours. Featured cards come first, the owner's own add-on before the rest; every other card stays below for
+	 * "See every combination".
+	 *
+	 * @param array<int,array<string,mixed>> $cards Cards.
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function feature( array $cards ): array {
+		$rank = array(
+			'ready'    => 0,
+			'fixable'  => 1,
+			'blocked'  => 2,
+			'conflict' => 3,
+		);
+		$top  = array();
+		foreach ( self::PURPOSES as $purpose ) {
+			$theirs = array_filter( $cards, static fn( array $c ): bool => $purpose === $c['purpose'] && '' !== $c['yours'] && ! $c['ours'] );
+			// An uploaded add-on before a merely active plugin, then the one closest to ready.
+			usort( $theirs, static fn( array $a, array $b ): int => array( 'addon' !== $a['yours'], $rank[ $a['state'] ] ) <=> array( 'addon' !== $b['yours'], $rank[ $b['state'] ] ) );
+			$pick = $theirs ? reset( $theirs ) : current( array_filter( $cards, static fn( array $c ): bool => $purpose === $c['purpose'] && $c['ours'] ) );
+			if ( $pick ) {
+				$top[] = $pick['id'];
+			}
+		}
+		foreach ( $cards as &$c ) {
+			$c['featured'] = in_array( $c['id'], $top, true );
+			$c['yours']    = $c['featured'] ? $c['yours'] : '';
+		}
+		unset( $c );
+		usort(
+			$cards,
+			static function ( array $a, array $b ) use ( $top ): int {
+				$pos = static fn( array $c ): int => $c['featured'] ? ( 'addon' === $c['yours'] ? 0 : 1 + (int) array_search( $c['id'], $top, true ) ) : 100;
+				return $pos( $a ) <=> $pos( $b );
+			}
+		);
+		return $cards;
+	}
+
+	/**
+	 * Why the site already has this demo: 'addon' (its Reign add-on is uploaded), 'plugin' (its plugin is active) or ''.
+	 *
+	 * @param array<string,mixed> $demo Demo.
+	 */
+	private static function triggered( array $demo ): string {
+		if ( ! empty( $demo['addon'] ) && '' !== self::addon_file( (string) ( (array) $demo['addon'] )[0] ) ) {
+			return 'addon'; // The owner uploaded the Reign add-on: they bought it for this.
+		}
+		foreach ( (array) ( $demo['trigger'] ?? array() ) as $id ) {
+			if ( in_array( Installer::status( (string) $id )['state'], array( 'active', 'outdated' ), true ) ) {
+				return 'plugin';
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Requirements with "members" spelled out: the community plugin the site runs, else BuddyNext and its set.
+	 *
+	 * @param string[] $requires Requirements.
+	 * @return string[]
+	 */
+	private static function expand( array $requires ): array {
+		$out = array();
+		foreach ( $requires as $need ) {
+			if ( 'members' === $need ) {
+				$active = self::active_community();
+				$out    = array_merge( $out, '' !== $active ? array( $active ) : self::OUR_MEMBERS );
+				continue;
+			}
+			$out[] = $need;
+		}
+		return array_values( array_unique( $out ) );
 	}
 
 	/**

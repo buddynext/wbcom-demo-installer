@@ -317,11 +317,22 @@
 			.map( ( [ id, r ] ) => [ id, r, r.needs.filter( ( n ) => 'active' !== cat[ n ].state ).map( ( n ) => cat[ n ] ) ] );
 	}
 
-	// Demo gallery: named demos for the active theme, whole-site combinations first, then one per Reign add-on.
+	const PURPOSE = {
+		community: __( 'Community', 'wbcom-demo-installer' ),
+		learning: __( 'Learning', 'wbcom-demo-installer' ),
+		events: __( 'Events', 'wbcom-demo-installer' ),
+		jobs: __( 'Jobs', 'wbcom-demo-installer' ),
+		directory: __( 'Directory', 'wbcom-demo-installer' ),
+		services: __( 'Services', 'wbcom-demo-installer' ),
+		shop: __( 'Shop', 'wbcom-demo-installer' ),
+	};
+
+	// Demo gallery: one card per purpose (our product, or the third-party demo for a plugin the site already has),
+	// and every other demo for "See every combination".
 	function demoGallery() {
 		const demos = S.site.demos || [];
 		if ( ! demos.length ) {
-			return '';
+			return { top: '', more: '' };
 		}
 		const note = ( r ) => {
 			if ( 'active' === r.state ) {
@@ -374,16 +385,17 @@
 			const preview = d.preview ? `<a class="wdi-link" href="${ esc( d.preview ) }" target="_blank" rel="noopener">${ esc( __( 'Live preview', 'wbcom-demo-installer' ) ) }</a>` : '';
 			const img = d.image ? `<img class="wdi-demo__img" src="${ esc( d.image ) }" alt="" loading="lazy" width="720" height="450">` : `<div class="wdi-demo__img wdi-demo__img--none">${ ic( 'palette', 'wdi-i--lg' ) }</div>`;
 			const short = [ ...upload, ...failed.filter( ( r ) => ! upload.includes( r ) ), ...better ];
-			return `<article class="wdi-demo${ S.demo === d.id ? ' is-on' : '' }" aria-label="${ esc( d.name ) }">${ img }<div class="wdi-demo__body"><b>${ esc( d.name ) }</b><span class="wdi-muted">${ esc( d.desc ) }</span>${ short.length ? `<ul class="wdi-demo__needs">${ short.map( row ).join( '' ) }</ul>` : '' }${ summary ? `<span class="wdi-small">${ esc( summary ) }</span>` : '' }<details class="wdi-demo__all"><summary class="wdi-small">${ esc( __( 'What this demo uses', 'wbcom-demo-installer' ) ) }</summary><ul class="wdi-demo__needs">${ d.rows.map( row ).join( '' ) }</ul></details></div><div class="wdi-demo__foot">${ action }${ preview }</div></article>`;
+			const eyebrow = d.featured && PURPOSE[ d.purpose ] ? `<span class="wdi-demo__purpose">${ esc( PURPOSE[ d.purpose ] ) }${ d.yours ? ` <span class="wdi-badge${ 'addon' === d.yours ? ' wdi-badge--accent' : '' }">${ esc( 'addon' === d.yours ? __( 'Your add-on', 'wbcom-demo-installer' ) : __( 'On your site', 'wbcom-demo-installer' ) ) }</span>` : '' }</span>` : '';
+			return `<article class="wdi-demo${ S.demo === d.id ? ' is-on' : '' }${ 'addon' === d.yours ? ' is-yours' : '' }" aria-label="${ esc( d.name ) }">${ img }<div class="wdi-demo__body">${ eyebrow }<b>${ esc( d.name ) }</b><span class="wdi-muted">${ esc( d.desc ) }</span>${ short.length ? `<ul class="wdi-demo__needs">${ short.map( row ).join( '' ) }</ul>` : '' }${ summary ? `<span class="wdi-small">${ esc( summary ) }</span>` : '' }<details class="wdi-demo__all"><summary class="wdi-small">${ esc( __( 'What this demo uses', 'wbcom-demo-installer' ) ) }</summary><ul class="wdi-demo__needs">${ d.rows.map( row ).join( '' ) }</ul></details></div><div class="wdi-demo__foot">${ action }${ preview }</div></article>`;
 		};
 		// Ready first, then the ones set up in one click, then the ones waiting for an upload.
 		const rank = { ready: 0, fixable: 1, blocked: 2, conflict: 3 };
-		const section = ( group, title, lede ) => {
-			const list = demos.filter( ( d ) => group === d.group ).sort( ( x, y ) => ( rank[ x.state ] ?? 9 ) - ( rank[ y.state ] ?? 9 ) );
-			return list.length ? `<h2 class="wdi-install__title">${ esc( title ) }</h2><p class="wdi-muted wdi-small">${ esc( lede ) }</p><div class="wdi-demos">${ list.map( card ).join( '' ) }</div>` : '';
+		const featured = demos.filter( ( d ) => d.featured );
+		const rest = demos.filter( ( d ) => ! d.featured ).sort( ( x, y ) => ( rank[ x.state ] ?? 9 ) - ( rank[ y.state ] ?? 9 ) );
+		return {
+			top: featured.length ? `<div class="wdi-demos">${ featured.map( card ).join( '' ) }</div>` : '',
+			more: rest.length ? `<h2 class="wdi-install__title">${ esc( __( 'Other demos', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-demos">${ rest.map( card ).join( '' ) }</div>` : '',
 		};
-		return section( 'theme', sprintf( /* translators: %s: theme name. */ __( '%s demos', 'wbcom-demo-installer' ), S.site.theme.family || S.site.theme.name ), __( 'A whole site: a community and the products around it, as on our live demos.', 'wbcom-demo-installer' ) )
-			+ section( 'addon', __( 'Reign add-on demos', 'wbcom-demo-installer' ), __( 'One demo for each Reign add-on, built around the plugin it presents.', 'wbcom-demo-installer' ) );
 	}
 
 	// Pick a demo: build exactly its products.
@@ -438,11 +450,18 @@
 		// With a picked idea the choice is made: show only that starting point, the full list on request.
 		const locked = S.brief && ! S.showAllRecipes && all[ S.recipe ];
 		const recipes = locked ? { [ S.recipe ]: all[ S.recipe ] } : all;
+		const gallery = locked ? { top: '', more: '' } : demoGallery();
+		const list = `${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }${ Object.keys( recipes ).length ? `${ gallery.top ? `<h2 class="wdi-install__title">${ esc( __( 'Starting points from your products', 'wbcom-demo-installer' ) ) }</h2>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: %d: number of products. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>` : '' }
+			${ ! locked && ! gallery.top && unlockable().length ? `<h2 class="wdi-install__title">${ esc( __( 'More starting points, installed for you', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-recipes">${ unlockable().map( ( [ id, r, missing ] ) => `<button type="button" class="wdi-opt" data-unlock="${ esc( id ) }">${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta"><span class="wdi-badge">${ esc( sprintf( /* translators: %s: product names. */ __( 'Installs %s', 'wbcom-demo-installer' ), missing.map( ( c ) => c.label ).join( ', ' ) ) ) }</span></span></button>` ).join( '' ) }</div>` : '' }`;
+		// With the gallery: one card per purpose on top; other demos and the product starting points for whoever
+		// wants a specific combination (agencies, comparing plugins), folded away.
+		const body = gallery.top
+			? `${ gallery.top }<details class="wdi-more"${ S.showMore ? ' open' : '' }><summary>${ esc( __( 'See every combination', 'wbcom-demo-installer' ) ) }</summary>${ gallery.more }${ list }</details>`
+			: list;
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
-			locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ),
-			locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ),
-			`${ S.brief ? '' : aiPanel() }${ ideaNote( 'start' ) }${ locked ? '' : demoGallery() }${ ! locked && ( S.site.demos || [] ).length && Object.keys( recipes ).length ? `<h2 class="wdi-install__title">${ esc( __( 'Or start from your products', 'wbcom-demo-installer' ) ) }</h2>` : '' }${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: %d: number of products. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
-			${ ! locked && unlockable().length ? `<h2 class="wdi-install__title">${ esc( __( 'More starting points, installed for you', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-recipes">${ unlockable().map( ( [ id, r, missing ] ) => `<button type="button" class="wdi-opt" data-unlock="${ esc( id ) }">${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta"><span class="wdi-badge">${ esc( sprintf( /* translators: %s: product names. */ __( 'Installs %s', 'wbcom-demo-installer' ), missing.map( ( c ) => c.label ).join( ', ' ) ) ) }</span></span></button>` ).join( '' ) }</div>` : '' }`,
+			locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'What is your site for?', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ) ),
+			locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'Pick one. It installs the free plugins it needs, and you can change every product on the next step.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ) ),
+			`${ S.brief ? '' : aiPanel() }${ ideaNote( 'start' ) }${ body }`,
 			foot( 'check', 'products', { disabled: ! S.recipe } )
 		);
 	}
@@ -544,18 +563,25 @@
 				`<div class="wdi-card__foot"><button type="button" class="wdi-btn" data-go="finish">${ esc( __( 'Remove them too', 'wbcom-demo-installer' ) ) }</button><span class="wdi-spacer"></span><button type="button" class="wdi-btn wdi-btn--primary" data-go="adopt">${ esc( __( 'Keep them as mine', 'wbcom-demo-installer' ) ) }</button></div>`
 			);
 		}
+		const pages = [ [ __( 'Home page', 'wbcom-demo-installer' ), cfg.home ] ].concat( ( S.site.links || [] ).map( ( l ) => [ l.title, l.url ] ) );
+		const edit = st.front_page ? `${ cfg.dashboard }post.php?post=${ st.front_page }&action=edit` : '';
+		const done = ( id, title, text, cls = '' ) => `<li class="wdi-done__opt"><span class="wdi-small">${ esc( text ) }</span><button type="button" class="wdi-btn ${ cls }" data-go="${ id }">${ esc( title ) }</button></li>`;
 		return brand( __( 'Your demo', 'wbcom-demo-installer' ) ) + card(
-			errors.length ? __( 'Your demo is built, with problems', 'wbcom-demo-installer' ) : __( 'Your site is ready', 'wbcom-demo-installer' ),
-			errors.length ? __( 'Some products could not finish their part. The list below says which and why.', 'wbcom-demo-installer' ) : __( 'Take a look around, then make it yours.', 'wbcom-demo-installer' ),
-			`${ waitingCallout( st.report ) }${ errors.length ? problems : '' }<div class="wdi-status">${ ic( 'spark' ) }<span><b>${ esc( __( 'Demo active', 'wbcom-demo-installer' ) ) }</b> · <span class="wdi-num">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%s items', 'wbcom-demo-installer' ), fmt( total ) ) ) }</span></span><span class="wdi-spacer"></span><button type="button" class="wdi-btn" data-go="finish">${ esc( __( 'Finish demo', 'wbcom-demo-installer' ) ) }</button></div>
+			errors.length ? __( 'Your demo is built, with problems', 'wbcom-demo-installer' ) : ( st.demo ? sprintf( /* translators: %s: demo name, e.g. Reign LearnDash. */ __( 'Your %s demo is ready', 'wbcom-demo-installer' ), st.demo ) : __( 'Your site is ready', 'wbcom-demo-installer' ) ),
+			errors.length ? __( 'Some products could not finish their part. The list below says which and why.', 'wbcom-demo-installer' ) : sprintf( /* translators: %s: number of items. */ __( '%s sample items, set up and ready to explore. Nothing was sent to anyone.', 'wbcom-demo-installer' ), fmt( total ) ),
+			`${ waitingCallout( st.report ) }${ errors.length ? problems : '' }
 			<div class="wdi-tiles">
-				<div class="wdi-tile"><h2>${ ic( 'eye' ) }${ esc( __( 'See it', 'wbcom-demo-installer' ) ) }</h2><ul><li><a class="wdi-link" href="${ esc( cfg.home ) }" target="_blank" rel="noopener">${ esc( __( 'Home page', 'wbcom-demo-installer' ) ) }</a></li>${ ( S.site.links || [] ).map( ( l ) => `<li><a class="wdi-link" href="${ esc( l.url ) }" target="_blank" rel="noopener">${ esc( l.title ) }</a></li>` ).join( '' ) }</ul></div>
-				<div class="wdi-tile"><h2>${ ic( 'palette' ) }${ esc( __( 'Make it yours', 'wbcom-demo-installer' ) ) }</h2><ul><li><a class="wdi-link" href="${ esc( cfg.customize ) }">${ esc( __( 'Logo, colours and site name', 'wbcom-demo-installer' ) ) }</a></li><li><a class="wdi-link" href="${ esc( cfg.plugins ) }">${ esc( __( 'Review product settings', 'wbcom-demo-installer' ) ) }</a></li></ul></div>
-				<div class="wdi-tile"><h2>${ ic( 'users' ) }${ esc( __( 'When you are ready', 'wbcom-demo-installer' ) ) }</h2><span class="wdi-muted">${ esc( __( 'Finish the demo: remove the sample people and content and keep everything you set up.', 'wbcom-demo-installer' ) ) }</span></div>
+				<div class="wdi-tile"><h2>${ ic( 'eye' ) }${ esc( __( 'Look around', 'wbcom-demo-installer' ) ) }</h2><ul>${ pages.map( ( [ t, u ] ) => `<li><a class="wdi-link" href="${ esc( u ) }" target="_blank" rel="noopener">${ esc( t ) }</a></li>` ).join( '' ) }</ul></div>
+				<div class="wdi-tile"><h2>${ ic( 'palette' ) }${ esc( __( 'Make it yours', 'wbcom-demo-installer' ) ) }</h2><ul>${ edit ? `<li><a class="wdi-link" href="${ esc( edit ) }">${ esc( __( 'Edit the home page', 'wbcom-demo-installer' ) ) }</a></li>` : '' }<li><a class="wdi-link" href="${ esc( cfg.customize ) }">${ esc( __( 'Logo, colours and site name', 'wbcom-demo-installer' ) ) }</a></li><li><a class="wdi-link" href="${ esc( cfg.plugins ) }">${ esc( __( 'Review product settings', 'wbcom-demo-installer' ) ) }</a></li></ul></div>
 			</div>
+			<section class="wdi-done" aria-labelledby="wdi-done-h"><h2 id="wdi-done-h">${ ic( 'undo' ) }${ esc( __( 'Done exploring?', 'wbcom-demo-installer' ) ) }</h2><ul>
+				${ done( 'finish-keep', __( 'Start my real site', 'wbcom-demo-installer' ), __( 'Removes the sample people and content. Keeps the pages, menu, categories and settings so you build on them.', 'wbcom-demo-installer' ) ) }
+				${ done( 'finish-all', __( 'Remove everything', 'wbcom-demo-installer' ), __( 'Puts the site back as it was before the demo: your home page, menu and settings return.', 'wbcom-demo-installer' ) ) }
+				${ done( 'finish-again', __( 'Try a different demo', 'wbcom-demo-installer' ), __( 'Removes everything, then takes you back to pick another demo.', 'wbcom-demo-installer' ) ) }
+			</ul><p class="wdi-muted wdi-small">${ esc( __( 'You see what will be removed and confirm before anything changes. Your own users and posts are never touched.', 'wbcom-demo-installer' ) ) }</p></section>
 			<details class="wdi-details"><summary>${ esc( __( 'What the demo added', 'wbcom-demo-installer' ) ) }</summary><ul>${ ledgerTiles() }</ul></details>
 			${ errors.length ? '' : problems }`,
-			`<div class="wdi-card__foot"><span class="wdi-spacer"></span><a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.home ) }">${ esc( __( 'Visit your site', 'wbcom-demo-installer' ) ) }${ ic( 'right' ) }</a></div>`
+			`<div class="wdi-card__foot"><span class="wdi-spacer"></span><a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.home ) }" target="_blank" rel="noopener">${ esc( __( 'Visit your site', 'wbcom-demo-installer' ) ) }${ ic( 'right' ) }</a></div>`
 		);
 	}
 
@@ -627,7 +653,7 @@
 			<div class="wdi-tiles"><div class="wdi-tile"><h2>${ ic( 'users' ) }${ esc( __( 'Next', 'wbcom-demo-installer' ) ) }</h2><ul><li><a class="wdi-link" href="${ esc( cfg.users ) }">${ esc( __( 'Invite your first members', 'wbcom-demo-installer' ) ) }</a></li><li><a class="wdi-link" href="${ esc( cfg.home ) }">${ esc( __( 'Visit your site', 'wbcom-demo-installer' ) ) }</a></li></ul></div>${ empty
 				? `<div class="wdi-tile"><h2>${ ic( 'trash' ) }${ esc( __( 'Installer no longer needed', 'wbcom-demo-installer' ) ) }</h2><span class="wdi-muted">${ esc( __( 'You can deactivate and delete it. Nothing you kept depends on it.', 'wbcom-demo-installer' ) ) }</span></div>`
 				: `<div class="wdi-tile"><h2>${ ic( 'shield' ) }${ esc( __( 'Keep the installer for now', 'wbcom-demo-installer' ) ) }</h2><span class="wdi-muted">${ esc( __( 'It still tracks what the demo left, so you can remove it later from Appearance > Set up your site. Once only setup is left you can keep it as yours.', 'wbcom-demo-installer' ) ) }</span></div>` }</div>`,
-			`<div class="wdi-card__foot">${ kept || r.left ? `<button type="button" class="wdi-btn" data-go="finish">${ esc( __( 'Remove more', 'wbcom-demo-installer' ) ) }</button>` : '' }${ empty ? `<button type="button" class="wdi-btn" data-go="again">${ esc( __( 'Try a different demo', 'wbcom-demo-installer' ) ) }</button>` : '' }<span class="wdi-spacer"></span><a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.dashboard ) }">${ esc( __( 'Go to dashboard', 'wbcom-demo-installer' ) ) }</a></div>`
+			`<div class="wdi-card__foot">${ kept || r.left ? `<button type="button" class="wdi-btn" data-go="finish">${ esc( __( 'Remove more', 'wbcom-demo-installer' ) ) }</button>` : '' }${ empty && ! S.again ? `<button type="button" class="wdi-btn" data-go="again">${ esc( __( 'Try a different demo', 'wbcom-demo-installer' ) ) }</button>` : '' }<span class="wdi-spacer"></span>${ empty && S.again ? `<a class="wdi-link wdi-small" href="${ esc( cfg.dashboard ) }">${ esc( __( 'Go to dashboard', 'wbcom-demo-installer' ) ) }</a><button type="button" class="wdi-btn wdi-btn--primary" data-go="again">${ esc( __( 'Pick another demo', 'wbcom-demo-installer' ) ) }${ ic( 'right' ) }</button>` : `<a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.dashboard ) }">${ esc( __( 'Go to dashboard', 'wbcom-demo-installer' ) ) }</a>` }</div>`
 		);
 	}
 
@@ -972,6 +998,7 @@
 					name: undefined !== S.name && S.name.trim() !== id.name ? S.name.trim() : '',
 					tagline: undefined !== S.tagline && S.tagline.trim() !== id.tagline ? S.tagline.trim() : '',
 					brief: S.brief || {},
+					demo: S.demo || '',
 				} );
 				S.view = 'building';
 				render();
@@ -1013,6 +1040,8 @@
 			render();
 		} else if ( 'again' === to ) {
 			// Everything from the last demo is gone: back to the site check to pick another starting point.
+			S.again = false;
+			S.demo = '';
 			S.recipe = '';
 			S.view = 'check';
 			refresh().catch( stalled );
@@ -1039,6 +1068,11 @@
 				render();
 			}
 		} else if ( 'finish' === to ) {
+			openFinish();
+		} else if ( [ 'finish-keep', 'finish-all', 'finish-again' ].includes( to ) ) {
+			// The ready screen's three choices open Finish with that choice already made.
+			S.mode = 'finish-keep' === to ? 'keep' : 'all';
+			S.again = 'finish-again' === to;
 			openFinish();
 		} else if ( 'run-finish' === to ) {
 			btn.disabled = true;
