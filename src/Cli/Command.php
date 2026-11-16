@@ -75,6 +75,9 @@ final class Command {
 	 * [--include=<ids>]
 	 * : Comma-separated product ids. Default: the starting point's products.
 	 *
+	 * [--demo=<id>]
+	 * : A named demo from the Starting point gallery (wp wbcom-demo demos): builds exactly its products.
+	 *
 	 * [--keep-look]
 	 * : Do not change the home page, menu or logo.
 	 *
@@ -178,6 +181,19 @@ final class Command {
 			WP_CLI::error( sprintf( 'Unknown or unavailable starting point "%s". Available: %s', $recipe, implode( ', ', array_keys( $recipes ) ) ) );
 		}
 		$include = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : $recipes[ $recipe ]['use'];
+		if ( isset( $assoc['demo'] ) ) {
+			// A named demo from the Starting point gallery: exactly its products, once everything it needs is active.
+			$demo = current( array_filter( \WbcomDemo\Core\Demos::overview(), static fn( array $d ): bool => $d['id'] === $assoc['demo'] ) );
+			if ( ! $demo ) {
+				WP_CLI::error( sprintf( 'Unknown demo "%s" for this theme. Demos: %s', $assoc['demo'], implode( ', ', array_column( \WbcomDemo\Core\Demos::overview(), 'id' ) ) ) );
+			}
+			if ( 'ready' !== $demo['state'] ) {
+				$missing = array_column( array_filter( $demo['rows'], static fn( array $r ): bool => $r['required'] && 'active' !== $r['state'] ), 'label' );
+				WP_CLI::error( sprintf( 'Demo "%s" needs: %s.%s', $demo['name'], implode( ', ', $missing ), $demo['conflict'] ? ' This site runs ' . $demo['conflict'] . '.' : ' Install them with: wp wbcom-demo install <id>, or upload the paid ones under Plugins.' ) );
+			}
+			$recipe  = 'everything';
+			$include = $demo['products'];
+		}
 		if ( isset( $assoc['dry-run'] ) ) {
 			foreach ( Engine::site()['products'] as $p ) {
 				if ( in_array( $p['id'], $include, true ) ) {
@@ -337,6 +353,42 @@ final class Command {
 			return;
 		}
 		WP_CLI::success( 'Nothing from the demo was left behind.' );
+	}
+
+	/**
+	 * The demos on the Starting point gallery for the active theme, and what each still needs.
+	 *
+	 * [--format=<format>]
+	 * : table or json.
+	 * ---
+	 * default: table
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wbcom-demo demos
+	 *     wp wbcom-demo build --demo=reign-learndash --yes
+	 *
+	 * @param array<int,string>    $args  Args.
+	 * @param array<string,string> $assoc Assoc args.
+	 */
+	public function demos( $args, $assoc ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed -- WP-CLI command signature.
+		$this->as_admin();
+		$rows = array_map(
+			static fn( array $d ): array => array(
+				'id'    => $d['id'],
+				'group' => $d['group'],
+				'name'  => $d['name'],
+				'state' => $d['state'],
+				'needs' => implode( ', ', array_column( array_filter( $d['rows'], static fn( array $r ): bool => $r['required'] && 'active' !== $r['state'] ), 'label' ) ),
+			),
+			\WbcomDemo\Core\Demos::overview()
+		);
+		if ( ! $rows ) {
+			WP_CLI::log( 'No named demos for this theme. Use wp wbcom-demo build --recipe=<starting point>.' );
+			return;
+		}
+		WP_CLI\Utils\format_items( (string) ( $assoc['format'] ?? 'table' ), $rows, array( 'id', 'group', 'name', 'state', 'needs' ) );
 	}
 
 	/**

@@ -139,6 +139,7 @@ final class Engine {
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
 				'adapter' => $theme_provider ? $theme_provider->label() : '',
+				'family'  => \WbcomDemo\Providers\Theme::theme_family(),
 			),
 			'products'    => $products,
 			'recipes'     => Recipes::available(),
@@ -150,6 +151,8 @@ final class Engine {
 			'catalog'     => Installer::overview(),
 			// The sample logo is the BuddyNext brand pack, set only when BuddyNext is active.
 			'brand'       => \WbcomDemo\Providers\Theme::branded(),
+			// The Starting point gallery: demos for the active theme and what each needs.
+			'demos'       => Demos::overview(),
 			// The designed home page's hero, numbers and closing, for the wizard to swap for Wbcom Essential blocks.
 			'home'        => \WbcomDemo\Providers\Theme::home_upgrade(),
 			'memory'      => self::memory(),

@@ -306,7 +306,7 @@
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
 			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ addonNote }${ want }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ panel }`,
-			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length } )
+			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length && ! ( s.demos || [] ).length } )
 		);
 	}
 
@@ -317,6 +317,122 @@
 			.map( ( [ id, r ] ) => [ id, r, r.needs.filter( ( n ) => 'active' !== cat[ n ].state ).map( ( n ) => cat[ n ] ) ] );
 	}
 
+	// Demo gallery: named demos for the active theme, whole-site combinations first, then one per Reign add-on.
+	function demoGallery() {
+		const demos = S.site.demos || [];
+		if ( ! demos.length ) {
+			return '';
+		}
+		const note = ( r ) => {
+			if ( 'active' === r.state ) {
+				return r.required ? '' : __( 'Active: the demo uses it.', 'wbcom-demo-installer' );
+			}
+			if ( ! r.required ) {
+				return __( 'Optional: improves this demo.', 'wbcom-demo-installer' );
+			}
+			if ( 'outdated' === r.state ) {
+				return __( 'Updated to its latest release for you.', 'wbcom-demo-installer' );
+			}
+			if ( 'inactive' === r.state ) {
+				return r.can ? __( 'Installed: switched on for you.', 'wbcom-demo-installer' ) : __( 'Installed, not active.', 'wbcom-demo-installer' );
+			}
+			if ( r.can ) {
+				return __( 'Free: installed for you.', 'wbcom-demo-installer' );
+			}
+			return 'addon' === r.kind
+				? __( 'Download it from your Wbcom account, then upload it under Plugins > Add New.', 'wbcom-demo-installer' )
+				: __( 'Not on WordPress.org: get it, then upload it under Plugins > Add New.', 'wbcom-demo-installer' );
+		};
+		const busy = Object.values( S.installing ).includes( 'busy' );
+		const card = ( d ) => {
+			const row = ( r ) => {
+				const cls = 'active' === r.state ? 'is-active' : ( r.can || ! r.required ? 'is-todo' : 'is-missing' );
+				const link = ! r.can && r.url && 'active' !== r.state ? ` <a class="wdi-link" href="${ esc( r.url ) }" target="_blank" rel="noopener">${ esc( __( 'Get it', 'wbcom-demo-installer' ) ) }</a>` : '';
+				const st = S.installing[ r.id ];
+				const err = st && ! [ 'busy', 'done' ].includes( st ) ? `<small class="wdi-demo__err" role="alert">${ esc( st ) }</small>` : '';
+				return `<li class="${ cls }">${ ic( 'active' === r.state ? 'check' : ( r.can || ! r.required ? 'plug' : 'alert' ) ) }<div>${ esc( r.label ) }${ link }${ note( r ) ? `<small>${ esc( note( r ) ) }</small>` : '' }${ err }</div></li>`;
+			};
+			// On the card: only what the owner must do (upload a paid item) and the optional add-ons; the rest is
+			// a one-line summary, with the full list one click away.
+			const upload = d.rows.filter( ( r ) => r.required && 'active' !== r.state && ! r.can );
+			const auto = d.rows.filter( ( r ) => r.required && 'active' !== r.state && r.can );
+			const better = d.rows.filter( ( r ) => ! r.required && 'active' !== r.state );
+			const failed = d.rows.filter( ( r ) => S.installing[ r.id ] && ! [ 'busy', 'done' ].includes( S.installing[ r.id ] ) );
+			const summary = auto.length
+				? sprintf( /* translators: %d: number of plugins. */ _n( 'Sets up %d plugin for you in one click.', 'Sets up %d plugins for you in one click.', auto.length, 'wbcom-demo-installer' ), auto.length )
+				: ( upload.length ? '' : __( 'Everything it needs is active.', 'wbcom-demo-installer' ) );
+			let action = '';
+			if ( 'conflict' === d.state ) {
+				action = `<span class="wdi-muted wdi-small">${ esc( sprintf( /* translators: %s: community plugin name. */ __( 'This site runs %s: choose a demo built for it.', 'wbcom-demo-installer' ), d.conflict ) ) }</span>`;
+			} else if ( 'ready' === d.state ) {
+				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo="${ esc( d.id ) }">${ esc( __( 'Use this demo', 'wbcom-demo-installer' ) ) }</button>`;
+			} else if ( 'fixable' === d.state ) {
+				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo-fix="${ esc( d.id ) }" ${ busy ? 'disabled' : '' }>${ esc( busy && S.demoBusy === d.id ? __( 'Setting up...', 'wbcom-demo-installer' ) : __( 'Set up and use this demo', 'wbcom-demo-installer' ) ) }</button>`;
+			} else {
+				action = `<span class="wdi-muted wdi-small">${ esc( __( 'Upload what is marked, then come back.', 'wbcom-demo-installer' ) ) }</span>`;
+			}
+			const preview = d.preview ? `<a class="wdi-link" href="${ esc( d.preview ) }" target="_blank" rel="noopener">${ esc( __( 'Live preview', 'wbcom-demo-installer' ) ) }</a>` : '';
+			const img = d.image ? `<img class="wdi-demo__img" src="${ esc( d.image ) }" alt="" loading="lazy" width="720" height="450">` : `<div class="wdi-demo__img wdi-demo__img--none">${ ic( 'palette', 'wdi-i--lg' ) }</div>`;
+			const short = [ ...upload, ...failed.filter( ( r ) => ! upload.includes( r ) ), ...better ];
+			return `<article class="wdi-demo${ S.demo === d.id ? ' is-on' : '' }" aria-label="${ esc( d.name ) }">${ img }<div class="wdi-demo__body"><b>${ esc( d.name ) }</b><span class="wdi-muted">${ esc( d.desc ) }</span>${ short.length ? `<ul class="wdi-demo__needs">${ short.map( row ).join( '' ) }</ul>` : '' }${ summary ? `<span class="wdi-small">${ esc( summary ) }</span>` : '' }<details class="wdi-demo__all"><summary class="wdi-small">${ esc( __( 'What this demo uses', 'wbcom-demo-installer' ) ) }</summary><ul class="wdi-demo__needs">${ d.rows.map( row ).join( '' ) }</ul></details></div><div class="wdi-demo__foot">${ action }${ preview }</div></article>`;
+		};
+		// Ready first, then the ones set up in one click, then the ones waiting for an upload.
+		const rank = { ready: 0, fixable: 1, blocked: 2, conflict: 3 };
+		const section = ( group, title, lede ) => {
+			const list = demos.filter( ( d ) => group === d.group ).sort( ( x, y ) => ( rank[ x.state ] ?? 9 ) - ( rank[ y.state ] ?? 9 ) );
+			return list.length ? `<h2 class="wdi-install__title">${ esc( title ) }</h2><p class="wdi-muted wdi-small">${ esc( lede ) }</p><div class="wdi-demos">${ list.map( card ).join( '' ) }</div>` : '';
+		};
+		return section( 'theme', sprintf( /* translators: %s: theme name. */ __( '%s demos', 'wbcom-demo-installer' ), S.site.theme.family || S.site.theme.name ), __( 'A whole site: a community and the products around it, as on our live demos.', 'wbcom-demo-installer' ) )
+			+ section( 'addon', __( 'Reign add-on demos', 'wbcom-demo-installer' ), __( 'One demo for each Reign add-on, built around the plugin it presents.', 'wbcom-demo-installer' ) );
+	}
+
+	// Pick a demo: build exactly its products.
+	function useDemo( id ) {
+		const d = ( S.site.demos || [] ).find( ( x ) => x.id === id );
+		const have = new Set( products().filter( ( p ) => p.supported ).map( ( p ) => p.id ) );
+		if ( ! d || ! S.site.recipes.everything ) {
+			return false;
+		}
+		S.demo = d.id;
+		S.recipe = 'everything';
+		S.include = new Set( d.products.filter( ( p ) => have.has( p ) ) );
+		return S.include.size > 0;
+	}
+
+	// Install, update or switch on what a demo still needs (plugins first, then the Reign add-ons that wait for
+	// them), then pick it.
+	async function installDemo( id ) {
+		const d = ( S.site.demos || [] ).find( ( x ) => x.id === id );
+		if ( ! d ) {
+			return;
+		}
+		const todo = [ ...d.fix ].sort( ( a, b ) => ( a.startsWith( 'addon:' ) ? 1 : 0 ) - ( b.startsWith( 'addon:' ) ? 1 : 0 ) );
+		S.demoBusy = id;
+		todo.forEach( ( t ) => ( S.installing[ t ] = 'busy' ) );
+		render();
+		for ( const t of todo ) {
+			try {
+				await api( '/install', { id: t } );
+				S.installing[ t ] = 'done';
+			} catch ( e ) {
+				S.installing[ t ] = ( e && e.message ) || __( 'It could not be installed.', 'wbcom-demo-installer' );
+			}
+		}
+		// Plugins that finish their setup only on an admin page load (see installPicked()).
+		try {
+			await fetch( window.location.href, { credentials: 'same-origin' } );
+			const res = await api( '/site' );
+			S.site = res.site;
+		} catch ( e ) {}
+		S.demoBusy = '';
+		const now = ( S.site.demos || [] ).find( ( x ) => x.id === id );
+		if ( now && 'ready' === now.state && useDemo( id ) ) {
+			go( 'products' );
+			return;
+		}
+		render();
+	}
+
 	function viewStart() {
 		const all = S.site.recipes;
 		// With a picked idea the choice is made: show only that starting point, the full list on request.
@@ -325,7 +441,7 @@
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
 			locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ),
 			locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ),
-			`${ S.brief ? '' : aiPanel() }${ ideaNote( 'start' ) }${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: %d: number of products. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
+			`${ S.brief ? '' : aiPanel() }${ ideaNote( 'start' ) }${ locked ? '' : demoGallery() }${ ! locked && ( S.site.demos || [] ).length && Object.keys( recipes ).length ? `<h2 class="wdi-install__title">${ esc( __( 'Or start from your products', 'wbcom-demo-installer' ) ) }</h2>` : '' }${ locked ? `<p class="wdi-small"><button type="button" class="wdi-link" data-go="all-recipes">${ esc( __( 'Choose a different starting point', 'wbcom-demo-installer' ) ) }</button></p>` : '' }<div class="wdi-recipes${ locked ? ' wdi-recipes--one' : '' }" role="radiogroup" aria-label="${ esc( __( 'Starting point', 'wbcom-demo-installer' ) ) }">${ Object.entries( recipes ).map( ( [ id, r ] ) => `<button type="button" class="wdi-opt" role="radio" aria-checked="${ S.recipe === id }" data-recipe="${ esc( id ) }"><span class="wdi-opt__tick">${ ic( 'check' ) }</span>${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta">${ 'everything' === id ? `<span class="wdi-badge wdi-badge--accent">${ esc( __( 'Best for evaluating', 'wbcom-demo-installer' ) ) }</span>` : '' }<span class="wdi-badge">${ esc( sprintf( /* translators: %d: number of products. */ _n( '%d product', '%d products', r.use.length, 'wbcom-demo-installer' ), r.use.length ) ) }</span></span></button>` ).join( '' ) }</div>
 			${ ! locked && unlockable().length ? `<h2 class="wdi-install__title">${ esc( __( 'More starting points, installed for you', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-recipes">${ unlockable().map( ( [ id, r, missing ] ) => `<button type="button" class="wdi-opt" data-unlock="${ esc( id ) }">${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta"><span class="wdi-badge">${ esc( sprintf( /* translators: %s: product names. */ __( 'Installs %s', 'wbcom-demo-installer' ), missing.map( ( c ) => c.label ).join( ', ' ) ) ) }</span></span></button>` ).join( '' ) }</div>` : '' }`,
 			foot( 'check', 'products', { disabled: ! S.recipe } )
 		);
@@ -796,8 +912,21 @@
 	} );
 
 	app.addEventListener( 'click', async ( e ) => {
+		const demo = e.target.closest( '[data-demo]' );
+		if ( demo ) {
+			if ( useDemo( demo.dataset.demo ) ) {
+				go( 'products' );
+			}
+			return;
+		}
+		const demoFix = e.target.closest( '[data-demo-fix]' );
+		if ( demoFix ) {
+			installDemo( demoFix.dataset.demoFix );
+			return;
+		}
 		const recipe = e.target.closest( '[data-recipe]' );
 		if ( recipe ) {
+			S.demo = '';
 			S.recipe = recipe.dataset.recipe;
 			S.include = new Set( S.site.recipes[ S.recipe ].use );
 			render();
