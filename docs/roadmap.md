@@ -156,8 +156,10 @@ one product presents as several demos the way theme shops sell them.
 - **The wizard offers variations as starting looks** on the Home page step (preview card per variation),
   and Remove everything restores the owner's look as it does now.
 - **Improve Wbcom Essential alongside.** Any block a variation needs, or a block that falls short (feed
-  image height, stats two per row on phones, store grid for Dokan/WCFM/WC Vendors, BuddyNext support in
-  members/groups/activity, server-rendered hero/stats/CTA), goes into Essential's own release.
+  image height, stats two per row on phones, store grid for Dokan/WCFM/WC Vendors, server-rendered
+  hero/stats/CTA), goes into Essential's own release. Essential covers layout and third-party data only:
+  our own product series (BuddyNext, Learnomy, Eventonomy, WB Listora, WP Career Board, WP Sell Services,
+  Jetonomy, WPMediaVerse) ships its own blocks, and pages use those, never an Essential copy.
 - **Also in 1.2.0:** Pro add-ons add their own sample content and pages (card 10488498295); the LearnDash
   guide offers an instructor role and LearnDash Dashboard steps (card 10514439950).
 

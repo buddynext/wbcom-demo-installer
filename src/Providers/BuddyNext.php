@@ -1029,14 +1029,36 @@ final class BuddyNext extends Provider {
 			)
 		);
 
-		$section = Blocks::heading( (string) $h['people'][0] ) . Blocks::paragraph( (string) $h['people'][1] ) . Blocks::people( $people );
-		$cards   = array();
-		foreach ( (array) $spaces['items'] as $s ) {
-			$url     = \BuddyNext\Core\PageRouter::space_url( (int) $s['id'] );
-			$cards[] = Blocks::link_heading( (string) $s['name'], $url, 3 ) . Blocks::paragraph( wp_strip_all_tags( (string) $s['description'] ) ) . Blocks::button( (string) $h['enter'], $url );
-		}
-		if ( $cards ) {
-			$section .= Blocks::heading( (string) $h['popular'], 3 ) . Blocks::columns( $cards );
+		$section = Blocks::heading( (string) $h['people'][0] ) . Blocks::paragraph( (string) $h['people'][1] );
+		if ( Blocks::has( 'buddynext/members-showcase' ) ) {
+			// BuddyNext's own blocks: live, server-rendered, edited in the block editor like any block.
+			$section .= Blocks::dynamic(
+				'buddynext/members-showcase',
+				array(
+					'source' => 'newest', // The sample people, not the site's admin.
+					'count'  => 8,
+					'layout' => 'grid',
+				)
+			)
+				. Blocks::heading( (string) $h['feed'], 3 ) . Blocks::dynamic( 'buddynext/community-activity', array( 'count' => 4 ) )
+				. Blocks::heading( (string) $h['popular'], 3 ) . Blocks::dynamic(
+					'buddynext/spaces-showcase',
+					array(
+						'source' => 'popular',
+						'count'  => 3,
+						'layout' => 'grid',
+					)
+				);
+		} else {
+			$section .= Blocks::people( $people );
+			$cards    = array();
+			foreach ( (array) $spaces['items'] as $s ) {
+				$url     = \BuddyNext\Core\PageRouter::space_url( (int) $s['id'] );
+				$cards[] = Blocks::link_heading( (string) $s['name'], $url, 3 ) . Blocks::paragraph( wp_strip_all_tags( (string) $s['description'] ) ) . Blocks::button( (string) $h['enter'], $url );
+			}
+			if ( $cards ) {
+				$section .= Blocks::heading( (string) $h['popular'], 3 ) . Blocks::columns( $cards );
+			}
 		}
 		if ( $buttons ) {
 			$section .= Blocks::buttons( $buttons );

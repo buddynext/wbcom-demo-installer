@@ -275,6 +275,7 @@ return array(
 		'closing' => 'Come and say hello. The community is waiting.',
 		'people'  => array( 'Meet the members', 'Designers, developers and makers who share what they learn and help each other out.' ),
 		'popular' => 'Popular spaces',
+		'feed'    => 'What members are sharing',
 	),
 	'guide'      => array(
 		'name'         => 'BuddyNext',
