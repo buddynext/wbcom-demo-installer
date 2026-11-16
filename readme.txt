@@ -78,6 +78,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * New      - Describe your site in one sentence and get three ready ideas through the AI connector set up in Settings > Connectors.
 * New      - About, Join, FAQ and Blog pages built with Wbcom Essential.
 * New      - Install and activate the free Wbcom products from the site check.
+* New      - The site check installs the free plugin each active Reign add-on is built for, and every starting point can install the product it needs.
 * New      - Demo data entry under Tools, and your own site name and tagline on the Review step.
 * Improve  - Sites without BuddyNext open on their community, shop or directory home page and show the site name in the header.
 * Improve  - A site that already runs BuddyPress, BuddyBoss or PeepSo is no longer offered the BuddyNext set by default.
