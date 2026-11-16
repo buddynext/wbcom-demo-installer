@@ -329,11 +329,11 @@ final class Finisher {
 	private static function complete( State $state, array $f ): void {
 		$kept_options = (array) ( $f['kept_options'] ?? array() );
 		if ( 'all' === $f['mode'] ) {
-			self::restore_fresh_site( $state );
 			// Product settings go back only once nothing chosen is left: a retry may still need them on.
 			if ( ! Ledger::next_batch( $f['remove'], array(), 1 ) ) {
 				$kept_options = array_merge( $kept_options, Snapshot::restore( true ) );
 			}
+			self::restore_fresh_site( $state ); // Last: restoring a setting can turn it off again.
 		}
 		// Kept items stay in the ledger (owner, 10 November 2026): they can still be removed later, until the
 		// owner says they are theirs (adopt()).

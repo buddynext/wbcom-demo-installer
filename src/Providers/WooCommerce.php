@@ -97,6 +97,47 @@ final class WooCommerce extends Provider {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function boot( Context $ctx ): void {
+		static $done = false;
+		if ( $done || ! $this->available() ) {
+			return;
+		}
+		$done = true;
+		// Opening the store (woocommerce_coming_soon, in settings()) and closing it again on Finish make WooCommerce
+		// re-save the Cart page to clear caches and add a "your store is live" note. Neither is the owner's, so while
+		// a demo step runs the Cart page keeps no revision, and a note added by that switch is taken back.
+		add_filter(
+			'wp_revisions_to_keep',
+			static fn( $keep, $post ) => $post instanceof \WP_Post && (int) get_option( 'woocommerce_cart_page_id' ) === (int) $post->ID ? 0 : $keep,
+			10,
+			2
+		);
+		$notes = '\\Automattic\\WooCommerce\\Admin\\Notes\\Notes';
+		$name  = 'wc-admin-order-withdrawal-feature';
+		$had   = null;
+		add_action(
+			'update_option_woocommerce_coming_soon',
+			static function () use ( $notes, $name, &$had ): void {
+				$had = class_exists( $notes ) && $notes::get_note_by_name( $name );
+			},
+			1
+		);
+		add_action(
+			'update_option_woocommerce_coming_soon',
+			static function () use ( $notes, $name, &$had ): void {
+				if ( false === $had && $notes::get_note_by_name( $name ) ) {
+					$notes::delete_notes_with_name( $name );
+				}
+			},
+			99
+		);
+	}
+
+	/**
 	 * Open the shop (a new store starts in "coming soon" mode) and mark the setup task list as done, since the
 	 * demo has the products, categories and pages it asks for.
 	 */
