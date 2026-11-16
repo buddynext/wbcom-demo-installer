@@ -1045,7 +1045,7 @@ final class BuddyNext extends Provider {
 					'buddynext/spaces-showcase',
 					array(
 						'source' => 'popular',
-						'count'  => 3,
+						'count'  => 4, // Its grid is two across: an even count leaves no card alone on a row.
 						'layout' => 'grid',
 					)
 				);
