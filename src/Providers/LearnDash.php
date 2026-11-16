@@ -8,6 +8,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -405,6 +406,84 @@ final class LearnDash extends Provider {
 				),
 			)
 			: array();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The course site's part of the designed home page: LearnDash's own course list block and the course topics.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		$h       = (array) ( $this->content()['home'] ?? array() );
+		$archive = (string) get_post_type_archive_link( 'sfwd-courses' );
+		$lessons = Ledger::ids( $this->id(), 'lesson' );
+		$preview = $lessons ? (string) get_permalink( (int) min( $lessons ) ) : ''; // The first course's free first lesson.
+		$buttons = array_values( array_filter( array( $archive ? array( (string) $h['browse'], $archive ) : null, $preview ? array( (string) $h['second'], $preview ) : null ) ) );
+		$stats   = array(
+			array( (int) ( wp_count_posts( 'sfwd-courses' )->publish ?? 0 ), __( 'courses', 'wbcom-demo-installer' ) ),
+			array( (int) ( wp_count_posts( 'sfwd-lessons' )->publish ?? 0 ), __( 'lessons', 'wbcom-demo-installer' ) ),
+			array( count( $ctx->people( 'student' ) ), __( 'students', 'wbcom-demo-installer' ) ),
+		);
+		$topics  = taxonomy_exists( 'ld_course_category' ) ? self::course_topics( 'ld_course_category' ) : array();
+
+		$sections = array(
+			Blocks::heading( (string) $h['featured'][0] ) . Blocks::paragraph( (string) $h['featured'][1] )
+				. '<!-- wp:learndash/ld-course-list {"per_page":"6","col":3} /-->'
+				. ( $archive ? Blocks::button( (string) $h['all'], $archive ) : '' ),
+		);
+		if ( $topics ) {
+			$sections[] = Blocks::heading( (string) $h['cats'][0] ) . Blocks::paragraph( (string) $h['cats'][1] ) . Blocks::columns( $topics );
+		}
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => $stats,
+			'sections' => $sections,
+		);
+	}
+
+	/**
+	 * Up to four course topics with courses, most courses first: the name linking to the topic and its course count,
+	 * one column each, in core blocks. Shared by the LMS providers (Tutor LMS and LifterLMS call it too).
+	 *
+	 * @param string $taxonomy Course category taxonomy.
+	 * @return string[] Column markup per topic.
+	 */
+	public static function course_topics( string $taxonomy ): array {
+		$terms = get_terms(
+			array(
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => true,
+				'orderby'    => 'count',
+				'order'      => 'DESC',
+				'number'     => 4,
+			)
+		);
+		$cols  = array();
+		foreach ( is_array( $terms ) ? $terms : array() as $t ) {
+			$link = get_term_link( $t );
+			if ( is_wp_error( $link ) ) {
+				continue;
+			}
+			$cols[] = Blocks::link_heading( $t->name, $link, 3 )
+				/* translators: %s: number of courses */
+				. Blocks::paragraph( sprintf( _n( '%s course', '%s courses', (int) $t->count, 'wbcom-demo-installer' ), number_format_i18n( (int) $t->count ) ) );
+		}
+		return $cols;
 	}
 
 	/**

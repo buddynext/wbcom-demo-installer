@@ -11,6 +11,7 @@
 
 namespace WbcomDemo\Providers;
 
+use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -339,6 +340,61 @@ final class PeepSo extends Provider {
 				return true;
 		}
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function community(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function offers_home(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The members part of the designed home page, with PeepSo profile links; its hero is used only on a
+	 * community-only site. A member's own PeepSo photo when they uploaded one, otherwise their site photo.
+	 *
+	 * @param Context $ctx See parent.
+	 */
+	public function home( Context $ctx ): array {
+		if ( ! $this->available() || ! class_exists( 'PeepSoUser' ) ) {
+			return array();
+		}
+		$h       = (array) ( $this->content()['home'] ?? array() );
+		$stream  = $this->front_page() ? (string) get_permalink( $this->front_page() ) : '';
+		$buttons = $stream ? array( array( (string) $h['join'], $stream ) ) : array();
+		$stats   = array( array( count( $ctx->people() ), __( 'members', 'wbcom-demo-installer' ) ) );
+		$people  = array();
+		foreach ( array_slice( $ctx->people(), 0, 8 ) as $id ) {
+			$user     = \PeepSoUser::get_instance( $id );
+			$people[] = array(
+				(string) ( $ctx->profile( $id )['name'] ?? $user->get_fullname() ),
+				(string) $user->get_profileurl(),
+				$user->has_avatar() ? (string) $user->get_avatar( 'full' ) : (string) get_avatar_url( $id, array( 'size' => 192 ) ),
+			);
+		}
+
+		$section = Blocks::heading( (string) $h['people'][0] ) . Blocks::paragraph( (string) $h['people'][1] ) . Blocks::people( $people )
+			. ( $buttons ? Blocks::buttons( $buttons ) : '' );
+		return array(
+			'hero'     => array(
+				'title'   => (string) $h['title'],
+				'text'    => (string) $h['text'],
+				'image'   => (string) $h['image'],
+				'buttons' => $buttons,
+				'closing' => (string) $h['closing'],
+			),
+			'stats'    => $stats,
+			'sections' => array( $section ),
+		);
 	}
 
 	/**
