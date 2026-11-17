@@ -262,6 +262,64 @@ final class Roadmap extends Provider {
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Voting and suggestions happen on the roadmap page; a step the owner has switched off is left out.
+	 */
+	public function guide(): array {
+		$page = (int) get_option( 'roadmap_page_id' );
+		if ( ! $page || 'publish' !== get_post_status( $page ) || ! class_exists( '\\Roadmap_Settings' ) ) {
+			return array();
+		}
+		$t     = $this->content()['guide'];
+		$on    = (array) \Roadmap_Settings::get();
+		$board = (string) get_permalink( $page );
+		$items = admin_url( 'edit.php?post_type=roadmap_item' );
+		return array(
+			'name'         => $t['name'],
+			'tab'          => $t['tab'],
+			'member_label' => $t['member_label'],
+			'owner_points' => $t['owner_points'],
+			'roles'        => array(
+				array(
+					'key'    => 'member',
+					'user'   => People::user_id( '', 1 ),
+					'label'  => $t['roles']['member'][0],
+					'points' => $t['roles']['member'][1],
+				),
+			),
+			'member'       => self::guide_steps(
+				$t['member'],
+				array(
+					'roadmap' => $board,
+					'vote'    => empty( $on['enable_voting'] ) ? null : $board,
+					'suggest' => empty( $on['enable_suggestions'] ) ? null : $board,
+				),
+				array(
+					'roadmap' => array(
+						'public'    => true,
+						'as'        => 'member',
+						'highlight' => true,
+					),
+					'vote'    => array( 'as' => 'member' ),
+					'suggest' => array( 'as' => 'member' ),
+				)
+			),
+			'owner'        => self::guide_steps(
+				$t['owner'],
+				array(
+					'items'       => $items,
+					// Suggestions from members without publish rights arrive as pending items.
+					'suggestions' => $items . '&post_status=pending',
+					'statuses'    => admin_url( 'edit-tags.php?taxonomy=roadmap_status&post_type=roadmap_item' ),
+					'settings'    => admin_url( 'admin.php?page=roadmap-settings' ),
+				)
+			),
+			'highlights'   => self::guide_highlights( $t['highlights'] ),
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public function late_types(): array {
 		return array( 'term' );
