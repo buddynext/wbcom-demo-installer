@@ -4,9 +4,7 @@ title: Frequently asked questions
 
 ## Can I run the demo on my live site?
 
-It is made for a fresh site you use to show or try the products: a new install, a staging copy or a sandbox. On a
-site people already use, the 20 sample people would appear next to your real members in member lists, feeds and
-leaderboards until you finish the demo. If the site already has other members, blog posts or comments, the site
+It is made for a fresh site you use to show or try the products: a new install, a staging copy or a sandbox. On a site people already use, the 20 sample people would appear next to your real members. They show in member lists, feeds and leaderboards until you finish the demo. If the site already has other members, blog posts or comments, the site
 check warns you and the build waits until you confirm.
 
 ## Are my own users, posts and pages changed?
@@ -25,8 +23,7 @@ filled in too, for example more activity in the feed.
 
 ## What happens to the products' own setup wizards?
 
-The demo finishes each product's setup the way its own wizard does and creates the pages it needs, so you are not
-sent to several setup screens. Each wizard is still in its product's menu if you want to run it.
+The demo finishes each product's setup the way its own wizard does. It also creates the pages each product needs, so you are not sent to several setup screens. Each wizard is still in its product's menu if you want to run it.
 
 ## What is left for me to do after the demo?
 
@@ -40,8 +37,7 @@ categories and settings. "Remove everything" also puts back your previous home p
 
 ## Can I run it again?
 
-Yes, once the current demo is finished. After "Keep my setup", choose **Keep them as mine** first; a new build then
-reuses the spaces and categories you kept, and adds its own Demo menu without changing yours.
+Yes, once the current demo is finished. After "Keep my setup", choose **Keep them as mine** first. A new build then reuses the spaces and categories you kept. It adds its own Demo menu without changing yours.
 
 ## Does it work with my theme?
 
@@ -55,6 +51,4 @@ releases you get as updates. Pro add-ons need your licence, so install them from
 
 ## Does it need an AI service?
 
-No. Without one everything works with the installer's sample content. With an AI connector set up in Settings >
-Connectors (WordPress 7.0 or later), you can describe your site and get three ideas; the one you pick is built with text
-written for it. The installer has no AI service or key of its own.
+No. Without one everything works with the installer's sample content. You need WordPress 7.0 or later and an AI connector set up in **Settings > Connectors**. Then you can describe your site and get three ideas. The one you pick is built with text written for it. The installer has no AI service or key of its own.

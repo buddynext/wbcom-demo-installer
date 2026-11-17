@@ -116,9 +116,9 @@ Plugin**, then come back to **Appearance > Set up your site**: the card checks a
 
 ## More help
 
-- [Set up your site](docs/website/getting-started/set-up-your-site.md): every demo, what it needs and what it builds.
-- [Finish the demo](docs/website/getting-started/finish-demo.md): every way to remove it.
-- [Troubleshooting](docs/website/troubleshooting/troubleshooting.md) and [FAQ](docs/website/faq/faq.md).
+- [Import a demo site (Set up your site)](docs/website/getting-started/set-up-your-site.md): every demo, what it needs and what it builds.
+- [Remove the demo content (Finish demo)](docs/website/getting-started/finish-demo.md): every way to remove it.
+- [Demo problems and fixes (Troubleshooting)](docs/website/troubleshooting/troubleshooting.md) and [FAQ](docs/website/faq/faq.md).
 - [WP-CLI commands](docs/website/developer-guide/wp-cli.md) and [adding a product](docs/website/developer-guide/providers.md).
 - [Release notes](https://github.com/buddynext/wbcom-demo-installer/releases).
 
