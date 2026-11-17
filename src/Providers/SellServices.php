@@ -189,7 +189,13 @@ final class SellServices extends Provider {
 			list( $who, $title, $cat, $base, $desc, $image ) = $s;
 			$vendor = $ctx->person( $who );
 			if ( ! isset( $done[ $vendor ] ) ) {
+				// "Member since" on the seller card reads the profile's created_at: the sample person's join date, not today.
+				$since = (string) get_userdata( $vendor )->user_registered;
+				$join  = static fn( $data ) => array( 'created_at' => $since ) + (array) $data;
+				add_filter( 'wpss_pre_vendor_register', $join );
 				$vendors->register( $vendor, array( 'status' => 'active' ) );
+				remove_filter( 'wpss_pre_vendor_register', $join );
+				update_user_meta( $vendor, '_wpss_vendor_since', $since );
 				$p = $ctx->profile( $vendor );
 				if ( method_exists( $vendors, 'update_profile' ) ) {
 					$vendors->update_profile(
@@ -279,12 +285,31 @@ final class SellServices extends Provider {
 		$reviews  = new \WPSellServices\Services\ReviewService();
 		$texts    = array( 'Clear communication and delivered early. Would hire again.', 'Exactly what we needed, thank you!', 'Great quality and very patient with my changes.' );
 		$was      = get_current_user_id();
+		// Each order's placed, started and completed times, so sellers do not all read "Last delivery: seconds ago".
+		// Sell Services 1.9.3+ stamps every order column through wpss_order_timestamp; older versions keep "now".
+		/**
+		 * Order column => UTC time for the order being made.
+		 *
+		 * @var array<string,string> $at
+		 */
+		$at    = array();
+		$stamp = static function ( $now, $field ) use ( &$at ) {
+			return $at[ $field ] ?? $now;
+		};
+		add_filter( 'wpss_order_timestamp', $stamp, 10, 2 );
+		// Those completions are days to weeks old, past the review window; the sample buyers review them anyway.
+		add_filter( 'wpss_review_window_days', '__return_zero' );
 		foreach ( Ledger::ids( $this->id(), 'service' ) as $k => $service_id ) {
 			for ( $o = 0; $o < 1 + $k % 2; $o++ ) {
 				$buyer = $buyers[ ( $k + $o ) % max( 1, count( $buyers ) ) ] ?? 0;
 				if ( ! $buyer || (int) get_post_field( 'post_author', $service_id ) === $buyer ) {
 					continue;
 				}
+				// Placed after the service went live, then started and completed a little later, never in the future.
+				$seq                = $k * 3 + $o;
+				$at['created_at']   = $ctx->after( (string) get_post_field( 'post_date_gmt', $service_id ), $seq );
+				$at['started_at']   = $ctx->after( $at['created_at'], $seq + 1 );
+				$at['completed_at'] = $ctx->after( $ctx->after( $at['started_at'], $seq + 2 ), $seq + 3 );
 				wp_set_current_user( $buyer );
 				$order = $provider->create_order(
 					array(
@@ -325,6 +350,8 @@ final class SellServices extends Provider {
 				}
 			}
 		}
+		remove_filter( 'wpss_order_timestamp', $stamp, 10 );
+		remove_filter( 'wpss_review_window_days', '__return_zero' );
 		wp_set_current_user( $was );
 	}
 

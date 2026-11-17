@@ -191,7 +191,8 @@ final class People extends Provider {
 					'role'                 => 'subscriber',
 					// Members see the site, not the WordPress toolbar, as on member sign-up in our products.
 					'show_admin_bar_front' => 'false',
-					'user_registered'      => $ctx->date( $i, 20, 120 ),
+					// 95 to 120 days ago: before any sample content (the oldest goes back 90 days), so "Member since" fits.
+					'user_registered'      => gmdate( 'Y-m-d H:i:s', strtotime( $ctx->date( $i, 20, 25 ) . ' UTC' ) - 95 * DAY_IN_SECONDS ),
 				)
 			);
 			if ( is_wp_error( $user_id ) ) {
