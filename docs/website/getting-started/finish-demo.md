@@ -1,36 +1,81 @@
 ---
-title: Finish the demo
+title: Remove the demo content (Finish demo)
 ---
 
-When you are ready for real members, remove the sample content and keep everything you set up.
+# Remove the demo content (Finish demo)
 
-1. Go to **Tools > Demo data**, or use the **Done exploring?** choices on the wizard's last screen: **Start my real
-   site** (keep the setup), **Remove everything** or **Try a different demo** opens this screen with that choice
-   made. The screen is there whenever the demo left something on the site, also after an earlier finish.
+**Also called:** delete demo data, remove sample content, uninstall demo, reset demo, clean up demo, remove dummy content.
+
+## What this does
+
+When you are ready for real members, this removes the sample content the demo added. You choose what stays. The usual choice keeps everything you set up, such as pages, menus and settings. It removes only the sample people and what they made.
+
+Your own users and content are never removed.
+
+## Before you start
+
+You need a demo built with **Appearance > Set up your site**. See [Import a demo site](set-up-your-site.md).
+
+## Steps
+
+1. Go to **Tools > Demo data**. This screen is there whenever the demo has left anything on the site.
+
+   You can also start from the wizard's last screen, under **Done exploring?** Each choice there opens this screen with that choice already made. **Start my real site** keeps your setup. **Remove everything** removes it all. **Try a different demo** removes it all and lets you pick another demo.
+
 2. Choose what should stay:
-   - **Keep my setup, remove sample content** (recommended): removes the sample people and everything they made, keeps settings, pages, menus, spaces, categories and plans.
-   - **Let me choose**: tick what to remove for each product.
-   - **Remove everything the demo added**: also removes sample spaces, categories and plans, and puts back your previous home page, menu and logo.
-3. Check the **Will remove** and **Will keep** lists, choose **Continue**, tick the confirmation and choose **Finish demo**.
-4. The report shows what was removed, what you kept, and anything still waiting. It says nothing was left behind
-   only when the demo left nothing on the site.
-   After **Try a different demo**, its main button is **Pick another demo**, which goes back to the demo gallery.
 
-![Choose what should stay](../images/11-finish-choose.webp)
+   - **Keep my setup, remove sample content** is the usual choice. It removes the sample people and everything they made. It keeps settings, pages, menus, spaces, categories and plans.
+   - **Let me choose** lets you tick what to remove for each product.
+   - **Remove everything the demo added** also removes sample spaces, categories and plans. It puts back your previous home page, menu and logo.
+
+   ![Choose what should stay](../images/11-finish-choose.webp)
+
+3. Check the **Will remove** and **Will keep** lists, then choose **Continue**.
+
+4. Tick the confirmation and choose **Finish demo**.
+
+   ![Confirm before anything is removed](../images/12-finish-confirm.webp)
+
+## You'll know it worked when
+
+The report shows what was removed, what you kept and anything still waiting. It says nothing was left behind only when the demo left nothing on the site.
 
 ![The report after removing everything](../images/13-finish-report.webp)
 
+If you chose **Try a different demo**, the main button is **Pick another demo**. It takes you back to the demo gallery.
+
 ## Good to know
 
-- Your own users and content are never removed.
-- If you keep some sample content, the sample people who made it stay too.
-- If a product is deactivated, its sample content waits. Activate it again and choose **Continue removing**.
-- If an item cannot be removed, the report says so and **Continue removing** tries it again.
-- Content the sample people did not create for the demo (for example a post you wrote and credited to one of them)
-  is never deleted: it is given to you when the sample people are removed.
-- If you changed your menu or logo after building the demo, your version is kept.
-- What you keep stays tracked, so you can remove it later from the same screen. Once only settings, pages, menus and
-  categories are left, choose **Keep them as mine** to end the demo; after that you can deactivate and delete the
-  plugin.
-- WPMediaVerse keeps its usage ledger (an accounting record) and Learnomy keeps an audit log of the removal (a
-  security record), both with the sample people removed. The report names them; they are not shown on the site.
+### Will my own posts or members be deleted?
+
+No. Your own users and content are never removed.
+
+Sometimes you credit one of the sample people with your own post. That post is never deleted. It is given to you when the sample people are removed.
+
+### Why are some sample people still there?
+
+If you keep some sample content, the sample people who made it stay too.
+
+### A product was switched off. What happens to its content?
+
+Its sample content waits. Activate the product again and choose **Continue removing**.
+
+### Something could not be removed. What now?
+
+The report says what could not be removed. Choose **Continue removing** to try it again. [Demo problems and fixes](../troubleshooting/troubleshooting.md) has more help.
+
+### I changed my menu or logo after the build. Is my version kept?
+
+Yes. If you changed your menu or logo after building the demo, your version is kept.
+
+### How do I end the demo completely?
+
+What you keep stays tracked, so you can remove it later from the same screen. When only settings, pages, menus and categories are left, choose **Keep them as mine**. That ends the demo. After that you can deactivate and delete the plugin.
+
+### Why do some products keep a record after removal?
+
+WPMediaVerse keeps its usage ledger, which is an accounting record. Learnomy keeps an audit log of the removal, which is a security record. Both have the sample people removed. The report names them, and they are not shown on the site.
+
+## For developers
+
+The same removal runs from WP-CLI with `wp wbcom-demo finish`. `wp wbcom-demo verify` shows the last report. See [WP-CLI commands](../developer-guide/wp-cli.md).
