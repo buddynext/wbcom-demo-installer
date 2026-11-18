@@ -1,5 +1,5 @@
 /* Wbcom Demo Installer: the Demo tour block (Try the demo page). Colours follow the theme. */
-.wdi-tour{--wdi-accent:var(--reign-colors-theme,var(--wp--preset--color--primary,#2563eb));--wdi-line:color-mix(in srgb,currentColor 14%,transparent);--wdi-soft:color-mix(in srgb,var(--wdi-accent) 10%,transparent);--wdi-ink:color-mix(in srgb,var(--wdi-accent) 40%,currentColor);--wdi-on:#fff;--wdi-muted:color-mix(in srgb,currentColor 68%,transparent);display:grid;gap:clamp(40px,6vw,64px);margin-block:8px 48px}
+.wdi-tour{--wdi-accent:var(--reign-colors-theme,var(--wp--preset--color--primary,#2563eb));--wdi-line:color-mix(in srgb,currentColor 14%,transparent);--wdi-soft:color-mix(in srgb,var(--wdi-accent) 10%,transparent);--wdi-ink:color-mix(in srgb,var(--wdi-accent) 40%,currentColor);--wdi-on:#fff;--wdi-muted:color-mix(in srgb,currentColor 90%,transparent);display:grid;gap:clamp(40px,6vw,64px);margin-block:8px 48px}
 .wdi-tour h2{margin:0 0 6px;font-size:clamp(24px,3vw,30px);letter-spacing:-.015em;line-height:1.2}
 .wdi-tour__lede{margin:0 0 24px;color:var(--wdi-muted);max-width:62ch}
 .wdi-tour__roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:18px}
