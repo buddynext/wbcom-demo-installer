@@ -517,10 +517,12 @@ final class Theme extends Provider {
 			return;
 		}
 		$name = __( 'Demo menu', 'wbcom-demo-installer' );
-		if ( wp_get_nav_menu_object( $name ) ) {
-			// The owner's own menu with this name, not one a demo made: wp_create_nav_menu() refuses a taken name.
-			/* translators: %s: date and time the demo was built */
-			$name = sprintf( __( 'Demo menu (%s)', 'wbcom-demo-installer' ), wp_date( 'Y-m-d H:i' ) );
+		$i    = 2;
+		while ( wp_get_nav_menu_object( $name ) ) {
+			// The owner's own menu with this name, not one a demo made (that one is found above): wp_create_nav_menu()
+			// refuses a taken name.
+			/* translators: %d: number */
+			$name = sprintf( __( 'Demo menu %d', 'wbcom-demo-installer' ), $i++ );
 		}
 		$menu_id = wp_create_nav_menu( $name );
 		if ( is_wp_error( $menu_id ) ) {
