@@ -304,6 +304,27 @@ final class Finisher {
 	}
 
 	/**
+	 * Take away the User Switching plugin the guide added (deactivate; delete when the demo installed it).
+	 *
+	 * @param State $state State.
+	 */
+	private static function remove_switching( State $state ): void {
+		$how = (string) $state->get( 'switching' );
+		if ( '' === $how ) {
+			return; // The demo did not add it: the owner's own copy stays as it is.
+		}
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$file = 'user-switching/user-switching.php';
+		deactivate_plugins( $file, true );
+		// Deleting needs direct file access: asking for FTP details is not possible in this request. Then it stays, off.
+		if ( 'installed' === $how && 'direct' === get_filesystem_method( array(), WP_PLUGIN_DIR ) ) {
+			delete_plugins( array( $file ) );
+		}
+		$state->set( 'switching', '' );
+	}
+
+	/**
 	 * WordPress turns `fresh_site` off when the demo publishes a page. After "Remove everything",
 	 * turn it back on, unless the owner has published something of their own since the build.
 	 *
@@ -344,6 +365,7 @@ final class Finisher {
 			// Product settings go back only once nothing chosen is left: a retry may still need them on.
 			if ( ! Ledger::next_batch( $f['remove'], array(), 1 ) ) {
 				$kept_options = array_merge( $kept_options, Snapshot::restore( true ) );
+				self::remove_switching( $state );
 			}
 			self::restore_fresh_site( $state ); // Last: restoring a setting can turn it off again.
 		} elseif ( $f['remove'] ) {

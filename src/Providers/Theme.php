@@ -10,6 +10,7 @@ namespace WbcomDemo\Providers;
 use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Guide;
+use WbcomDemo\Core\Installer;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
 use WbcomDemo\Core\Registry;
@@ -405,6 +406,29 @@ final class Theme extends Provider {
 		if ( $id ) {
 			$ctx->record( $this->id(), 'page', $id, 'setup' );
 		}
+		self::switching( $ctx );
+	}
+
+	/**
+	 * The guide's "Explore as" buttons switch into a sample person with the free User Switching plugin: install and
+	 * switch it on with the guide, and remember whether the demo did, so Remove everything takes away only what the
+	 * demo added. Already active: left alone. Not possible (offline, DISALLOW_FILE_MODS): the guide's buttons open
+	 * each person's page instead, as they always have.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private static function switching( Context $ctx ): void {
+		$ctx->state->set( 'switching', '' );
+		$before = Installer::status( 'user-switching' )['state'];
+		if ( 'active' === $before ) {
+			return;
+		}
+		$done = Installer::install( 'user-switching' );
+		if ( is_wp_error( $done ) ) {
+			$ctx->warn( 'theme', 'User Switching', $done );
+			return;
+		}
+		$ctx->state->set( 'switching', 'not_installed' === $before ? 'installed' : 'activated' );
 	}
 
 	/**
