@@ -51,8 +51,21 @@ final class Context {
 	 * @param string $role Optional role tag.
 	 */
 	public function person( int $i, string $role = '' ): int {
-		$ids = $this->people( $role );
-		return $ids ? $ids[ abs( $i ) % count( $ids ) ] : 0;
+		// Resolve by roster slot, not by position among the people made: when a demo login was already taken and
+		// its slot skipped, everyone else keeps their own content and only the skipped slot's items move on.
+		$slots = '' === $role || 'member' === $role ? array_keys( \WbcomDemo\Providers\People::roster() ) : \WbcomDemo\Providers\People::indexes( $role );
+		$made  = array();
+		foreach ( (array) $this->state->get( 'people' ) as $person ) {
+			$made[ (int) $person['index'] ] = (int) $person['id'];
+		}
+		$n = count( $slots );
+		for ( $k = 0; $k < $n; $k++ ) {
+			$slot = $slots[ ( abs( $i ) + $k ) % $n ];
+			if ( isset( $made[ $slot ] ) ) {
+				return $made[ $slot ];
+			}
+		}
+		return 0;
 	}
 
 	/**
