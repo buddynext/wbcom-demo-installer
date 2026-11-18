@@ -250,7 +250,6 @@ final class Learnomy extends Provider {
 						'section_id'       => (int) $section_id,
 						'author_id'        => $instructor,
 						'title'            => $lesson[0],
-						'slug'             => sanitize_title( $lesson[0] ) . '-' . $course_id,
 						'content'          => $html,
 						'content_type'     => 'text',
 						'duration_seconds' => 300 + ( $l * 120 ),
