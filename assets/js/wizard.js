@@ -584,6 +584,7 @@
 				${ done( 'finish-again', __( 'Try a different demo', 'wbcom-demo-installer' ), __( 'Removes everything, then takes you back to pick another demo.', 'wbcom-demo-installer' ) ) }
 			</ul><p class="wdi-muted wdi-small">${ esc( __( 'You see what will be removed and confirm before anything changes. Your own users and posts are never touched.', 'wbcom-demo-installer' ) ) }</p></section>
 			<details class="wdi-details"><summary>${ esc( __( 'What the demo added', 'wbcom-demo-installer' ) ) }</summary><ul>${ ledgerTiles() }</ul></details>
+			${ ( st.reused || [] ).length ? `<p class="wdi-muted wdi-small">${ esc( sprintf( /* translators: %s: comma-separated page and menu names. */ __( 'Reused from an earlier demo, as they are: %s.', 'wbcom-demo-installer' ), st.reused.join( ', ' ) ) ) }</p>` : '' }
 			${ errors.length ? '' : problems }`,
 			`<div class="wdi-card__foot"><span class="wdi-spacer"></span><a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.home ) }" target="_blank" rel="noopener">${ esc( __( 'Visit your site', 'wbcom-demo-installer' ) ) }${ ic( 'right' ) }</a></div>`
 		);

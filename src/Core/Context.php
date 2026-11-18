@@ -281,6 +281,18 @@ final class Context {
 	}
 
 	/**
+	 * Note something the build reused instead of making again (a page or menu kept from an earlier demo).
+	 * Shown beside the warnings, but it is not a problem.
+	 *
+	 * @param string $title What was reused, as the owner sees it.
+	 */
+	public function reused( string $title ): void {
+		$list   = (array) $this->state->get( 'reused' );
+		$list[] = $title;
+		$this->state->set( 'reused', array_values( array_unique( $list ) ) );
+	}
+
+	/**
 	 * Whether a provider is part of this build.
 	 *
 	 * @param string $id Provider id.

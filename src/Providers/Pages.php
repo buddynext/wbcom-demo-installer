@@ -140,14 +140,13 @@ final class Pages extends Provider {
 		$items = array();
 		$short = array( 'faq' => (string) ( $this->content()['faq']['menu'] ?? '' ) );
 		foreach ( array( 'about', 'blog', 'faq' ) as $key ) {
-			$ids = Ledger::ids( $this->id(), 'page' );
-			foreach ( $ids as $id ) {
-				if ( get_post_meta( $id, '_wbcom_demo_page', true ) === $key ) {
-					$items[] = array(
-						'title'   => '' !== ( $short[ $key ] ?? '' ) ? $short[ $key ] : get_the_title( $id ),
-						'page_id' => (int) $id,
-					);
-				}
+			// This demo's page, or the one the owner kept from an earlier demo and this build reused.
+			$id = self::demo_page( $key );
+			if ( $id ) {
+				$items[] = array(
+					'title'   => '' !== ( $short[ $key ] ?? '' ) ? $short[ $key ] : get_the_title( $id ),
+					'page_id' => $id,
+				);
 			}
 		}
 		return $items;
@@ -286,6 +285,14 @@ final class Pages extends Provider {
 			'blog'  => $c['blog']['title'],
 		);
 		foreach ( self::PAGES as $key ) {
+			$found = self::demo_page( $key );
+			if ( $found ) {
+				// Made before a retry of this step, or kept by the owner from an earlier demo (adopted): never a second copy.
+				if ( ! Ledger::has( $this->id(), 'page', $found ) ) {
+					$ctx->reused( get_the_title( $found ) );
+				}
+				continue;
+			}
 			$id = wp_insert_post(
 				array(
 					'post_type'    => 'page',
@@ -293,6 +300,7 @@ final class Pages extends Provider {
 					'post_title'   => $titles[ $key ],
 					'post_content' => implode( "\n\n", array_filter( $blocks[ $key ] ) ),
 					'post_author'  => $admin,
+					'meta_input'   => array( '_wbcom_demo_page' => $key ),
 				),
 				true
 			);
@@ -300,9 +308,27 @@ final class Pages extends Provider {
 				$ctx->warn( $this->id(), 'page ' . $titles[ $key ], $id );
 				continue;
 			}
-			update_post_meta( (int) $id, '_wbcom_demo_page', $key );
 			$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
 		}
+	}
+
+	/**
+	 * The published page a demo made for a key (about, join, faq, blog), or 0.
+	 *
+	 * @param string $key Page key.
+	 */
+	private static function demo_page( string $key ): int {
+		$found = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => '_wbcom_demo_page', // phpcs:ignore WordPress.DB.SlowDBQuery -- four pages, read once per build.
+				'meta_value'  => $key, // phpcs:ignore WordPress.DB.SlowDBQuery
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		return $found ? (int) $found[0] : 0;
 	}
 
 	/**

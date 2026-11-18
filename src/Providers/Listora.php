@@ -201,7 +201,13 @@ final class Listora extends Provider {
 		foreach ( $this->content()['listings'] as $i => $l ) {
 			list( $who, $title, $cat, $street, $city, $country, $lat, $lng, $price, $photo, $desc, $features ) = $l;
 			$owner = $ctx->person( $who );
-			$id    = wp_insert_post(
+			// A step the engine retries after it died part way: a listing it already published is done; one still
+			// a draft is finished below instead of being made a second time.
+			$id = Ledger::find( $this->id(), 'listing', (string) $i );
+			if ( $id && 'publish' === get_post_status( $id ) ) {
+				continue;
+			}
+			$id = $id ? $id : wp_insert_post(
 				array(
 					'post_type'    => 'listora_listing',
 					'post_status'  => 'draft',
@@ -215,7 +221,7 @@ final class Listora extends Provider {
 				$ctx->warn( $this->id(), 'listing ' . $title, $id );
 				continue;
 			}
-			$ctx->record( $this->id(), 'listing', (int) $id );
+			$ctx->record( $this->id(), 'listing', (int) $id, 'sample', array( 'key' => (string) $i ) );
 			wp_set_object_terms( $id, $type, 'listora_listing_type' );
 			wp_set_object_terms( $id, array( $this->ensure_term( $cat, 'listora_listing_cat', $ctx ) ), 'listora_listing_cat' );
 			$feature_ids = array();
@@ -253,7 +259,7 @@ final class Listora extends Provider {
 			) as $key => $value ) {
 				\WBListora\Core\Meta_Handler::set_value( (int) $id, $key, $value );
 			}
-			$thumb = $ctx->attachment( 'photos/' . $photo, $owner, $this->id() );
+			$thumb = has_post_thumbnail( (int) $id ) ? 0 : $ctx->attachment( 'photos/' . $photo, $owner, $this->id() );
 			if ( $thumb ) {
 				set_post_thumbnail( (int) $id, $thumb );
 			}

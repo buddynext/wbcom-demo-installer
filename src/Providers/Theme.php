@@ -26,6 +26,11 @@ final class Theme extends Provider {
 	/** Post meta on the designed home page: its layout and the core-block parts Wbcom Essential blocks replace. */
 	private const HOME_META = '_wbcom_demo_home';
 
+	/**
+	 * Term meta on the menu a demo made, so a retried step or a later build finds it instead of making "Demo menu 2".
+	 */
+	private const MENU_META = '_wbcom_demo_menu';
+
 	/** The Wbcom Essential blocks the wizard puts on the designed home page. */
 	public const ESSENTIAL = array( 'wbcom-essential/hero', 'wbcom-essential/stats-counter', 'wbcom-essential/cta' );
 
@@ -198,6 +203,22 @@ final class Theme extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function designed_home( Context $ctx ): int {
+		// One home page per site: made before a retry of this step, or kept by the owner from an earlier demo (adopted).
+		$found = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => self::HOME_META, // phpcs:ignore WordPress.DB.SlowDBQuery -- one page, read once per build.
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		if ( $found ) {
+			if ( ! Ledger::has( $this->id(), 'page', (int) $found[0] ) ) {
+				$ctx->reused( get_the_title( (int) $found[0] ) );
+			}
+			return (int) $found[0];
+		}
 		$hero     = array();
 		$fallback = array();
 		$stats    = array();
@@ -238,8 +259,8 @@ final class Theme extends Provider {
 		if ( ! $sections && ! $people ) {
 			return 0;
 		}
-		$hero   = $hero ? $hero : $fallback;
-		$stats  = $by_crowd ? array_merge( $crowd, $stats ) : array_merge( $stats, $crowd ); // The lead's numbers first.
+		$hero  = $hero ? $hero : $fallback;
+		$stats = $by_crowd ? array_merge( $crowd, $stats ) : array_merge( $stats, $crowd ); // The lead's numbers first.
 		if ( $by_crowd ) {
 			$sections = array_merge( $people, $sections ); // The members section opens a community demo's page.
 			$people   = array();
@@ -290,6 +311,13 @@ final class Theme extends Provider {
 				'post_name'    => 'home',
 				'post_content' => $body,
 				'post_author'  => $admin,
+				// With the page itself, so a retried step finds it (above). See home_upgrade() for how it is used.
+				'meta_input'   => array(
+					self::HOME_META => array(
+						'layout' => $layout,
+						'parts'  => $parts,
+					),
+				),
 			),
 			true
 		);
@@ -301,15 +329,7 @@ final class Theme extends Provider {
 		self::no_sidebar( (int) $id );
 		// The hero, numbers and closing are core blocks here (valid on every path, WP-CLI too). When Wbcom Essential
 		// is active the wizard swaps them for its hero, stats counter and call to action, built by those blocks' own
-		// code in the browser so the editor accepts them (see home_upgrade()).
-		update_post_meta(
-			(int) $id,
-			self::HOME_META,
-			array(
-				'layout' => $layout,
-				'parts'  => $parts,
-			)
-		);
+		// code in the browser so the editor accepts them (see home_upgrade(), which reads HOME_META).
 		return (int) $id;
 	}
 
@@ -448,16 +468,41 @@ final class Theme extends Provider {
 		if ( ! $locations ) {
 			return;
 		}
+		$found = get_terms(
+			array(
+				'taxonomy'   => 'nav_menu',
+				'hide_empty' => false,
+				'meta_key'   => self::MENU_META, // phpcs:ignore WordPress.DB.SlowDBQuery -- one menu, read once per build.
+				'fields'     => 'ids',
+				'number'     => 1,
+			)
+		);
+		if ( $found && ! is_wp_error( $found ) ) {
+			// Made before a retry of this step, or kept by the owner from an earlier demo (adopted): one demo menu,
+			// used as it is and put back in the theme's menu locations.
+			$menu_id = (int) $found[0];
+			if ( ! Ledger::has( $this->id(), 'menu', $menu_id ) ) {
+				$term = get_term( $menu_id, 'nav_menu' );
+				$ctx->reused( $term instanceof \WP_Term ? $term->name : __( 'Menu', 'wbcom-demo-installer' ) );
+			}
+			$assigned = (array) get_theme_mod( 'nav_menu_locations', array() );
+			foreach ( $locations as $loc ) {
+				$assigned[ $loc ] = $menu_id;
+			}
+			Snapshot::write( 'theme_mod:nav_menu_locations', $assigned );
+			return;
+		}
 		$name = __( 'Demo menu', 'wbcom-demo-installer' );
-		$i    = 2;
-		while ( wp_get_nav_menu_object( $name ) ) {
-			/* translators: %d: number */
-			$name = sprintf( __( 'Demo menu %d', 'wbcom-demo-installer' ), $i++ );
+		if ( wp_get_nav_menu_object( $name ) ) {
+			// The owner's own menu with this name, not one a demo made: wp_create_nav_menu() refuses a taken name.
+			/* translators: %s: date and time the demo was built */
+			$name = sprintf( __( 'Demo menu (%s)', 'wbcom-demo-installer' ), wp_date( 'Y-m-d H:i' ) );
 		}
 		$menu_id = wp_create_nav_menu( $name );
 		if ( is_wp_error( $menu_id ) ) {
 			return;
 		}
+		add_term_meta( (int) $menu_id, self::MENU_META, 1, true );
 		$ctx->record( $this->id(), 'menu', (int) $menu_id, 'setup' );
 		// Themes hook wp_update_nav_menu_item and call get_current_screen() unguarded (BuddyX Pro menu
 		// icons, card 10480406536), which is undefined in a REST request. Loading the screen API makes it return null.

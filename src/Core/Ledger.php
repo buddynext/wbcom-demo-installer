@@ -154,6 +154,22 @@ final class Ledger {
 	}
 
 	/**
+	 * The object a provider recorded under a stable key in its ledger meta, or 0. A step the engine retries after it
+	 * died part way uses it to skip what it already made, instead of making it twice.
+	 *
+	 * @param string $provider Provider id.
+	 * @param string $type     Object type.
+	 * @param string $key      Key the provider passed as meta['key'].
+	 */
+	public static function find( string $provider, string $type, string $key ): int {
+		global $wpdb;
+		$table = self::table();
+		$like  = '%' . $wpdb->esc_like( '"key":' . wp_json_encode( $key ) ) . '%';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT object_id FROM %i WHERE provider = %s AND object_type = %s AND meta LIKE %s ORDER BY id LIMIT 1', $table, $provider, $type, $like ) );
+	}
+
+	/**
 	 * Counts grouped by provider, type and kind.
 	 *
 	 * @return array<int,object{provider:string,object_type:string,kind:string,n:int}>

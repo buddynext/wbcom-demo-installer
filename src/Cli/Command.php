@@ -224,6 +224,9 @@ final class Command {
 		foreach ( $problems as $problem ) {
 			WP_CLI::warning( $problem );
 		}
+		if ( ! empty( $status['reused'] ) ) {
+			WP_CLI::log( 'Reused from an earlier demo, as they are: ' . implode( ', ', (array) $status['reused'] ) . '.' );
+		}
 		$items = array_sum( array_column( $status['ledger'], 'count' ) );
 		if ( $status['errors'] ) {
 			WP_CLI::error( sprintf( 'Demo built with problems: %d items, %d problems. Fix the cause, then run Finish and build again.', $items, count( $problems ) ) );

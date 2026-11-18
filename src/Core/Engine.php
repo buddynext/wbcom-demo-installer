@@ -257,6 +257,7 @@ final class Engine {
 			->set( 'look', 'keep' === $look ? 'keep' : 'demo' )
 			->set( 'errors', array() )
 			->set( 'warnings', array() )
+			->set( 'reused', array() )
 			->set( 'fresh_site', (string) get_option( 'fresh_site', '0' ) )
 			->set( 'started_at', current_time( 'mysql', true ) )
 			->set( 'failed', array() )
@@ -549,6 +550,7 @@ final class Engine {
 			'current_provider' => $next[0] ?? '',
 			'errors'           => $state->get( 'errors' ),
 			'warnings'         => (array) $state->get( 'warnings' ),
+			'reused'           => (array) $state->get( 'reused' ),
 			'built_at'         => $state->get( 'built_at' ),
 			'ledger'           => $counts,
 			'report'           => $state->get( 'report' ),
