@@ -99,6 +99,8 @@ html, body { margin: 0; }
 .wdi-spacer { flex: 1; }
 /* The step's actions stay in view on long steps (Products, Review): pinned to the bottom of the window. */
 .wdi-card__foot { position: sticky; bottom: 0; z-index: 2; background: var(--wdi-surface); border-end-start-radius: var(--wdi-r-lg); border-end-end-radius: var(--wdi-r-lg); }
+/* The demo-ready screen ends in its own Finish choices: a floating Visit your site there sat over them on phones. */
+.wdi-card:has(.wdi-done) .wdi-card__foot { position: static; }
 
 .wdi-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--wdi-space-sm); min-height: 40px; padding: 0 var(--wdi-space-lg); border-radius: var(--wdi-r-md); border: 1px solid var(--wdi-border-strong); background: var(--wdi-surface); color: var(--wdi-text); font: 600 14px var(--wdi-font); cursor: pointer; text-decoration: none; }
 .wdi-btn--primary { background: var(--wdi-accent); border-color: var(--wdi-accent); color: var(--wdi-accent-ink); }
