@@ -120,7 +120,7 @@ Choose **See every combination** on the Starting point step. It opens three more
 | Reign GeoDirectory | Reign GeoDirectory Addon | GeoDirectory, BuddyPress, Wbcom Essential | Local directories with a map |
 | Reign WP Job Manager | Reign WP Job Manager Addon | WP Job Manager, BuddyPress, Wbcom Essential | Job boards |
 
-**Theme demos** show for your active theme. Wbcom products install as their free versions, so add your Pro add-ons yourself if you have them. Add-ons marked optional make the demo look better, but the demo builds without them.
+**Theme demos** show for your active theme. On a site without BuddyX Pro or Reign, the BuddyX demos show too: **Set up and use this demo** installs the free BuddyX theme from WordPress.org with the plugins, and switches it on last. **Remove everything** keeps BuddyX as your theme. Wbcom products install as their free versions, so add your Pro add-ons yourself if you have them. Add-ons marked optional make the demo look better, but the demo builds without them.
 
 | Demo | You install | Installed for you | Best for |
 |---|---|---|---|

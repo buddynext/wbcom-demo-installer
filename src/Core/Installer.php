@@ -190,8 +190,8 @@ final class Installer {
 				continue; // Only the demo gallery lists it.
 			}
 			$state = self::state( (string) $id, $entry, $plugins );
-			if ( 'theme' === $entry['type'] && 'active' !== $state && self::wbcom_theme() ) {
-				continue; // A Wbcom theme is active: BuddyX is not offered over it.
+			if ( 'theme' === $entry['type'] && 'active' !== $state && ! self::offer_buddyx() ) {
+				continue; // A Wbcom theme is active or installed: BuddyX is not offered over it.
 			}
 			// A Reign add-on's plugin shows only while one of its add-ons is active (matched by folder: the main
 			// file names differ, Reign GeoDirectory's is reign-geolocation.php), or installed and waiting for it: an
@@ -541,10 +541,12 @@ final class Installer {
 	}
 
 	/**
-	 * A Wbcom theme (BuddyX, BuddyX Pro, Reign or a child of one) is active.
+	 * Whether to offer the free BuddyX theme from WordPress.org: no Wbcom theme (BuddyX, BuddyX Pro, Reign or a
+	 * child of one) is active, and the owner has not installed BuddyX Pro or Reign, which they would use instead.
 	 */
-	private static function wbcom_theme(): bool {
-		return in_array( get_template(), array( 'buddyx', 'buddyx-pro', 'reign-theme' ), true );
+	public static function offer_buddyx(): bool {
+		return ! in_array( get_template(), array( 'buddyx', 'buddyx-pro', 'reign-theme' ), true )
+			&& ! wp_get_theme( 'buddyx-pro' )->exists() && ! wp_get_theme( 'reign-theme' )->exists();
 	}
 
 	/**

@@ -60,13 +60,20 @@ final class Demos {
 	 */
 	public static function overview(): array {
 		$family = Theme::theme_family();
+		$buddyx = Installer::offer_buddyx();
 		$out    = array();
 		foreach ( self::all() as $id => $demo ) {
-			if ( '*' !== ( $demo['theme'] ?? '' ) && ( $demo['theme'] ?? '' ) !== $family ) {
+			// Without BuddyX Pro or Reign, the BuddyX demos are offered too: the free theme installs with them.
+			$theme = 'BuddyX' === ( $demo['theme'] ?? '' ) && $family !== 'BuddyX' && $buddyx;
+			if ( '*' !== ( $demo['theme'] ?? '' ) && ( $demo['theme'] ?? '' ) !== $family && ! $theme ) {
 				continue;
 			}
 			$demo['requires'] = self::expand( (array) $demo['requires'] );
 			$rows             = array();
+			if ( $theme ) {
+				$rows[]          = array_merge( self::plugin_row( 'buddyx' ), array( 'kind' => 'theme' ) );
+				$demo['purpose'] = ''; // A demo that switches the theme is never put on top of the gallery.
+			}
 			if ( ! empty( $demo['addon'] ) ) {
 				$rows[] = self::addon_row( (array) $demo['addon'], true );
 			}

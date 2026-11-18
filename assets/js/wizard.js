@@ -355,6 +355,11 @@
 			if ( ! r.required ) {
 				return __( 'Optional: improves this demo.', 'wbcom-demo-installer' );
 			}
+			if ( 'theme' === r.kind ) {
+				return 'inactive' === r.state
+					? __( 'Installed: it becomes your theme, and Remove everything keeps it.', 'wbcom-demo-installer' )
+					: __( 'Free theme from WordPress.org: it becomes your theme, and Remove everything keeps it.', 'wbcom-demo-installer' );
+			}
 			if ( 'outdated' === r.state ) {
 				return __( 'Updated to its latest release for you.', 'wbcom-demo-installer' );
 			}
@@ -380,12 +385,22 @@
 			// On the card: only what the owner must do (upload a paid item) and the optional add-ons; the rest is
 			// a one-line summary, with the full list one click away.
 			const upload = d.rows.filter( ( r ) => r.required && 'active' !== r.state && ! r.can );
-			const auto = d.rows.filter( ( r ) => r.required && 'active' !== r.state && r.can );
+			const auto = d.rows.filter( ( r ) => r.required && 'active' !== r.state && r.can && 'theme' !== r.kind );
+			const theme = d.rows.find( ( r ) => 'theme' === r.kind && 'active' !== r.state );
 			const better = d.rows.filter( ( r ) => ! r.required && 'active' !== r.state );
 			const failed = d.rows.filter( ( r ) => S.installing[ r.id ] && ! [ 'busy', 'done' ].includes( S.installing[ r.id ] ) );
-			const summary = auto.length
+			let summary = auto.length
 				? sprintf( /* translators: %d: number of plugins. */ _n( 'Sets up %d plugin for you in one click.', 'Sets up %d plugins for you in one click.', auto.length, 'wbcom-demo-installer' ), auto.length )
 				: ( upload.length ? '' : __( 'Everything it needs is active.', 'wbcom-demo-installer' ) );
+			if ( theme && 'inactive' === theme.state ) {
+				summary = auto.length
+					? sprintf( /* translators: 1: theme name, 2: number of plugins. */ _n( 'Switches on the %1$s theme and sets up %2$d plugin in one click.', 'Switches on the %1$s theme and sets up %2$d plugins in one click.', auto.length, 'wbcom-demo-installer' ), theme.label, auto.length )
+					: sprintf( /* translators: %s: theme name. */ __( 'Switches on the %s theme in one click.', 'wbcom-demo-installer' ), theme.label );
+			} else if ( theme ) {
+				summary = auto.length
+					? sprintf( /* translators: 1: theme name, 2: number of plugins. */ _n( 'Installs the free %1$s theme and sets up %2$d plugin in one click.', 'Installs the free %1$s theme and sets up %2$d plugins in one click.', auto.length, 'wbcom-demo-installer' ), theme.label, auto.length )
+					: sprintf( /* translators: %s: theme name. */ __( 'Installs the free %s theme in one click.', 'wbcom-demo-installer' ), theme.label );
+			}
 			let action = '';
 			if ( 'conflict' === d.state ) {
 				action = `<span class="wdi-muted wdi-small">${ esc( sprintf( /* translators: %s: community plugin name. */ __( 'This site runs %s: choose a demo built for it.', 'wbcom-demo-installer' ), d.conflict ) ) }</span>`;
@@ -432,7 +447,9 @@
 		if ( ! d ) {
 			return;
 		}
-		const todo = [ ...d.fix ].sort( ( a, b ) => ( a.startsWith( 'addon:' ) ? 1 : 0 ) - ( b.startsWith( 'addon:' ) ? 1 : 0 ) );
+		// The theme switches last, once its plugins are in.
+		const late = ( t ) => ( 'buddyx' === t ? 2 : ( t.startsWith( 'addon:' ) ? 1 : 0 ) );
+		const todo = [ ...d.fix ].sort( ( a, b ) => late( a ) - late( b ) );
 		S.demoBusy = id;
 		S.demoStep = [ 1, todo.length ];
 		S.showMore = S.showMore || ! d.featured; // The card stays in sight while it sets up.
