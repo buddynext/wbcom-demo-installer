@@ -277,7 +277,7 @@ final class Learnomy extends Provider {
 	private function quiz( Context $ctx, int $course_id, int $section_id, int $instructor, array $q ): void {
 		$was = get_current_user_id();
 		wp_set_current_user( $instructor );
-		$rest = static function ( string $route, array $params ): array {
+		$rest    = static function ( string $route, array $params ): array {
 			$req = new \WP_REST_Request( 'POST', '/learnomy/v1' . $route );
 			foreach ( $params as $k => $v ) {
 				$req->set_param( $k, $v );
@@ -285,7 +285,7 @@ final class Learnomy extends Provider {
 			$res = rest_do_request( $req );
 			return $res->is_error() ? array( 'error' => $res->as_error() ) : (array) ( $res->get_data()['data'] ?? array() );
 		};
-		$quiz = $rest(
+		$quiz    = $rest(
 			'/quizzes',
 			array(
 				'title'         => $q['title'],
@@ -306,7 +306,14 @@ final class Learnomy extends Provider {
 			static fn( $mc ) => array(
 				'title'   => $mc[0],
 				'type'    => 'mc_single',
-				'answers' => array_map( static fn( $text, $i ) => array( 'content' => $text, 'is_correct' => $i === $mc[2] ), $mc[1], array_keys( $mc[1] ) ),
+				'answers' => array_map(
+					static fn( $text, $i ) => array(
+						'content'    => $text,
+						'is_correct' => $i === $mc[2],
+					),
+					$mc[1],
+					array_keys( $mc[1] )
+				),
 			),
 			(array) $q['questions']
 		);
@@ -360,7 +367,8 @@ final class Learnomy extends Provider {
 			}
 			$pick = null;
 			foreach ( \Learnomy\Models\Answer::get_for_question( (int) $question->id ) as $answer ) {
-				if ( (bool) $answer->is_correct !== ( $slip && $n === $last ) ) {
+				$wrong = $slip && $n === $last; // The slip picks a wrong answer.
+				if ( $wrong xor (bool) $answer->is_correct ) {
 					$pick = (int) $answer->id;
 					break;
 				}
