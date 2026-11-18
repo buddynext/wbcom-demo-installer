@@ -378,7 +378,7 @@
 			} else if ( 'ready' === d.state ) {
 				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo="${ esc( d.id ) }">${ esc( __( 'Use this demo', 'wbcom-demo-installer' ) ) }</button>`;
 			} else if ( 'fixable' === d.state ) {
-				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo-fix="${ esc( d.id ) }" ${ busy ? 'disabled' : '' }>${ esc( busy && S.demoBusy === d.id ? __( 'Setting up...', 'wbcom-demo-installer' ) : __( 'Set up and use this demo', 'wbcom-demo-installer' ) ) }</button>`;
+				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo-fix="${ esc( d.id ) }" ${ busy ? 'disabled' : '' }>${ esc( busy && S.demoBusy === d.id ? sprintf( /* translators: 1: plugin being set up, 2: how many in all. */ __( 'Setting up %1$d of %2$d...', 'wbcom-demo-installer' ), ...( S.demoStep || [ 1, 1 ] ) ) : __( 'Set up and use this demo', 'wbcom-demo-installer' ) ) }</button>`;
 			} else {
 				action = `<span class="wdi-muted wdi-small">${ esc( __( 'Upload what is marked, then come back.', 'wbcom-demo-installer' ) ) }</span>`;
 			}
@@ -420,9 +420,13 @@
 		}
 		const todo = [ ...d.fix ].sort( ( a, b ) => ( a.startsWith( 'addon:' ) ? 1 : 0 ) - ( b.startsWith( 'addon:' ) ? 1 : 0 ) );
 		S.demoBusy = id;
+		S.demoStep = [ 1, todo.length ];
+		S.showMore = S.showMore || ! d.featured; // The card stays in sight while it sets up.
 		todo.forEach( ( t ) => ( S.installing[ t ] = 'busy' ) );
 		render();
-		for ( const t of todo ) {
+		for ( const [ i, t ] of todo.entries() ) {
+			S.demoStep = [ i + 1, todo.length ];
+			render(); // "Setting up 3 of 8" on the card, so a minute of downloads never looks stuck.
 			try {
 				await api( '/install', { id: t } );
 				S.installing[ t ] = 'done';
@@ -926,6 +930,17 @@
 			S.tagline = e.target.value;
 		}
 	} );
+
+	// "See every combination" stays as the owner left it when the screen redraws (an install redraws it often).
+	app.addEventListener(
+		'toggle',
+		( e ) => {
+			if ( e.target.matches && e.target.matches( 'details.wdi-more' ) ) {
+				S.showMore = e.target.open;
+			}
+		},
+		true
+	);
 
 	app.addEventListener( 'change', ( e ) => {
 		if ( 'wdi-consent' === e.target.id ) {
