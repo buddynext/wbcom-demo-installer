@@ -334,6 +334,8 @@ final class Finisher {
 				$kept_options = array_merge( $kept_options, Snapshot::restore( true ) );
 			}
 			self::restore_fresh_site( $state ); // Last: restoring a setting can turn it off again.
+		} elseif ( $f['remove'] ) {
+			\WbcomDemo\Providers\Theme::drop_home_numbers(); // The kept home page no longer claims the sample's 20 members.
 		}
 		// Kept items stay in the ledger (owner, 10 November 2026): they can still be removed later, until the
 		// owner says they are theirs (adopt()).

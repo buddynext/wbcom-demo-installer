@@ -314,6 +314,35 @@ final class Theme extends Provider {
 	}
 
 	/**
+	 * Remove the numbers row (members, spaces, discussions...) from the designed home page once sample content is
+	 * removed and the page is kept: its counts were the sample's. Both forms go, the core columns built here and
+	 * the Wbcom Essential stats counter the wizard swaps in; the hero, sections and closing stay. Runs only on our
+	 * own home page, and never touches a page the owner edited past recognition (no match, no change).
+	 */
+	public static function drop_home_numbers(): void {
+		$id   = (int) get_option( 'page_on_front' );
+		$data = $id ? get_post_meta( $id, self::HOME_META, true ) : '';
+		if ( ! is_array( $data ) ) {
+			return;
+		}
+		$content = (string) get_post_field( 'post_content', $id );
+		$out     = ! empty( $data['parts']['stats'] ) ? str_replace( (string) $data['parts']['stats'], '', $content ) : $content;
+		$blocks  = parse_blocks( $out );
+		$kept    = array_filter( $blocks, static fn( array $b ): bool => ! ( 'wbcom-essential/stats-counter' === $b['blockName'] && 'wdihomestats' === ( $b['attrs']['uniqueId'] ?? '' ) ) );
+		if ( count( $kept ) !== count( $blocks ) ) {
+			$out = serialize_blocks( array_values( $kept ) );
+		}
+		if ( $out !== $content ) {
+			wp_update_post(
+				array(
+					'ID'           => $id,
+					'post_content' => wp_slash( $out ),
+				)
+			);
+		}
+	}
+
+	/**
 	 * The designed home page still waiting for its Wbcom Essential blocks, for the wizard: page id, the core-block
 	 * parts to replace and what goes in their place. Empty when done, not ours, or Wbcom Essential is not active.
 	 *
