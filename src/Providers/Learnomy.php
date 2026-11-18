@@ -1,6 +1,6 @@
 <?php
 /**
- * Learnomy: courses with sections and lessons, instructors, enrolments, progress and reviews.
+ * Learnomy: courses with sections and lessons, quizzes, instructors, enrolments, progress and reviews.
  *
  * @package WbcomDemo
  */
@@ -95,7 +95,7 @@ final class Learnomy extends Provider {
 		}
 		return sprintf(
 			/* translators: 1: courses, 2: lessons */
-			__( '%1$d courses with %2$d lessons, instructors, enrolments, progress and reviews', 'wbcom-demo-installer' ),
+			__( '%1$d courses with %2$d lessons, quizzes, instructors, enrolments, progress and reviews', 'wbcom-demo-installer' ),
 			count( $c['courses'] ),
 			$lessons
 		);
