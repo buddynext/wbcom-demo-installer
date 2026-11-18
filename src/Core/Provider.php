@@ -380,9 +380,10 @@ abstract class Provider {
 	 * @param Context $ctx      Context.
 	 * @param string  $slug     Slug to look up and create with; the name when empty.
 	 * @param string  $type     Ledger object type.
+	 * @param string  $kind     Ledger kind: setup (kept by Keep setup) or sample (removed with the sample content).
 	 * @return int Term id, 0 when it could not be created.
 	 */
-	protected function ensure_term( string $name, string $taxonomy, Context $ctx, string $slug = '', string $type = 'term' ): int {
+	protected function ensure_term( string $name, string $taxonomy, Context $ctx, string $slug = '', string $type = 'term', string $kind = 'setup' ): int {
 		$found = term_exists( '' !== $slug ? $slug : $name, $taxonomy );
 		if ( is_array( $found ) ) {
 			return (int) $found['term_id'];
@@ -391,7 +392,7 @@ abstract class Provider {
 		if ( is_wp_error( $new ) ) {
 			return 0;
 		}
-		$ctx->record( $this->id(), $type, (int) $new['term_id'], 'setup', array( 'taxonomy' => $taxonomy ) );
+		$ctx->record( $this->id(), $type, (int) $new['term_id'], $kind, array( 'taxonomy' => $taxonomy ) );
 		return (int) $new['term_id'];
 	}
 

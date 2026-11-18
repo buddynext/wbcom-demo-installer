@@ -32,7 +32,7 @@ return array(
 			'desc'     => 'Perfect mirror reflection of mountains in a crystal clear lake surrounded by dense conifer forest and wildflowers.',
 			'tags'     => array( 'nature', 'lake', 'reflection', 'landscape' ),
 			'category' => 'Nature',
-			'owner'    => 6,
+			'owner'    => 1,
 		),
 		array(
 			'file'     => 'misty-forest-path.jpg',
@@ -40,7 +40,7 @@ return array(
 			'desc'     => 'A winding path through a lush green forest with morning mist clinging to the branches and ferns along the trail.',
 			'tags'     => array( 'nature', 'forest', 'path', 'mist' ),
 			'category' => 'Nature',
-			'owner'    => 9,
+			'owner'    => 1,
 		),
 		array(
 			'file'     => 'bamboo-forest.jpg',
@@ -96,7 +96,7 @@ return array(
 			'desc'     => 'Modern city skyline with illuminated skyscrapers reflected in the river at dusk as the last light fades.',
 			'tags'     => array( 'city', 'skyline', 'architecture', 'dusk' ),
 			'category' => 'Architecture',
-			'owner'    => 10,
+			'owner'    => 13,
 		),
 		array(
 			'file'     => 'urban-street-night.jpg',
@@ -112,7 +112,7 @@ return array(
 			'desc'     => 'Glowing neon signs and wet pavement reflections transform an ordinary city block into a cinematic scene after dark.',
 			'tags'     => array( 'city', 'neon', 'nightlife', 'urban' ),
 			'category' => 'Architecture',
-			'owner'    => 16,
+			'owner'    => 13,
 		),
 		array(
 			'file'     => 'venice-canal.jpg',
@@ -168,7 +168,7 @@ return array(
 			'desc'     => 'Green aurora rolling over a row of cabins and pines on a clear autumn night.',
 			'tags'     => array( 'nature', 'aurora', 'night', 'sky' ),
 			'category' => 'Nature',
-			'owner'    => 17,
+			'owner'    => 1,
 		),
 		array(
 			'file'     => 'artisan-pizza.jpg',
@@ -200,7 +200,7 @@ return array(
 			'desc'     => 'Beautifully plated gourmet dish with fresh herbs and artistic presentation worthy of a Michelin-starred kitchen.',
 			'tags'     => array( 'food', 'gourmet', 'plating', 'restaurant' ),
 			'category' => 'Food',
-			'owner'    => 9,
+			'owner'    => 7,
 		),
 		array(
 			'file'     => 'matcha-latte.jpg',
@@ -208,7 +208,7 @@ return array(
 			'desc'     => 'A cup of matcha latte with the bamboo whisk and scoop beside it on a grey table.',
 			'tags'     => array( 'food', 'matcha', 'tea', 'morning' ),
 			'category' => 'Food',
-			'owner'    => 12,
+			'owner'    => 7,
 		),
 		array(
 			'file'     => 'airport-departure.jpg',
