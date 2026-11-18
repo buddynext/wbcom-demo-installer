@@ -471,6 +471,8 @@ final class Engine {
 							$state->set( 'reload', true );
 						}
 					} else {
+						// Each step starts with no date or parent, whatever an earlier step in this process left set.
+						Clock::reset();
 						$provider->run( $step, $ctx );
 					}
 				} catch ( \Throwable $e ) {
@@ -478,6 +480,9 @@ final class Engine {
 					$errors   = (array) $state->get( 'errors' );
 					$errors[] = sprintf( '%s: %s', $provider->label(), $e->getMessage() );
 					$state->set( 'failed', $failed )->set( 'errors', $errors );
+				} finally {
+					// WP-CLI runs every step in one process: a provider's Clock must not date the next provider's items.
+					Clock::reset();
 				}
 			}
 			$state->set( 'queue', $queue )->set( 'done', (int) $state->get( 'done' ) + 1 )->set( 'trying', array() );
