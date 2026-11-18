@@ -111,6 +111,8 @@ final class Learnomy extends Provider {
 			'course'     => array( count( $c['courses'] ), 'sample', __( 'courses', 'wbcom-demo-installer' ) ),
 			'enrollment' => array( $this->enrolment_count(), 'sample', __( 'enrolments', 'wbcom-demo-installer' ) ),
 			'quiz'       => array( count( array_filter( array_column( $c['courses'], 'quiz' ) ) ), 'sample', __( 'quizzes', 'wbcom-demo-installer' ) ),
+			// One by the learner who finishes each course (learners()).
+			'review'     => array( count( $c['courses'] ), 'sample', __( 'course reviews', 'wbcom-demo-installer' ) ),
 			'question'   => array( array_sum( array_map( static fn( $q ) => count( $q['questions'] ) + ( empty( $q['essay'] ) ? 0 : 1 ), array_filter( array_column( $c['courses'], 'quiz' ) ) ) ), 'sample', __( 'quiz questions', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $c['courses'] ), 'sample', __( 'course images', 'wbcom-demo-installer' ) ),
 		);
@@ -490,7 +492,15 @@ final class Learnomy extends Provider {
 					$body = $bodies[ $r % count( $bodies ) ];
 					++$r;
 					try {
-						$reviews->submit( $uid, $course_id, $body[0], $body[1], $body[2] );
+						$rid = $reviews->submit( $uid, $course_id, $body[0], $body[1], $body[2] );
+						if ( $rid ) {
+							// Learnomy holds new reviews for moderation, which is right for real ones; a demo course with
+							// only pending reviews shows none. The admin approves our own sample reviews through Learnomy's
+							// moderation (the owner's setting is not changed), dated after the learner's last lesson.
+							\Learnomy\Models\Review::update( $rid, array( 'created_at' => $ctx->after( $when, 60 + $s ) ) );
+							$reviews->approve( $rid );
+							$ctx->record( $this->id(), 'review', $rid, 'sample', array( 'course' => (int) $course_id ) );
+						}
 					} catch ( \Throwable $e ) {
 						$ctx->warn( $this->id(), 'review', $e->getMessage() );
 					}
@@ -531,6 +541,12 @@ final class Learnomy extends Provider {
 				return ! \Learnomy\Models\Category::find( $id );
 			case 'attachment':
 				return self::delete_post( $id, true );
+			case 'review':
+				// Learnomy's delete recounts the course rating; the course delete removes it too when it went first.
+				if ( \Learnomy\Models\Review::find( $id ) ) {
+					( new \Learnomy\Services\Review_Service() )->delete( $id );
+				}
+				return ! \Learnomy\Models\Review::find( $id );
 			case 'question':
 				// A bank question outlives its quiz in Learnomy; the model delete clears its answers, slots and responses.
 				if ( \Learnomy\Models\Question::find( $id ) ) {
