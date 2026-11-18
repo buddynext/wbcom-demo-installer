@@ -446,28 +446,27 @@ final class Theme extends Provider {
 				)
 			);
 		}
+		// Each product's links in its group. Past six links the menu reads as a wall, so the groups become
+		// dropdowns (a group with one link stays a plain link); a small demo keeps one flat row.
+		$groups = array_fill_keys( array_keys( self::groups() ), array() );
 		foreach ( $this->included( $ctx ) as $p ) {
 			foreach ( $p->menu_items() as $item ) {
-				$args = array(
-					'menu-item-title'    => $item['title'],
-					'menu-item-status'   => 'publish',
-					'menu-item-position' => $pos++,
-				);
-				if ( ! empty( $item['page_id'] ) ) {
-					$args += array(
-						'menu-item-object'    => 'page',
-						'menu-item-object-id' => (int) $item['page_id'],
-						'menu-item-type'      => 'post_type',
-					);
-				} else {
-					$args += array(
-						'menu-item-url'  => $item['url'],
-						'menu-item-type' => 'custom',
-					);
-				}
-				wp_update_nav_menu_item( (int) $menu_id, 0, $args );
+				$groups[ self::group_of( $p->id() ) ][] = $item;
 			}
 		}
+		$groups = array_filter( $groups );
+		$nested = count( $groups, COUNT_RECURSIVE ) - count( $groups ) > 6;
+		foreach ( $groups as $key => $items ) {
+			$parent = 0;
+			if ( $nested && count( $items ) > 1 ) {
+				// The group opens its first link when clicked, so it is never a dead "#" link.
+				$parent = self::menu_link( (int) $menu_id, array( 'title' => self::groups()[ $key ] ) + array_diff_key( $items[0], array( 'title' => 1 ) ), $pos++ );
+			}
+			foreach ( $items as $item ) {
+				self::menu_link( (int) $menu_id, $item, $pos++, $parent );
+			}
+		}
+		$this->footer( $ctx, $groups );
 		$assigned = (array) get_theme_mod( 'nav_menu_locations', array() );
 		foreach ( $locations as $loc ) {
 			$assigned[ $loc ] = (int) $menu_id;
@@ -539,6 +538,111 @@ final class Theme extends Provider {
 		foreach ( (array) apply_filters( 'wbcom_demo_page_layout', $meta, $id, get_template() ) as $key => $value ) {
 			Snapshot::write( 'post_meta:' . $id . ':' . $key, $value );
 		}
+	}
+
+	/**
+	 * Menu groups, in menu order.
+	 *
+	 * @return array<string,string> Key => label.
+	 */
+	private static function groups(): array {
+		return array(
+			'community' => __( 'Community', 'wbcom-demo-installer' ),
+			'explore'   => __( 'Explore', 'wbcom-demo-installer' ),
+			'about'     => __( 'About', 'wbcom-demo-installer' ),
+		);
+	}
+
+	/**
+	 * Which group a product's links belong to: the social network and forums, the site's own pages, or the rest.
+	 *
+	 * @param string $provider Provider id.
+	 */
+	private static function group_of( string $provider ): string {
+		if ( 'pages' === $provider ) {
+			return 'about';
+		}
+		return in_array( $provider, array( 'buddynext', 'buddypress', 'peepso', 'jetonomy' ), true ) ? 'community' : 'explore';
+	}
+
+	/**
+	 * Add one link (a page, or a custom URL) to a menu.
+	 *
+	 * @param int                 $menu_id  Menu.
+	 * @param array<string,mixed> $item     title plus page_id or url, as menu_items() returns.
+	 * @param int                 $position Position.
+	 * @param int                 $parent_id Parent menu item, 0 for top level.
+	 * @return int Menu item id.
+	 */
+	private static function menu_link( int $menu_id, array $item, int $position, int $parent_id = 0 ): int {
+		$args = array(
+			'menu-item-title'     => $item['title'],
+			'menu-item-status'    => 'publish',
+			'menu-item-position'  => $position,
+			'menu-item-parent-id' => $parent_id,
+		);
+		if ( ! empty( $item['page_id'] ) ) {
+			$args += array(
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => (int) $item['page_id'],
+				'menu-item-type'      => 'post_type',
+			);
+		} else {
+			$args += array(
+				'menu-item-url'  => $item['url'],
+				'menu-item-type' => 'custom',
+			);
+		}
+		$id = wp_update_nav_menu_item( $menu_id, 0, $args );
+		return is_wp_error( $id ) ? 0 : (int) $id;
+	}
+
+	/**
+	 * A footer column per menu group, in the theme's footer widget areas that are still empty (BuddyX and BuddyX
+	 * Pro footer-1 to footer-4, Reign footer-widget-area; none of them has a footer menu location). Each column is
+	 * a Navigation Menu widget on its own small menu. The menus are setup in the ledger; the widget options go
+	 * through the snapshot, so Remove everything puts the owner's footer back and Keep setup keeps it.
+	 *
+	 * @param Context                                      $ctx    Context.
+	 * @param array<string,array<int,array<string,mixed>>> $groups Group key => links.
+	 */
+	private function footer( Context $ctx, array $groups ): void {
+		global $wp_registered_sidebars;
+		$sidebars = (array) get_option( 'sidebars_widgets', array() );
+		$areas    = array_values(
+			array_filter(
+				(array) apply_filters( 'wbcom_demo_footer_areas', array( 'footer-1', 'footer-2', 'footer-3', 'footer-4', 'footer-widget-area' ), get_template() ),
+				static fn( $a ) => isset( $wp_registered_sidebars[ $a ] ) && empty( $sidebars[ $a ] )
+			)
+		);
+		if ( ! $areas || ! $groups ) {
+			return;
+		}
+		$widgets = (array) get_option( 'widget_nav_menu', array() );
+		$next    = max( 1, (int) max( array_merge( array( 0 ), array_filter( array_keys( $widgets ), 'is_int' ) ) ) + 1 );
+		$k       = 0;
+		foreach ( $groups as $key => $items ) {
+			/* translators: %s: menu group, such as Community. */
+			$menu_id = wp_create_nav_menu( sprintf( __( 'Demo footer: %s', 'wbcom-demo-installer' ), self::groups()[ $key ] ) );
+			if ( is_wp_error( $menu_id ) ) {
+				continue;
+			}
+			$ctx->record( $this->id(), 'menu', (int) $menu_id, 'setup' );
+			foreach ( array_values( $items ) as $n => $item ) {
+				self::menu_link( (int) $menu_id, $item, $n + 1 );
+			}
+			$widgets[ $next ] = array(
+				'title'    => self::groups()[ $key ],
+				'nav_menu' => (int) $menu_id,
+			);
+			// One column per area; a theme with a single footer area (Reign) gets them all side by side.
+			$area              = $areas[ min( $k++, count( $areas ) - 1 ) ];
+			$sidebars[ $area ] = array_merge( (array) ( $sidebars[ $area ] ?? array() ), array( 'nav_menu-' . $next ) );
+			++$next;
+		}
+		$widgets['_multiwidget'] = 1;
+		Snapshot::write( 'widget_nav_menu', $widgets );
+		Snapshot::write( 'sidebars_widgets', $sidebars );
 	}
 
 	/**
