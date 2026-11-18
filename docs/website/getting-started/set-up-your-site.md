@@ -216,7 +216,8 @@ Open the page in the block editor. Change any text in place, swap the About phot
 - **WP Job Manager:** 8 jobs from 3 companies run by sample people, with logos, job types, salaries and remote roles. Each company's first job is featured. If there is no Jobs page yet, the demo adds one. **Remove everything** takes it away again.
 - **GeoDirectory:** 24 places in Philadelphia, GeoDirectory's default city, across 8 categories. Each place has a photo, address, map pin, phone, website and opening hours. There are 56 star-rated reviews. GeoDirectory's location page is offered as the home page. **Remove everything** takes away the categories, the extra fields and the place page details.
 - **Your home page, menu and logo**, if you chose them.
-- **Each product's own setup is finished**, so no setup wizards or reminders are waiting for you. Product pages show without sidebars.
+- **A Try the demo page** with the sample people and a guided tour. To let you sign in as any of them in one click, the demo installs and switches on the free User Switching plugin from WordPress.org. **Remove everything** takes it away again; if you already had it, it stays as it was.
+- **Each product's own setup is finished**, so no setup wizards or reminders are waiting for you. On BuddyX, BuddyX Pro and Reign, product pages show without sidebars; other themes keep their own page layout.
 
 ### Does the demo send emails?
 
