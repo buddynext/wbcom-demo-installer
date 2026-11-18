@@ -372,6 +372,19 @@ abstract class Provider {
 	}
 
 	/**
+	 * Steps that walk a list in fixed-size batches ("people:0", "people:10", ...), sized from the list itself so a
+	 * pack extended through wbcom_demo_content builds every item, not just the first steps' worth.
+	 *
+	 * @param string $prefix Step prefix; run() reads the offset after the colon.
+	 * @param int    $count  Items in the list.
+	 * @param int    $size   Items per step.
+	 * @return string[]
+	 */
+	protected static function batches( string $prefix, int $count, int $size ): array {
+		return array_map( static fn( int $i ): string => $prefix . ':' . $i, range( 0, max( 0, $count - 1 ), max( 1, $size ) ) );
+	}
+
+	/**
 	 * A term's id, created and recorded when the site does not have it yet (an existing term is used as is and
 	 * never recorded, so Finish leaves it).
 	 *

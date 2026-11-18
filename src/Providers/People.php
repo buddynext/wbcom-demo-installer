@@ -158,7 +158,7 @@ final class People extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		return array( 'people:0', 'people:10' );
+		return self::batches( 'people', count( self::roster() ), 10 );
 	}
 
 	/**

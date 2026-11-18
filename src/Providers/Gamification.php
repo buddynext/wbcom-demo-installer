@@ -137,7 +137,8 @@ final class Gamification extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		return array( 'points:0', 'points:10', 'badges' );
+		// Sized from the roster: steps are planned before the people exist.
+		return array_merge( self::batches( 'points', count( People::roster() ), 10 ), array( 'badges' ) );
 	}
 
 	/**

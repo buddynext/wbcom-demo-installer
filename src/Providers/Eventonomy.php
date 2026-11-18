@@ -19,6 +19,8 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Eventonomy extends Provider {
 
+	private const PER_STEP = 5;
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -153,7 +155,7 @@ final class Eventonomy extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		return array( 'events:0', 'events:5', 'rsvps' );
+		return array_merge( self::batches( 'events', count( $this->events() ), self::PER_STEP ), array( 'rsvps' ) );
 	}
 
 	/**
@@ -171,7 +173,7 @@ final class Eventonomy extends Provider {
 		$svc    = evnm( \Eventonomy\Services\EventService::class );
 		$repo   = evnm( \Eventonomy\Contracts\EventRepositoryInterface::class );
 		$tz     = wp_timezone_string();
-		foreach ( array_slice( $this->events(), $offset, 5, true ) as $i => $e ) {
+		foreach ( array_slice( $this->events(), $offset, self::PER_STEP, true ) as $i => $e ) {
 			$i = (int) $i; // The events are a list.
 			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual, $image ) = $e;
 			$organizer = $ctx->person( $who );

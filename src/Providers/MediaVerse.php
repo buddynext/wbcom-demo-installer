@@ -139,12 +139,7 @@ final class MediaVerse extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		$steps = array();
-		for ( $i = 0, $n = count( $this->content()['photos'] ); $i < $n; $i += self::PER_STEP ) {
-			$steps[] = 'photos:' . $i;
-		}
-		$steps[] = 'albums';
-		return $steps;
+		return array_merge( self::batches( 'photos', count( $this->content()['photos'] ), self::PER_STEP ), array( 'albums' ) );
 	}
 
 	/**
