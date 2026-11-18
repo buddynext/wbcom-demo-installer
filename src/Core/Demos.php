@@ -27,6 +27,19 @@ final class Demos {
 	private const OUR_MEMBERS = array( 'buddynext', 'mediaverse', 'jetonomy', 'gamification' );
 
 	/**
+	 * What a demo's home page leads with. A demo whose first requirement is a community plugin is about that
+	 * community (BuddyX + BuddyNext, Reign + BuddyPress), so its hero is the community's; any other demo leads
+	 * with the product it is named for, the community around it following.
+	 *
+	 * @param string $demo Gallery demo id; empty for a build started without one.
+	 * @return string 'community' or ''.
+	 */
+	public static function lead( string $demo ): string {
+		$first = (string) ( self::all()[ $demo ]['requires'][0] ?? '' );
+		return in_array( $first, array( 'buddynext', 'buddypress', 'buddyboss', 'peepso' ), true ) ? 'community' : '';
+	}
+
+	/**
 	 * Every demo, as content/demos.php defines it.
 	 *
 	 * @return array<string,array<string,mixed>>

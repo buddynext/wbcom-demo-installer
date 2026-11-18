@@ -206,6 +206,7 @@ final class Theme extends Provider {
 		$people   = array();
 		$parts    = array();
 		$lead     = -1;
+		$by_crowd = 'community' === $ctx->state->get( 'lead' ); // A community demo: the community's hero, numbers and members first.
 		foreach ( array_values( $this->included( $ctx ) ) as $p ) {
 			$part = $p->home( $ctx );
 			if ( ! $part ) {
@@ -213,7 +214,7 @@ final class Theme extends Provider {
 			}
 			$parts[] = array( $p, $part );
 			if ( ! empty( $part['hero'] ) ) {
-				if ( $p->community() ) {
+				if ( $p->community() !== $by_crowd ) {
 					$fallback = $fallback ? $fallback : $part['hero'];
 				} elseif ( ! $hero ) {
 					$hero = $part['hero'];
@@ -238,7 +239,11 @@ final class Theme extends Provider {
 			return 0;
 		}
 		$hero   = $hero ? $hero : $fallback;
-		$stats  = array_merge( $stats, $crowd ); // The product's numbers lead, the community's follow.
+		$stats  = $by_crowd ? array_merge( $crowd, $stats ) : array_merge( $stats, $crowd ); // The lead's numbers first.
+		if ( $by_crowd ) {
+			$sections = array_merge( $people, $sections ); // The members section opens a community demo's page.
+			$people   = array();
+		}
 		$admin  = (int) get_current_user_id();
 		$layout = array();
 		$parts  = array();

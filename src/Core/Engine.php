@@ -253,6 +253,7 @@ final class Engine {
 			->set( 'recipe', sanitize_key( $recipe ) )
 			->set( 'include', $products )
 			->set( 'demo', (string) ( Demos::all()[ $demo ]['name'] ?? '' ) ) // The gallery demo it was built from, for the ready screen.
+			->set( 'lead', Demos::lead( $demo ) ) // Whose hero opens the home page.
 			->set( 'look', 'keep' === $look ? 'keep' : 'demo' )
 			->set( 'errors', array() )
 			->set( 'warnings', array() )
