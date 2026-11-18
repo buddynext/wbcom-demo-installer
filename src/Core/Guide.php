@@ -318,7 +318,12 @@ final class Guide {
 		?>
 		<section class="wdi-tour__section" id="roles">
 			<h2><?php esc_html_e( 'Pick who you want to be', 'wbcom-demo-installer' ); ?></h2>
-			<p class="wdi-tour__lede"><?php esc_html_e( 'One click puts you in that person\'s account, with their content, activity and messages already in place.', 'wbcom-demo-installer' ); ?></p>
+			<?php
+			// Signing in as someone needs the User Switching plugin. Without it a signed-in owner's buttons open the
+			// person's page as the owner, so the page says what the buttons really do and how to get the switch.
+			$can_switch = ! is_user_logged_in() || function_exists( 'switch_to_user' );
+			?>
+			<p class="wdi-tour__lede"><?php $can_switch ? esc_html_e( 'One click puts you in that person\'s account, with their content, activity and messages already in place.', 'wbcom-demo-installer' ) : esc_html_e( 'Each person already has their own content, activity and messages. The buttons open the page that shows them; add the free User Switching plugin to sign in as any of them in one click.', 'wbcom-demo-installer' ); ?></p>
 			<div class="wdi-tour__roles">
 				<?php
 				foreach ( $cards as $card ) :
@@ -332,10 +337,17 @@ final class Guide {
 					} elseif ( 0 === $card['as'] ) {
 						$href  = self::link( (string) $card['to'], 0 );
 						$label = __( 'Open the dashboard', 'wbcom-demo-installer' );
-					} else {
+					} elseif ( $can_switch ) {
 						$href = self::link( (string) $card['to'], (int) $card['as'] );
 						/* translators: %s: person's first name */
 						$label = sprintf( __( 'Explore as %s', 'wbcom-demo-installer' ), (string) strtok( (string) $card['name'], ' ' ) );
+					} else {
+						$href  = self::link( (string) $card['to'], (int) $card['as'] );
+						$page  = url_to_postid( (string) $card['to'] );
+						$label = $page
+							/* translators: %s: page title, e.g. Courses */
+							? sprintf( __( 'Open %s', 'wbcom-demo-installer' ), get_the_title( $page ) )
+							: __( 'Open their page', 'wbcom-demo-installer' );
 					}
 					?>
 					<article class="wdi-tour__role<?php echo $here ? ' is-here' : ''; ?>">
@@ -388,7 +400,7 @@ final class Guide {
 		?>
 		<section class="wdi-tour__section" id="tour">
 			<h2><?php esc_html_e( 'Guided tour', 'wbcom-demo-installer' ); ?></h2>
-			<p class="wdi-tour__lede"><?php esc_html_e( 'Each step opens the right screen as the right person, so you can follow the whole story in a few minutes.', 'wbcom-demo-installer' ); ?></p>
+			<p class="wdi-tour__lede"><?php ( ! is_user_logged_in() || function_exists( 'switch_to_user' ) ) ? esc_html_e( 'Each step opens the right screen as the right person, so you can follow the whole story in a few minutes.', 'wbcom-demo-installer' ) : esc_html_e( 'Each step opens the screen it is about, so you can follow the whole story in a few minutes.', 'wbcom-demo-installer' ); ?></p>
 			<div class="wdi-tour__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Guided tour', 'wbcom-demo-installer' ); ?>">
 				<?php foreach ( array_keys( $panels ) as $i => $key ) : ?>
 					<button type="button" role="tab" id="<?php echo esc_attr( $uid . '-t-' . $i ); ?>" aria-controls="<?php echo esc_attr( $uid . '-p-' . $i ); ?>" aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"><?php echo esc_html( $panels[ $key ]['label'] ); ?></button>
