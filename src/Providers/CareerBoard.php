@@ -253,7 +253,7 @@ final class CareerBoard extends Provider {
 				'_wcb_salary_min'      => (string) $min,
 				'_wcb_salary_max'      => (string) $max,
 				'_wcb_salary_currency' => $currency,
-				'_wcb_salary_type'     => 'Contract' === $type && $max < 1000 ? 'daily' : 'annual',
+				'_wcb_salary_type'     => 'Contract' === $type && $max < 1000 ? 'hourly' : 'yearly', // Career Board reads yearly, monthly or hourly; anything else shows as a year.
 				'_wcb_remote'          => $remote ? '1' : '0',
 				'_wcb_deadline'        => gmdate( 'Y-m-d', strtotime( '+' . ( 20 + $i * 5 ) . ' days' ) ),
 				'_wcb_featured'        => 0 === $i % 3 ? '1' : '0',
