@@ -118,17 +118,20 @@ final class SellServices extends Provider {
 			'service'    => array( count( $this->content()['services'] ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
 			'order'      => array( $this->order_count(), 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $this->content()['services'] ), 'sample', __( 'service images', 'wbcom-demo-installer' ) ),
+			'review'     => array( $this->order_count( true ), 'sample', __( 'reviews', 'wbcom-demo-installer' ) ),
 		);
 	}
 
 	/**
 	 * Orders orders() places: one or two per service from the buyers, never by the service's own seller.
+	 *
+	 * @param bool $reviewed Count only the first order per service, the one its buyer reviews.
 	 */
-	private function order_count(): int {
+	private function order_count( bool $reviewed = false ): int {
 		$buyers = People::indexes( 'buyer' );
 		$n      = 0;
 		foreach ( array_values( $this->content()['services'] ) as $k => $s ) {
-			for ( $o = 0; $o < 1 + $k % 2; $o++ ) {
+			for ( $o = 0; $o < ( $reviewed ? 1 : 1 + $k % 2 ); $o++ ) {
 				$buyer = $buyers[ ( $k + $o ) % max( 1, count( $buyers ) ) ] ?? null;
 				$n    += ( null === $buyer || $buyer === $s[0] ) ? 0 : 1;
 			}
@@ -346,6 +349,8 @@ final class SellServices extends Provider {
 					);
 					if ( ! $review ) {
 						$ctx->warn( $this->id(), 'review', 'not created' );
+					} else {
+						$ctx->record( $this->id(), 'review', (int) $review->id, 'sample', array( 'order' => $order_id ) );
 					}
 				}
 			}
@@ -370,7 +375,8 @@ final class SellServices extends Provider {
 			case 'service':
 				return self::delete_post( $id );
 			case 'order':
-				// Orders are removed with the buyer (Sell Services cascades orders, reviews and wallet rows on user delete).
+			case 'review':
+				// Orders and their reviews are removed with the buyer (Sell Services cascades orders, reviews and wallet rows on user delete).
 				return true;
 		}
 		return true;
