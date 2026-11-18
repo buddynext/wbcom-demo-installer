@@ -32,9 +32,12 @@ final class Snapshot {
 		if ( $setting ) {
 			$snap[ $name ]['setting'] = true;
 		}
-		$snap[ $name ]['written'] = $value;
-		update_option( self::OPTION, $snap, false );
 		self::put( $name, $value );
+		// Remember the value as WordPress stored it: core sanitises some options on save (blogname escapes &, ' and "),
+		// and comparing the raw value with the stored one would read the demo's own write as an owner change.
+		$stored                   = self::read( $name );
+		$snap[ $name ]['written'] = null === $stored ? $value : $stored;
+		update_option( self::OPTION, $snap, false );
 	}
 
 	/**
