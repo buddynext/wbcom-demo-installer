@@ -248,7 +248,19 @@ final class Finisher {
 		if ( ! $keys || ! self::count_keys( $keys ) ) {
 			return new \WP_Error( 'wbcom_demo_nothing_waiting', __( 'Nothing is waiting to be removed.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
 		}
-		return self::start( 'custom', array_fill_keys( $keys, true ) );
+		if ( 'all' !== ( $report['mode'] ?? '' ) ) {
+			return self::start( 'custom', array_fill_keys( $keys, true ) );
+		}
+		// A Remove everything that stopped part way stays one: everything left goes, then the product settings and
+		// fresh_site come back in complete(). The settings the owner changed, reported by the first run, stay reported.
+		$out = self::start( 'all' );
+		if ( ! is_wp_error( $out ) ) {
+			$state                  = new State();
+			$finish                 = (array) $state->get( 'finish' );
+			$finish['kept_options'] = array_values( array_unique( array_merge( (array) ( $report['kept_options'] ?? array() ), (array) ( $finish['kept_options'] ?? array() ) ) ) );
+			$state->set( 'finish', $finish )->save();
+		}
+		return $out;
 	}
 
 	/**
