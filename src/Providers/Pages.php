@@ -233,24 +233,28 @@ final class Pages extends Provider {
 		$join_image = $ctx->attachment( $c['join']['image'], $admin, $this->id(), 'setup', 'image' );
 		$cols       = array();
 		foreach ( $about['values'] as $value ) {
-			$cols[] = Blocks::heading( $value[0], 3 ) . "\n" . Blocks::paragraph( $value[1] );
+			$cols[] = Blocks::card( Blocks::heading( $value[0], 3, false, true ) . "\n" . Blocks::paragraph( $value[1] ) );
 		}
+		// A photo hero opens About and Join. On Reign the page title moves into it (hide_title() below); BuddyX always
+		// prints the title above the content, so there the hero carries only the opening line.
+		$reign  = 'Reign' === Theme::theme_family();
+		$hero   = static fn( int $photo, string $title, string $intro ): string => $photo
+			? Blocks::cover( $photo, ( $reign ? Blocks::heading( $title, 1, true ) : '' ) . Blocks::paragraph( $intro ) )
+			: Blocks::paragraph( $intro );
 		$quoted = get_userdata( $ctx->person( (int) $about['quote'][1] ) );
 		$blocks = array(
 			'about' => array(
-				$image ? Blocks::image( $image ) : '',
-				Blocks::paragraph( $about['intro'] ),
+				$hero( (int) $image, (string) $about['title'], (string) $about['intro'] ),
 				Blocks::columns( $cols ),
 				Blocks::quote( $about['quote'][0], $quoted ? $quoted->display_name : '' ),
 				Blocks::heading( __( 'From the blog', 'wbcom-demo-installer' ) ),
 				self::posts_block( $cats, 'grid', 3 ), // One row of three: no carousel arrows over the cards.
 			),
 			'join'  => array(
-				$join_image ? Blocks::image( $join_image ) : '',
-				Blocks::paragraph( $c['join']['intro'] ),
+				$hero( (int) $join_image, (string) $c['join']['title'], (string) $c['join']['intro'] ),
 				Blocks::columns(
 					array_map(
-						static fn( array $step ): string => Blocks::heading( $step[0], 3 ) . "\n" . Blocks::paragraph( $step[1] ),
+						static fn( array $step ): string => Blocks::card( Blocks::heading( $step[0], 3, false, true ) . "\n" . Blocks::paragraph( $step[1] ) ),
 						$c['join']['steps']
 					)
 				),
@@ -258,6 +262,7 @@ final class Pages extends Provider {
 			),
 			'faq'   => array_merge(
 				array( Blocks::paragraph( $c['faq']['intro'] ) ),
+				// Plain details: themes draw their own box around each question (BuddyX does), so no card around it.
 				array_map( static fn( array $qa ): string => Blocks::details( $qa[0], $qa[1] ), $c['faq']['items'] )
 			),
 			'blog'  => array(
@@ -309,7 +314,18 @@ final class Pages extends Provider {
 				continue;
 			}
 			$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
+			if ( $reign && in_array( $key, array( 'about', 'join' ), true ) && ( 'about' === $key ? $image : $join_image ) ) {
+				Theme::hide_title( (int) $id ); // The hero shows it.
+			}
 		}
+	}
+
+	/**
+	 * One line about the site for the footer: the first sentence of the About page's opening.
+	 */
+	public function footer_line(): string {
+		$intro = (string) ( $this->content()['about']['intro'] ?? '' );
+		return (string) preg_replace( '/(?<=[.!?])\s.*$/s', '', $intro );
 	}
 
 	/**
@@ -317,7 +333,7 @@ final class Pages extends Provider {
 	 *
 	 * @param string $key Page key.
 	 */
-	private static function demo_page( string $key ): int {
+	public static function demo_page( string $key ): int {
 		$found = get_posts(
 			array(
 				'post_type'   => 'page',

@@ -569,7 +569,7 @@ final class Theme extends Provider {
 				self::menu_link( (int) $menu_id, $item, $pos++, $parent );
 			}
 		}
-		$this->footer( $ctx, $groups );
+		$this->footer( $ctx );
 		$assigned = (array) get_theme_mod( 'nav_menu_locations', array() );
 		foreach ( $locations as $loc ) {
 			$assigned[ $loc ] = (int) $menu_id;
@@ -701,15 +701,14 @@ final class Theme extends Provider {
 	}
 
 	/**
-	 * A footer column per menu group, in the theme's footer widget areas that are still empty (BuddyX and BuddyX
-	 * Pro footer-1 to footer-4, Reign footer-widget-area; none of them has a footer menu location). Each column is
-	 * a Navigation Menu widget on its own small menu. The menus are setup in the ledger; the widget options go
-	 * through the snapshot, so Remove everything puts the owner's footer back and Keep setup keeps it.
+	 * The footer: the site logo and tagline, then one footer menu of its own (About, Join, FAQ, Blog, Try the demo),
+	 * not a copy of the main menu. Block and menu widgets in the theme's empty footer areas (Reign has one, BuddyX
+	 * four), written through Snapshot so Remove everything puts the owner's widgets back. The copyright line under
+	 * it is the theme's own.
 	 *
-	 * @param Context                                      $ctx    Context.
-	 * @param array<string,array<int,array<string,mixed>>> $groups Group key => links.
+	 * @param Context $ctx Context.
 	 */
-	private function footer( Context $ctx, array $groups ): void {
+	private function footer( Context $ctx ): void {
 		global $wp_registered_sidebars;
 		$sidebars = (array) get_option( 'sidebars_widgets', array() );
 		$areas    = array_values(
@@ -718,33 +717,76 @@ final class Theme extends Provider {
 				static fn( $a ) => isset( $wp_registered_sidebars[ $a ] ) && empty( $sidebars[ $a ] )
 			)
 		);
-		if ( ! $areas || ! $groups ) {
+		if ( ! $areas ) {
 			return;
 		}
-		$widgets = (array) get_option( 'widget_nav_menu', array() );
-		$next    = max( 1, (int) max( array_merge( array( 0 ), array_filter( array_keys( $widgets ), 'is_int' ) ) ) + 1 );
-		$k       = 0;
-		foreach ( $groups as $key => $items ) {
-			/* translators: %s: menu group, such as Community. */
-			$menu_id = wp_create_nav_menu( sprintf( __( 'Demo footer: %s', 'wbcom-demo-installer' ), self::groups()[ $key ] ) );
-			if ( is_wp_error( $menu_id ) ) {
-				continue;
+		$place = static function ( int $k, string $widget ) use ( &$sidebars, $areas ): void {
+			// One column per area; a theme with a single footer area (Reign) gets them side by side.
+			$area              = $areas[ min( $k, count( $areas ) - 1 ) ];
+			$sidebars[ $area ] = array_merge( (array) ( $sidebars[ $area ] ?? array() ), array( $widget ) );
+		};
+		$next  = static fn( array $w ): int => max( 1, (int) max( array_merge( array( 0 ), array_filter( array_keys( $w ), 'is_int' ) ) ) + 1 );
+
+		// 1. Who this site is: the logo the demo set (or the owner's), and the tagline.
+		$pages                  = Registry::get( 'pages' );
+		$line                   = $pages instanceof Pages && $ctx->includes( 'pages' ) ? $pages->footer_line() : '';
+		$blocks                 = (array) get_option( 'widget_block', array() );
+		$b                      = $next( $blocks );
+		$blocks[ $b ]           = array( 'content' => '<!-- wp:site-logo {"width":140} /-->' . "\n" . ( '' !== $line ? Blocks::paragraph( $line ) : '<!-- wp:site-tagline /-->' ) );
+		$blocks['_multiwidget'] = 1;
+		$place( 0, 'block-' . $b );
+
+		// 2. Its own short menu: the pages a visitor looks for at the bottom of a page.
+		$links = array();
+		if ( $pages && $ctx->includes( 'pages' ) ) {
+			$links = $pages->menu_items();
+			$join  = Pages::demo_page( 'join' );
+			if ( $join ) {
+				array_splice(
+					$links,
+					1,
+					0,
+					array(
+						array(
+							'title'   => get_the_title( $join ),
+							'page_id' => $join,
+						),
+					)
+				);
 			}
+		}
+		$guide = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => '_wbcom_demo_guide', // phpcs:ignore WordPress.DB.SlowDBQuery -- one page, read once per build.
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		if ( $guide ) {
+			$links[] = array(
+				'title'   => __( 'Try the demo', 'wbcom-demo-installer' ),
+				'page_id' => (int) $guide[0],
+			);
+		}
+		$menu_id = $links ? wp_create_nav_menu( __( 'Demo footer', 'wbcom-demo-installer' ) ) : 0;
+		if ( $menu_id && ! is_wp_error( $menu_id ) ) {
 			$ctx->record( $this->id(), 'menu', (int) $menu_id, 'setup' );
-			foreach ( array_values( $items ) as $n => $item ) {
+			foreach ( array_values( $links ) as $n => $item ) {
 				self::menu_link( (int) $menu_id, $item, $n + 1 );
 			}
-			$widgets[ $next ] = array(
-				'title'    => self::groups()[ $key ],
+			$widgets                 = (array) get_option( 'widget_nav_menu', array() );
+			$w                       = $next( $widgets );
+			$widgets[ $w ]           = array(
+				'title'    => get_bloginfo( 'name' ),
 				'nav_menu' => (int) $menu_id,
 			);
-			// One column per area; a theme with a single footer area (Reign) gets them all side by side.
-			$area              = $areas[ min( $k++, count( $areas ) - 1 ) ];
-			$sidebars[ $area ] = array_merge( (array) ( $sidebars[ $area ] ?? array() ), array( 'nav_menu-' . $next ) );
-			++$next;
+			$widgets['_multiwidget'] = 1;
+			Snapshot::write( 'widget_nav_menu', $widgets );
+			$place( 1, 'nav_menu-' . $w );
 		}
-		$widgets['_multiwidget'] = 1;
-		Snapshot::write( 'widget_nav_menu', $widgets );
+		Snapshot::write( 'widget_block', $blocks );
 		Snapshot::write( 'sidebars_widgets', $sidebars );
 	}
 

@@ -31,20 +31,31 @@ final class Blocks {
 	 *
 	 * @param string $text  Text.
 	 * @param int    $level Level.
-	 * @param bool   $white White text (over a photo: themes that colour headings would otherwise win).
+	 * @param bool   $white White text (over a photo: themes that colour headings would otherwise win). An inline
+	 *                      colour, not the palette's "white": BuddyX defines that slug as #ecf0f1, and a plugin that
+	 *                      drops the core palette (WPMediaVerse) would leave the heading uncoloured.
+	 * @param bool   $flush No top margin: the first line of a card, where themes' heading margins would pad the top.
 	 */
-	public static function heading( string $text, int $level = 2, bool $white = false ): string {
-		$json = array_filter(
+	public static function heading( string $text, int $level = 2, bool $white = false, bool $flush = false ): string {
+		$style = array_filter(
 			array(
-				'level'     => 2 === $level ? null : $level,
-				'textColor' => $white ? 'white' : null,
+				'color'   => $white ? array( 'text' => '#ffffff' ) : null,
+				'spacing' => $flush ? array( 'margin' => array( 'top' => '0' ) ) : null,
 			)
 		);
+		$json  = array_filter(
+			array(
+				'level' => 2 === $level ? null : $level,
+				'style' => $style ? $style : null,
+			)
+		);
+		$css   = trim( ( $white ? 'color:#ffffff;' : '' ) . ( $flush ? 'margin-top:0' : '' ), ';' );
 		return sprintf(
-			'<!-- wp:heading%1$s --><h%2$d class="wp-block-heading%3$s">%4$s</h%2$d><!-- /wp:heading -->',
+			'<!-- wp:heading%1$s --><h%2$d class="wp-block-heading%3$s"%4$s>%5$s</h%2$d><!-- /wp:heading -->',
 			$json ? ' ' . wp_json_encode( $json ) : '',
 			$level,
-			$white ? ' has-white-color has-text-color' : '',
+			$white ? ' has-text-color' : '',
+			'' !== $css ? ' style="' . $css . '"' : '',
 			self::text( $text )
 		);
 	}
@@ -82,6 +93,16 @@ final class Blocks {
 	public static function columns( array $inner, bool $stack = true ): string {
 		$cols = array_map( static fn( string $c ): string => '<!-- wp:column --><div class="wp-block-column">' . $c . '</div><!-- /wp:column -->', $inner );
 		return ( $stack ? '<!-- wp:columns --><div class="wp-block-columns">' : '<!-- wp:columns {"isStackedOnMobile":false} --><div class="wp-block-columns is-not-stacked-on-mobile">' ) . implode( '', $cols ) . '</div><!-- /wp:columns -->';
+	}
+
+	/**
+	 * Core group block drawn as a card: a thin border and rounded corners, no fill, so it reads on the theme's light
+	 * and dark backgrounds alike (a grey at 24% opacity works on both).
+	 *
+	 * @param string $inner Inner blocks.
+	 */
+	public static function card( string $inner ): string {
+		return '<!-- wp:group {"style":{"border":{"radius":"12px","width":"1px","color":"#8080803d"},"spacing":{"padding":{"top":"24px","bottom":"24px","left":"24px","right":"24px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group has-border-color" style="border-color:#8080803d;border-width:1px;border-radius:12px;padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px">' . $inner . '</div><!-- /wp:group -->';
 	}
 
 	/**
@@ -202,7 +223,9 @@ final class Blocks {
 	}
 
 	/**
-	 * Core cover block: a photo with a dark overlay and the hero text over it.
+	 * Core cover block: a photo with a dark overlay and the hero text over it, the full width of the page
+	 * (BuddyX, BuddyX Pro and Reign support wide alignments; other themes keep it in their content column). The text
+	 * keeps to a 1140px content width, and the next block starts 40px below it on every theme.
 	 *
 	 * @param int    $id    Attachment id.
 	 * @param string $inner Inner blocks.
@@ -210,10 +233,12 @@ final class Blocks {
 	public static function cover( int $id, string $inner ): string {
 		$url = (string) wp_get_attachment_image_url( $id, 'full' );
 		return sprintf(
-			'<!-- wp:cover {"url":"%1$s","id":%2$d,"dimRatio":60,"minHeight":420,"isDark":true,"textColor":"white","layout":{"type":"constrained"}} --><div class="wp-block-cover is-dark has-white-color has-text-color" style="min-height:420px"><img class="wp-block-cover__image-background wp-image-%2$d" alt="" src="%1$s" data-object-fit="cover"/><span aria-hidden="true" class="wp-block-cover__background has-background-dim-60 has-background-dim"></span><div class="wp-block-cover__inner-container">%3$s</div></div><!-- /wp:cover -->',
+			'<!-- wp:cover {"url":"%1$s","id":%2$d,"dimRatio":60,"minHeight":420,"isDark":true,"align":"full","style":{"color":{"text":"#ffffff"},"spacing":{"margin":{"bottom":"40px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-cover alignfull is-dark has-text-color" style="color:#ffffff;margin-bottom:40px;min-height:420px"><img class="wp-block-cover__image-background wp-image-%2$d" alt="" src="%1$s" data-object-fit="cover"/><span aria-hidden="true" class="wp-block-cover__background has-background-dim-60 has-background-dim"></span><div class="wp-block-cover__inner-container">%3$s</div></div><!-- /wp:cover -->',
 			esc_url( $url ),
 			$id,
-			$inner
+			// In a group of its own: BuddyX caps a cover's direct children at its own --content-width, which overrides
+			// the cover's layout; the group's children keep to 1140px on every theme.
+			'<!-- wp:group {"layout":{"type":"constrained","contentSize":"1140px"}} --><div class="wp-block-group">' . $inner . '</div><!-- /wp:group -->'
 		);
 	}
 
