@@ -95,8 +95,9 @@ final class Pages extends Provider {
 			'page'       => array( count( self::PAGES ), 'setup', __( 'pages', 'wbcom-demo-installer' ) ),
 			'category'   => array( $new_cats, 'setup', __( 'blog categories', 'wbcom-demo-installer' ) ),
 			'post'       => array( count( $c['posts'] ), 'sample', __( 'blog posts', 'wbcom-demo-installer' ) ),
-			// One per post, About and Join, and one per new category (an owner's existing category is not touched).
-			'attachment' => array( count( $c['posts'] ) + 2 + $new_cats, 'sample', __( 'page, post and category images', 'wbcom-demo-installer' ) ),
+			// About and Join, and one per new category (an owner's existing category is not touched).
+			'image'      => array( 2 + $new_cats, 'setup', __( 'page and category images', 'wbcom-demo-installer' ) ),
+			'attachment' => array( count( $c['posts'] ), 'sample', __( 'blog post images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -108,7 +109,8 @@ final class Pages extends Provider {
 			'page'       => __( 'pages', 'wbcom-demo-installer' ),
 			'category'   => __( 'blog categories', 'wbcom-demo-installer' ),
 			'post'       => __( 'blog posts', 'wbcom-demo-installer' ),
-			'attachment' => __( 'page, post and category images', 'wbcom-demo-installer' ),
+			'image'      => __( 'page and category images', 'wbcom-demo-installer' ),
+			'attachment' => __( 'blog post images', 'wbcom-demo-installer' ),
 		);
 	}
 
@@ -171,7 +173,7 @@ final class Pages extends Provider {
 			$terms[ $key ]        = $this->ensure_term( $name, 'category', $ctx, '', 'category' );
 			// A photo only on a category the demo made, so the category grid shows pictures, not placeholders.
 			if ( $terms[ $key ] && Ledger::has( $this->id(), 'category', $terms[ $key ] ) && ! get_term_meta( $terms[ $key ], 'thumbnail_id', true ) ) {
-				$image = $ctx->attachment( $photo, (int) get_current_user_id(), $this->id() );
+				$image = $ctx->attachment( $photo, (int) get_current_user_id(), $this->id(), 'setup', 'image' );
 				if ( $image ) {
 					update_term_meta( $terms[ $key ], 'thumbnail_id', $image );
 				}
@@ -223,12 +225,13 @@ final class Pages extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function pages( Context $ctx ): void {
-		$c          = $this->content();
-		$admin      = (int) get_current_user_id();
-		$about      = $c['about'];
-		$cats       = array_map( 'intval', (array) $ctx->state->ref( $this->id(), 'categories', array() ) );
-		$image      = $ctx->attachment( $about['image'], $admin, $this->id() );
-		$join_image = $ctx->attachment( $c['join']['image'], $admin, $this->id() );
+		$c     = $this->content();
+		$admin = (int) get_current_user_id();
+		$about = $c['about'];
+		$cats  = array_map( 'intval', (array) $ctx->state->ref( $this->id(), 'categories', array() ) );
+		// Setup, like the pages that show them: Keep setup keeps About and Join, so it keeps their pictures.
+		$image      = $ctx->attachment( $about['image'], $admin, $this->id(), 'setup', 'image' );
+		$join_image = $ctx->attachment( $c['join']['image'], $admin, $this->id(), 'setup', 'image' );
 		$cols       = array();
 		foreach ( $about['values'] as $value ) {
 			$cols[] = Blocks::heading( $value[0], 3 ) . "\n" . Blocks::paragraph( $value[1] );
@@ -312,7 +315,7 @@ final class Pages extends Provider {
 		if ( 'category' === $row->object_type ) {
 			return self::remove_unused_term( $id, 'category' );
 		}
-		return self::delete_post( $id, 'attachment' === $row->object_type );
+		return self::delete_post( $id, in_array( $row->object_type, array( 'attachment', 'image' ), true ) );
 	}
 
 	/**

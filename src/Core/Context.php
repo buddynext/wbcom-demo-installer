@@ -148,9 +148,10 @@ final class Context {
 	 * @param int    $author   Owner user id.
 	 * @param string $provider Provider that owns the attachment in the ledger.
 	 * @param string $kind     'sample' or 'setup'.
+	 * @param string $type     Ledger object type: a setup image used by a kept page or term gets its own type, so the plan and Finish list it apart.
 	 * @return int Attachment id, 0 on failure.
 	 */
-	public function attachment( string $rel, int $author, string $provider, string $kind = 'sample' ): int {
+	public function attachment( string $rel, int $author, string $provider, string $kind = 'sample', string $type = 'attachment' ): int {
 		$tmp = $this->temp_copy( $rel );
 		if ( ! $tmp ) {
 			return 0;
@@ -173,7 +174,7 @@ final class Context {
 		update_post_meta( $id, '_wbcom_demo', $this->build_id() );
 		// Every image needs alt text for screen readers: the curated file names describe the photos.
 		update_post_meta( $id, '_wp_attachment_image_alt', self::alt_text( $rel ) );
-		$this->record( $provider, 'attachment', (int) $id, $kind );
+		$this->record( $provider, $type, (int) $id, $kind );
 		return (int) $id;
 	}
 

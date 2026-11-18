@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Ledger {
 
-	private const DB_VERSION = '1';
+	private const DB_VERSION = '2';
 	private const DB_OPTION  = 'wbcom_demo_db_version';
 
 	/**
@@ -60,8 +60,42 @@ final class Ledger {
 	 * Install when the schema is missing or older (also covers network activation gaps).
 	 */
 	public static function maybe_upgrade(): void {
-		if ( get_option( self::DB_OPTION ) !== self::DB_VERSION ) {
+		$from = (string) get_option( self::DB_OPTION );
+		if ( self::DB_VERSION !== $from ) {
 			self::install();
+			if ( '1' === $from ) {
+				self::repair_page_images();
+			}
+		}
+	}
+
+	/**
+	 * Version 2: About, Join and blog category images were recorded as sample, so Keep setup deleted pictures the
+	 * kept pages and categories still show. Re-mark them as setup for demos built before and not finished yet;
+	 * blog post covers stay sample.
+	 */
+	private static function repair_page_images(): void {
+		global $wpdb;
+		$posts  = self::ids( 'pages', 'post' );
+		$covers = $posts ? array_map(
+			'intval',
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- one %d per post id.
+			$wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_thumbnail_id' AND post_id IN (" . implode( ',', array_fill( 0, count( $posts ), '%d' ) ) . ')', ...$posts ) )
+		) : array();
+		foreach ( array_diff( self::ids( 'pages', 'attachment' ), $covers ) as $id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+			$wpdb->update(
+				self::table(),
+				array(
+					'kind'        => 'setup',
+					'object_type' => 'image',
+				),
+				array(
+					'provider'    => 'pages',
+					'object_type' => 'attachment',
+					'object_id'   => $id,
+				)
+			);
 		}
 	}
 
