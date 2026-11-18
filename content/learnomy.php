@@ -23,6 +23,15 @@ return array(
 			'difficulty' => 'intermediate',
 			'price'      => 0,
 			'desc'       => 'Build a small design system your whole team will actually use: tokens, components and the habits that keep it alive.',
+			// End-of-course quiz: [ question, answers, correct index ] x2, then an essay the instructor grades.
+			'quiz'       => array(
+				'title'     => 'Design systems check-in',
+				'questions' => array(
+					array( 'What should come before components in a new design system?', array( 'Tokens for colour, spacing, type and radius', 'A full icon set', 'A dark mode for every page' ), 0 ),
+					array( 'Which token name follows the naming advice in this course?', array( 'grey-500', 'text-muted', 'colour-3' ), 1 ),
+				),
+				'essay'     => array( 'Pick one component your team rebuilds most often. How would you make it the single shared version?', 'Our date picker. I would build one with the shared tokens, document the right and wrong use, and give it an owner.' ), // Prompt, then a learner's answer.
+			),
 			'sections'   => array(
 				array(
 					'Foundations',
@@ -50,6 +59,15 @@ return array(
 			'difficulty' => 'beginner',
 			'price'      => 29,
 			'desc'       => 'The ten fixes that solve most accessibility problems, with a screen reader walkthrough for each.',
+			// End-of-course quiz: [ question, answers, correct index ] x2, then an essay the instructor grades.
+			'quiz'       => array(
+				'title'     => 'Accessibility check-in',
+				'questions' => array(
+					array( 'What is the minimum contrast ratio for normal body text under WCAG AA?', array( '3:1', '4.5:1', '7:1' ), 1 ),
+					array( 'What should an icon-only button always have?', array( 'A tooltip on hover', 'An accessible name, such as aria-label', 'A coloured border' ), 1 ),
+				),
+				'essay'     => array( 'Describe one page on your own site that a keyboard-only visitor would struggle with, and how you would fix it.', 'Our pricing page: the plan tabs only open on click. I would make them real buttons with a visible focus ring.' ), // Prompt, then a learner's answer.
+			),
 			'sections'   => array(
 				array(
 					'The basics',
@@ -76,6 +94,15 @@ return array(
 			'difficulty' => 'beginner',
 			'price'      => 0,
 			'desc'       => 'Rituals, moderation and the first hundred members. What we learned growing a community from zero.',
+			// End-of-course quiz: [ question, answers, correct index ] x2, then an essay the instructor grades.
+			'quiz'       => array(
+				'title'     => 'Community check-in',
+				'questions' => array(
+					array( 'What makes a new member most likely to come back after joining?', array( 'A welcome and a first conversation within days', 'A long list of rules', 'Badges for logging in' ), 0 ),
+					array( 'What is a healthy sign in a growing community?', array( 'Only the founders post', 'Members answer each other\'s questions', 'Every post is moderated before it shows' ), 1 ),
+				),
+				'essay'     => array( 'Write the welcome message you would send a new member on their first day.', 'Welcome in! Tell us what you are working on this week, and say hello in the introductions thread.' ), // Prompt, then a learner's answer.
+			),
 			'sections'   => array(
 				array(
 					'The first hundred members',
@@ -102,6 +129,15 @@ return array(
 			'difficulty' => 'intermediate',
 			'price'      => 49,
 			'desc'       => 'Choose the right chart, cut the clutter and tell one clear story with your numbers.',
+			// End-of-course quiz: [ question, answers, correct index ] x2, then an essay the instructor grades.
+			'quiz'       => array(
+				'title'     => 'Charts check-in',
+				'questions' => array(
+					array( 'Which chart fits comparing sales across five regions?', array( 'A pie chart with five slices', 'A bar chart sorted by value', 'A 3D area chart' ), 1 ),
+					array( 'What should a chart title tell the reader?', array( 'The name of the data source', 'The point the chart makes', 'The software used to draw it' ), 1 ),
+				),
+				'essay'     => array( 'Pick a chart you saw at work this month. What one change would make its message clearer?', 'Our monthly sales pie chart. I would make it a sorted bar chart titled with the point: the north region doubled.' ), // Prompt, then a learner's answer.
+			),
 			'sections'   => array(
 				array(
 					'Pick the chart',
@@ -121,6 +157,15 @@ return array(
 			'difficulty' => 'beginner',
 			'price'      => 0,
 			'desc'       => 'Short daily practices for focus and calm, designed for people who think they do not have time.',
+			// End-of-course quiz: [ question, answers, correct index ] x2, then an essay the instructor grades.
+			'quiz'       => array(
+				'title'     => 'Focus check-in',
+				'questions' => array(
+					array( 'How long is the daily practice this course builds?', array( 'Ten minutes', 'One hour', 'Only on weekends' ), 0 ),
+					array( 'What helps most when your mind wanders during practice?', array( 'Stopping for the day', 'Noticing it and gently coming back', 'Practising faster' ), 1 ),
+				),
+				'essay'     => array( 'When in your day could you protect ten quiet minutes, and what usually gets in the way?', 'Right after lunch, before meetings start. Messages are what usually get in the way, so I will mute them for those ten minutes.' ), // Prompt, then a learner's answer.
+			),
 			'sections'   => array(
 				array(
 					'Start small',
