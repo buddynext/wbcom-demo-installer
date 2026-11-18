@@ -172,7 +172,9 @@ final class Eventonomy extends Provider {
 		$offset = (int) substr( $step, 7 );
 		$svc    = evnm( \Eventonomy\Services\EventService::class );
 		$repo   = evnm( \Eventonomy\Contracts\EventRepositoryInterface::class );
-		$tz     = wp_timezone_string();
+		$tz       = wp_timezone_string();
+		$approver = (int) current( get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ID', 'orderby' => 'ID' ) ) ); // The owner who approves the sample events.
+		$approver = $approver && \Eventonomy\Core\Capabilities::user_can( $approver, 'evnm_edit_others_events' ) ? $approver : 0; // Eventonomy grants it at runtime, not on the role.
 		foreach ( array_slice( $this->events(), $offset, self::PER_STEP, true ) as $i => $e ) {
 			$i = (int) $i; // The events are a list.
 			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual, $image ) = $e;
@@ -226,6 +228,12 @@ final class Eventonomy extends Provider {
 				continue;
 			}
 			$id = (int) $row['id'];
+			if ( 'pending' === ( $row['status'] ?? '' ) && $approver ) {
+				// A fresh Eventonomy holds member events for approval (its activation default). The sample organizers'
+				// events are approved the way the owner would, through Eventonomy's own update by a moderator, so the
+				// demo has live events with RSVPs; the site's approval setting itself is left as Eventonomy set it.
+				$svc->update( $id, array( 'status' => 'published' ), array( 'user_id' => $approver ) );
+			}
 			$repo->update( $id, array( 'created_at' => $ctx->date( $i, 12, 50 ) ) );
 			if ( ! empty( $row['venue_id'] ) ) {
 				$ctx->record( $this->id(), 'venue', (int) $row['venue_id'], 'setup' );
