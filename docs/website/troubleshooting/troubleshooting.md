@@ -22,7 +22,7 @@ The demo is made for a new site. Use a staging copy or a new install if you can.
 
 ### The site check warns about PHP memory
 
-PHP memory is the working space your server gives WordPress. With every Wbcom product active, WordPress needs about 165 MB before the demo adds anything. With less than 256 MB, a build step can stop.
+PHP memory is the working space your server gives WordPress. The installer needs 256 MB: with every Wbcom product and its Pro add-on active, WordPress itself uses most of that before the demo adds anything, so with less a build step can stop.
 
 - Ask your host to raise the PHP memory limit to 256 MB.
 - Or add `define( 'WP_MEMORY_LIMIT', '256M' );` to your `wp-config.php` file.

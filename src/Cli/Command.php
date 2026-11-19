@@ -232,7 +232,7 @@ final class Command {
 		}
 		$memory = Engine::memory();
 		if ( $memory['low'] ) {
-			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. If a step stops, run WP-CLI with a higher limit: php -d memory_limit=512M $(which wp) wbcom-demo ...', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
+			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; the installer needs 256 MB (with all products active WordPress uses most of it before a step starts). Run WP-CLI with a higher limit: php -d memory_limit=512M $(which wp) wbcom-demo ...', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
 		}
 		// PeepSo switches itself off under WP-CLI (its constructor returns early), so its provider cannot run here.
 		foreach ( (array) get_option( 'active_plugins', array() ) as $plugin ) {

@@ -24,6 +24,7 @@ You see your theme and plugins working before your first real member joins. When
 - **Activate your theme.** Reign, BuddyX, BuddyX Pro or any other theme works.
 - **Install your paid plugins first.** This means Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo and any Pro add-on. Activate their licences too. The installer never downloads paid plugins, but it can install free ones for you.
 - **Use one set of sample content.** Some plugins come with their own sample data. Use either that or this installer, never both. Two sets mix together and cannot be removed cleanly.
+- **Give PHP 256 MB of memory.** That is the requirement with every product active. Ask your host, or add `define( 'WP_MEMORY_LIMIT', '256M' );` to `wp-config.php`. The site check warns when it is lower.
 - **Sign in as a site administrator.**
 
 ## Steps

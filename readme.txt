@@ -26,6 +26,8 @@ When you are ready, Finish demo removes the sample people and everything they ma
 
 Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and Wbcom Essential (with their Pro add-ons active); BuddyPress, BuddyBoss Platform and PeepSo; WooCommerce, Dokan, WCFM Marketplace, WC Vendors, LearnDash, Tutor LMS, LifterLMS, Sensei LMS, GeoDirectory and WP Job Manager, with the Reign add-on for each. Themes: Reign, BuddyX, BuddyX Pro or any theme. Paid plugins (Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo, Pro add-ons) are bought, installed and licensed by you; the installer sets up the free ones.
 
+Requirements: WordPress 6.5 or later, PHP 8.1 or later, and a PHP memory limit of 256 MB (for example `define( 'WP_MEMORY_LIMIT', '256M' );` in wp-config.php). With every product and its Pro add-on active, WordPress itself needs most of that before a demo step starts.
+
 = For developers =
 
 Everything the wizard does is also available from WP-CLI:
@@ -163,7 +165,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * Improve  - Sites without BuddyNext open on their community, shop or directory home page and show the site name in the header.
 * Improve  - A site that already runs BuddyPress, BuddyBoss or PeepSo is no longer offered the BuddyNext set by default.
 * Improve  - Keep my setup leaves the kept pages, menu and categories removable until you choose Keep them as mine.
-* Improve  - The site check warns when PHP memory is too low for a build.
+* Improve  - The site check warns when PHP memory is below the 256 MB the full product set needs.
 * Improve  - A failed build step can be retried from the wizard.
 * Improve  - Back and Continue stay in view on long wizard steps.
 * Fix      - A product too old for the installer is no longer listed on Review and then left out of the build without a word.
