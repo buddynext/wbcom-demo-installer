@@ -165,14 +165,6 @@ return array(
 		'optional' => array( array( 'reign-lifterlms-addon', 'Reign LifterLMS Addon' ), array( 'reign-wc-vendor-addon', 'Reign WC Vendors Addon' ) ),
 		'preview'  => 'https://reign-buddynext-lifterlms.instawp.xyz/',
 	),
-	'reign-shop'                => array(
-		'group'    => 'theme',
-		'theme'    => 'Reign',
-		'name'     => 'Reign Shop',
-		'desc'     => 'A WooCommerce store with product photos, sale prices, stock and reviews.',
-		'requires' => array( 'woocommerce', 'pages' ),
-		'preview'  => 'https://reign-shop.instawp.xyz/',
-	),
 	// Theme demos: BuddyX and BuddyX Pro.
 	'buddyx-buddypress'         => array(
 		'purpose'  => 'community',
@@ -260,7 +252,7 @@ return array(
 		'desc'     => 'LifterLMS courses with access plans, reviews and students making progress.',
 		'addon'    => array( 'reign-lifterlms-addon', 'Reign LifterLMS Addon' ),
 		'requires' => array( 'lifterlms', 'community', 'pages' ),
-		'preview'  => 'https://reign-wcfm.instawp.xyz/',
+		'preview'  => 'https://reign-buddynext-lifterlms.instawp.xyz/',
 	),
 	'reign-sensei'              => array(
 		'purpose'  => 'learning',

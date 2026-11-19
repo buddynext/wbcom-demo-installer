@@ -133,7 +133,6 @@ Choose **See every combination** on the Starting point step. It opens three more
 | Reign + BuddyNext + LearnDash + Dokan | LearnDash; optional: Reign LearnDash Addon, Reign Dokan Addon | BuddyNext set, WooCommerce, Dokan, Wbcom Essential | Learning communities with a marketplace |
 | Reign + BuddyNext + Tutor LMS + WCFM | Optional: Reign TutorLMS Addon, Reign WCFM Addon | BuddyNext set, Tutor LMS, WooCommerce, WCFM, Wbcom Essential | Learning communities with a marketplace |
 | Reign + BuddyNext + LifterLMS + WC Vendors | Optional: Reign LifterLMS Addon, Reign WC Vendors Addon | BuddyNext set, LifterLMS, WooCommerce, WC Vendors, Wbcom Essential | Learning communities with vendor shops |
-| Reign Shop | | WooCommerce, Wbcom Essential | A single store |
 | BuddyX + BuddyPress | | BuddyPress, Learnomy, Eventonomy, Jetonomy, WP Career Board, WooCommerce, Wbcom Essential | BuddyPress communities on the free BuddyX theme |
 | BuddyX + BuddyNext | | BuddyNext set, Learnomy, Wbcom Essential | BuddyNext communities on BuddyX |
 | BuddyX Pro + BuddyPress | | BuddyPress, Learnomy, Eventonomy, Jetonomy, WP Career Board, WooCommerce, Dokan, Wbcom Essential | Communities with a marketplace on BuddyX Pro |

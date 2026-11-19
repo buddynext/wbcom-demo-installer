@@ -336,3 +336,10 @@ html, body { margin: 0; }
 	.wdi-film { padding: var(--wdi-space-sm); }
 	.wdi-film[open] { align-items: stretch; }
 }
+
+/* A demo card's picture loads from the sandbox: a soft shimmer holds its place instead of a blank box. */
+.wdi-demo__img:not(.wdi-demo__img--none) { background: linear-gradient(110deg, var(--wdi-surface-2) 35%, var(--wdi-border) 50%, var(--wdi-surface-2) 65%) 0 0 / 200% 100%; }
+@media (prefers-reduced-motion: no-preference) {
+	.wdi-demo__img:not(.wdi-demo__img--none) { animation: wdi-shimmer 1.6s linear infinite; }
+}
+@keyframes wdi-shimmer { to { background-position: -200% 0; } }
