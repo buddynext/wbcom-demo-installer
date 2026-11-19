@@ -324,7 +324,9 @@ final class Engine {
 		}
 		// Product pages without a sidebar, also when the owner keeps their own home page and menu.
 		$queue[] = array( 'theme', 'pages' );
-		$state->set( 'queue', $queue )->set( 'total', count( $queue ) )->set( 'done', 0 )->save();
+		$state->set( 'queue', $queue )->set( 'total', count( $queue ) )->set( 'done', 0 )
+			->set( 'order', array_values( array_unique( array_column( $queue, 0 ) ) ) ) // For the build screen's checklist.
+			->save();
 		return self::status();
 	}
 
@@ -568,6 +570,15 @@ final class Engine {
 			'total'            => $total,
 			'current'          => $label,
 			'current_provider' => $next[0] ?? '',
+			// The build screen ticks off each product: in build order, with what is still in the queue.
+			'order'            => array_map(
+				static fn( string $id ): array => array(
+					'id'    => $id,
+					'label' => Registry::get( $id ) ? Registry::get( $id )->label() : $id,
+				),
+				array_values( array_map( 'strval', (array) $state->get( 'order' ) ) )
+			),
+			'remaining'        => array_values( array_unique( array_map( 'strval', array_column( $queue, 0 ) ) ) ),
 			'errors'           => $state->get( 'errors' ),
 			'warnings'         => (array) $state->get( 'warnings' ),
 			'reused'           => (array) $state->get( 'reused' ),

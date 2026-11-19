@@ -92,7 +92,7 @@
 	function aiPanel() {
 		const ai = S.site.ai || {};
 		if ( ! ai.available ) {
-			// Optional extra: one quiet line for admins, nothing for everyone else.
+			// Optional extra: one quiet line for admins, nothing for everyone else (below the gallery on Starting point).
 			return ai.url && ai.manage ? `<p class="wdi-ai-tip wdi-muted wdi-small">${ SPARK }<span>${ esc( __( 'Tip: connect Anthropic, Google or OpenAI in Settings > Connectors to describe your site in your own words and get three ready ideas.', 'wbcom-demo-installer' ) ) } <a class="wdi-link" href="${ esc( ai.url ) }">${ esc( __( 'Open Connectors', 'wbcom-demo-installer' ) ) }</a></span></p>` : '';
 		}
 		if ( ! S.aiOpen ) {
@@ -412,7 +412,7 @@
 			if ( 'conflict' === d.state ) {
 				action = `<span class="wdi-muted wdi-small">${ esc( sprintf( /* translators: %s: community plugin name. */ __( 'This site runs %s: choose a demo built for it.', 'wbcom-demo-installer' ), d.conflict ) ) }</span>`;
 			} else if ( 'ready' === d.state ) {
-				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo="${ esc( d.id ) }">${ esc( __( 'Use this demo', 'wbcom-demo-installer' ) ) }</button>`;
+				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo="${ esc( d.id ) }" ${ busy ? 'disabled' : '' }>${ esc( __( 'Use this demo', 'wbcom-demo-installer' ) ) }</button>`;
 			} else if ( 'fixable' === d.state ) {
 				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo-fix="${ esc( d.id ) }" ${ busy ? 'disabled' : '' }>${ esc( busy && S.demoBusy === d.id ? sprintf( /* translators: 1: plugin being set up, 2: how many in all. */ __( 'Setting up %1$d of %2$d...', 'wbcom-demo-installer' ), ...( S.demoStep || [ 1, 1 ] ) ) : __( 'Set up and use this demo', 'wbcom-demo-installer' ) ) }</button>`;
 			} else {
@@ -463,7 +463,9 @@
 			document.body.appendChild( dlg );
 		}
 		dlg.setAttribute( 'aria-label', title );
-		dlg.innerHTML = `<div class="wdi-film__frame"><iframe src="https://www.youtube-nocookie.com/embed/${ encodeURIComponent( id ) }?autoplay=1&rel=0" title="${ esc( title ) }" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div><button type="button" class="wdi-btn" data-film-close>${ esc( __( 'Close', 'wbcom-demo-installer' ) ) }</button>`;
+		const from = document.activeElement; // Focus goes back to the link that opened the film.
+		dlg.onclose = () => from && from.isConnected && from.focus();
+		dlg.innerHTML = `<h2 class="wdi-film__title">${ esc( title ) }</h2><div class="wdi-film__frame"><iframe src="https://www.youtube-nocookie.com/embed/${ encodeURIComponent( id ) }?autoplay=1&rel=0" title="${ esc( title ) }" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div><button type="button" class="wdi-btn" data-film-close>${ esc( __( 'Close', 'wbcom-demo-installer' ) ) }</button>`;
 		dlg.showModal();
 	}
 
@@ -474,6 +476,21 @@
 		return demos.find( ( d ) => d.featured && d.purpose === want ) ||
 			demos.find( ( d ) => d.id === want ) ||
 			( 'everything' === want ? demos.find( ( d ) => 'theme' === d.group && d.id.endsWith( '-buddynext' ) && ! d.rows.some( ( r ) => 'theme' === r.kind ) ) || demos.find( ( d ) => d.id.endsWith( '-buddynext' ) ) : null );
+	}
+
+	// Browser storage for small conveniences (the step to come back to after a reload); never required.
+	function store( key, value ) {
+		try {
+			if ( undefined === value ) {
+				return window.sessionStorage.getItem( key );
+			}
+			if ( null === value ) {
+				window.sessionStorage.removeItem( key );
+			} else {
+				window.sessionStorage.setItem( key, value );
+			}
+		} catch ( e ) {}
+		return null;
 	}
 
 	// Whether the active theme is one of ours (the demo pictures show these).
@@ -565,7 +582,8 @@
 				conflict: __( 'The demo you picked is built on a different community plugin than this site runs. Choose a different demo below.', 'wbcom-demo-installer' ),
 				fixable: __( 'The demo you picked. One click installs the free plugins it needs, then you choose what to include.', 'wbcom-demo-installer' ),
 			}[ focus.state ] || __( 'The demo you picked. Use it to choose what to include.', 'wbcom-demo-installer' ) ) : locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'Pick one. It installs the free plugins it needs, and you can change every product on the next step.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ) ),
-			`${ S.brief || focus ? '' : aiPanel() }${ ideaNote( 'start' ) }${ body }`,
+			// The AI ideas bar leads when a connector is set up; the tip about setting one up sits below the demos.
+			`${ S.brief || focus || ! ( S.site.ai || {} ).available ? '' : aiPanel() }${ ideaNote( 'start' ) }${ body }${ S.brief || focus || ( S.site.ai || {} ).available ? '' : aiPanel() }`,
 			// Each card has its own button: Continue only for a starting point, and not beside a demo the link opened.
 			foot( 'check', S.recipe && ! focus ? 'products' : null )
 		);
@@ -629,6 +647,11 @@
 			label,
 			__( 'You can leave this page. It keeps going and picks up where it stopped when you come back.', 'wbcom-demo-installer' ),
 			`<div class="wdi-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${ pct }"><i style="width:${ pct }%"></i></div>
+			${ 'building' === S.view && ( st.order || [] ).length > 1 ? `<ul class="wdi-steps-list">${ st.order.map( ( p ) => {
+				const left = ( st.remaining || [] ).includes( p.id );
+				const now = p.id === st.current_provider;
+				return `<li class="${ now ? 'is-now' : ( left ? 'is-next' : 'is-done' ) }">${ now ? '<span class="wdi-spin" aria-hidden="true"></span>' : ic( left ? 'clock' : 'check' ) }<span>${ esc( 'theme' === p.id ? __( 'Home page and menu', 'wbcom-demo-installer' ) : p.label ) }</span></li>`;
+			} ).join( '' ) }</ul>` : '' }
 			<ul class="wdi-log"><li>${ st.current ? `<span class="wdi-spin" aria-hidden="true"></span>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( 'Working on %s', 'wbcom-demo-installer' ), st.current ) ) }` : esc( __( 'Finishing up…', 'wbcom-demo-installer' ) ) }</li><li class="wdi-muted wdi-num">${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%1$d of %2$d steps', 'wbcom-demo-installer' ), done, total ) ) }</li></ul>`
 		);
 	}
@@ -797,6 +820,12 @@
 	function go( view ) {
 		S.error = '';
 		S.view = view;
+		// A reload on a setup step comes back to it with the same choices (this tab only).
+		if ( [ 'start', 'products', 'look', 'review' ].includes( view ) ) {
+			store( 'wdi-flow', JSON.stringify( { view, recipe: S.recipe, include: [ ...S.include ], look: S.look, demo: S.demo, focus: S.focus || '' } ) );
+		} else if ( [ 'check', 'building', 'ready', 'report' ].includes( view ) ) {
+			store( 'wdi-flow', null );
+		}
 		render();
 		const h = app.querySelector( 'h1' );
 		if ( h ) {
@@ -1017,6 +1046,12 @@
 					card.scrollIntoView( { block: 'center' } );
 					( card.querySelector( '[data-demo-fix], [data-demo]' ) || card ).focus( { preventScroll: true } );
 				}
+				return;
+			}
+			const back = ! want && 'check' === S.view && JSON.parse( store( 'wdi-flow' ) || 'null' );
+			if ( back && ( S.site.recipes || {} )[ back.recipe ] ) {
+				Object.assign( S, { recipe: back.recipe, include: new Set( back.include ), look: back.look, demo: back.demo, focus: back.focus } );
+				go( back.view );
 				return;
 			}
 			go( [ 'start', 'products', 'look', 'review' ].includes( S.view ) ? S.view : 'check' );

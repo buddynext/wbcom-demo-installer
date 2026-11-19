@@ -87,6 +87,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Improve  - A demo that needs a paid add-on or plugin names each one with where to get it, an Upload plugin button and Check again, in the wizard and in WP-CLI.
 * Improve  - wp wbcom-demo build --demo=<id> --install-missing installs the demo's free plugins, then builds.
 * Improve  - A demo card being set up stays in sight and counts its plugins as they install.
+* Improve  - The build screen ticks off each product as it goes, a reload keeps your place in the setup steps, and the film dialog has a title and returns focus to its link.
 * Improve  - Every demo card is labelled (its purpose, Whole site or Reign add-on), pictures show a placeholder while they load, and the duplicate Reign Shop card is gone (WooCommerce store is the same demo).
 * Fix      - Building again after Start my real site no longer creates a second home page, menu, listing or event.
 * Fix      - A demo login already taken on the site no longer shifts sample content to the wrong people.

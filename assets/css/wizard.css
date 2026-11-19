@@ -65,7 +65,6 @@ html, body { margin: 0; }
 .wdi-body { background: var(--wdi-bg); color: var(--wdi-text); font: 15px/1.5 var(--wdi-font); }
 .wdi-sprite { position: absolute; }
 .wdi-app { min-height: 100vh; padding-block: var(--wdi-space-2xl) 40px; padding-inline: var(--wdi-space-lg); display: grid; gap: 18px; justify-items: center; align-content: start; }
-.wdi-loading { color: var(--wdi-text-2); }
 .wdi-i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .wdi-i--lg { width: 20px; height: 20px; }
 
@@ -343,3 +342,15 @@ html, body { margin: 0; }
 	.wdi-demo__img:not(.wdi-demo__img--none) { animation: wdi-shimmer 1.6s linear infinite; }
 }
 @keyframes wdi-shimmer { to { background-position: -200% 0; } }
+
+/* Build screen: each product ticked off as the build moves through it. */
+.wdi-steps-list { list-style: none; margin: 0 0 var(--wdi-space-md); padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--wdi-space-sm) var(--wdi-space-lg); font-size: 14px; }
+.wdi-steps-list li { display: flex; align-items: center; gap: var(--wdi-space-sm); color: var(--wdi-text-2); }
+.wdi-steps-list li.is-done { color: var(--wdi-success); }
+.wdi-steps-list li.is-now { color: var(--wdi-text); font-weight: 600; }
+/* The film dialog names the film. */
+.wdi-film__title { margin: 0; align-self: flex-start; font-size: 16px; }
+/* Footer buttons keep their label on one line ("Build my demo" wrapped at 390). */
+.wdi-card__foot .wdi-btn { white-space: nowrap; }
+/* While the wizard starts: a card-shaped placeholder, not a bare line of text. */
+.wdi-loading { max-inline-size: 720px; margin: 64px auto; min-block-size: 220px; border-radius: var(--wdi-r-lg); border: 1px solid var(--wdi-border); padding: var(--wdi-space-2xl); background: var(--wdi-surface); color: var(--wdi-text-2); }
