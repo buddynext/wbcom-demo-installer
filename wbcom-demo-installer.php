@@ -50,3 +50,14 @@ add_action( 'plugins_loaded', array( 'WbcomDemo\\Plugin', 'boot' ), 20 );
 function wbcom_demo_status(): array {
 	return \WbcomDemo\Core\State::summary();
 }
+
+/**
+ * The demos for the active theme, for a theme's own setup screen: featured cards first, each with id, name, desc,
+ * group, purpose, featured, state (ready, fixable, blocked or conflict), image, preview, film (id, length) and url (opens
+ * the wizard on it); plus go_live, the film on taking a demo site live. Render tiles from this, not a copied list.
+ *
+ * @return array{demos:array<int,array<string,mixed>>,go_live:array{id:string,length:string}}
+ */
+function wbcom_demo_list(): array {
+	return \WbcomDemo\Core\Demos::listing();
+}

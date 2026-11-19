@@ -183,7 +183,7 @@ final class Page {
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'demo'      => isset( $_GET['demo'] ) ? sanitize_key( wp_unslash( $_GET['demo'] ) ) : '',
 				// The film on taking a demo site live, linked from the ready screen.
-				'goLive'    => array( 'WijuvjG6WiE', '2:39' ),
+				'goLive'    => \WbcomDemo\Core\Demos::GO_LIVE,
 			)
 		);
 		include WBCOM_DEMO_DIR . 'src/Admin/view.php';

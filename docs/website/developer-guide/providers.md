@@ -127,11 +127,4 @@ with Start my real site and nothing is left to remove; after Remove everything t
 `built` while the kept pages, menu and categories are still removable: then `finished_at` is set and `samples_left` is
 `0`, so treat `built` with `samples_left` 0 as a site already taken live.
 
-## Link to one demo
-
-Add `&demo=<id>` to `wp-admin/themes.php?page=wbcom-demo` to open the wizard on one demo, for example from a theme's
-"Build this site" button. The id is a purpose (`community`, `learning`, `events`, `jobs`, `directory`, `services`,
-`shop`), which opens that purpose's top card; a gallery demo id such as `reign-buddynext`; or `everything`, the
-theme's all-in-one BuddyNext demo. A demo whose plugins are all active opens on its review step. Any other demo
-opens on its marked card with **Set up and use this demo** focused. An unknown id, or a site that already has a demo,
-ignores the link.
+Themes: see [Theme onboarding](theme-onboarding.md) for `wbcom_demo_status()`, `wbcom_demo_list()` and `&demo=` links.

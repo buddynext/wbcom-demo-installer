@@ -20,6 +20,9 @@ final class Demos {
 	/** Community plugins that give any demo its members (catalog ids). */
 	private const COMMUNITY = array( 'buddyboss', 'peepso', 'buddynext', 'buddypress' ); // BuddyBoss first: it also answers to BuddyPress's functions.
 
+	/** The film on taking a demo site live: YouTube id and length. */
+	public const GO_LIVE = array( 'WijuvjG6WiE', '2:39' );
+
 	/** Purposes, in the order the gallery shows them. */
 	private const PURPOSES = array( 'community', 'learning', 'events', 'jobs', 'directory', 'services', 'shop' );
 
@@ -51,6 +54,44 @@ final class Demos {
 		 * @param array<string,array<string,mixed>> $demos Demos by id.
 		 */
 		return (array) apply_filters( 'wbcom_demo_demos', require WBCOM_DEMO_DIR . 'content/demos.php' );
+	}
+
+	/**
+	 * The gallery for a theme's own setup screen (see wbcom_demo_list()): the featured cards first, as the gallery shows
+	 * them, each with a link that opens the wizard on it.
+	 *
+	 * @return array{demos:array<int,array<string,mixed>>,go_live:array{id:string,length:string}}
+	 */
+	public static function listing(): array {
+		$film  = static fn( array $f ): array => $f ? array(
+			'id'     => (string) $f[0],
+			'length' => (string) $f[1],
+		) : array();
+		$cards = self::overview();
+		usort( $cards, static fn( array $a, array $b ): int => (int) $b['featured'] <=> (int) $a['featured'] );
+		$demos = array();
+		foreach ( $cards as $c ) {
+			$demos[] = array(
+				'id'       => $c['id'],
+				'name'     => $c['name'],
+				'desc'     => $c['desc'],
+				'group'    => $c['group'],
+				'purpose'  => $c['purpose'],
+				'featured' => $c['featured'],
+				'state'    => $c['state'],
+				'image'    => $c['image'],
+				'preview'  => $c['preview'],
+				'film'     => $film( $c['film'] ),
+				'url'      => add_query_arg( 'demo', rawurlencode( $c['id'] ), admin_url( 'themes.php?page=wbcom-demo' ) ),
+			);
+		}
+		return array(
+			'demos'   => $demos,
+			'go_live' => array(
+				'id'     => self::GO_LIVE[0],
+				'length' => self::GO_LIVE[1],
+			),
+		);
 	}
 
 	/**

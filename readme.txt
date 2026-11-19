@@ -79,6 +79,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Improve  - Course, directory and services reviews are approved, dated and removed with the demo.
 * Improve  - WPMediaVerse albums hold their owner's photos, and photos carry real tags and categories.
 * Improve  - The site check says Activate for installed plugins and no longer shows the Pro line on free plugins.
+* Improve  - The site check has one install button, and Continue stays secondary until a product is active.
 * Improve  - A demo card being set up stays in sight and counts its plugins as they install.
 * Fix      - Building again after Start my real site no longer creates a second home page, menu, listing or event.
 * Fix      - A demo login already taken on the site no longer shifts sample content to the wrong people.
@@ -91,6 +92,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Fix      - On phones the ready screen's footer no longer covers the finish buttons.
 * Fix      - Try the demo tour text and badges pass WCAG AA contrast on every theme.
 * Fix      - A WP-CLI build no longer carries one step's sample date into the next step.
+* Dev      - wbcom_demo_status() and wbcom_demo_list() let a theme show the demo's progress and its own site tiles, and the wbcom_demo_return filter brings the owner back to the theme's screen.
 * Dev      - New guide for Product Roadmap on Try the demo, a local CI script and a table lock.
 
 = 1.1.1 - November 2026 =

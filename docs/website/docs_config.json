@@ -53,6 +53,9 @@
 				},
 				{
 					"slug": "wp-cli"
+				},
+				{
+					"slug": "theme-onboarding"
 				}
 			],
 			"description": "Add a product or third-party plugin, and run the installer from WP-CLI."
