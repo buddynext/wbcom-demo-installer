@@ -64,7 +64,7 @@ final class Demos {
 		$out    = array();
 		foreach ( self::all() as $id => $demo ) {
 			// Without BuddyX Pro or Reign, the BuddyX demos are offered too: the free theme installs with them.
-			$theme = 'BuddyX' === ( $demo['theme'] ?? '' ) && $family !== 'BuddyX' && $buddyx;
+			$theme = 'BuddyX' === ( $demo['theme'] ?? '' ) && 'BuddyX' !== $family && $buddyx;
 			if ( '*' !== ( $demo['theme'] ?? '' ) && ( $demo['theme'] ?? '' ) !== $family && ! $theme ) {
 				continue;
 			}
@@ -103,6 +103,8 @@ final class Demos {
 				'ours'     => 'ours' === ( $demo['group'] ?? '' ),
 				'yours'    => self::triggered( $demo ),
 				'featured' => false,
+				// The setup film recorded on this theme: YouTube id and length, or none.
+				'film'     => array_values( (array) ( $demo['film'][ $family ] ?? $demo['film']['*'] ?? array() ) ),
 			);
 		}
 		return self::feature( $out );

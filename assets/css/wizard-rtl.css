@@ -326,3 +326,15 @@ html, body { margin: 0; }
 @media (max-width: 640px) {
 	.wdi-done__opt { flex-direction: column; align-items: stretch; }
 }
+
+/* Setup film: "Watch how" on a demo card and the ready screen, played in a dialog. */
+.wdi-film-link { display: inline-flex; align-items: center; gap: var(--wdi-space-xs); }
+.wdi-film { inline-size: min(960px, calc(100vw - 2 * var(--wdi-space-lg))); max-inline-size: none; padding: var(--wdi-space-md); border: 1px solid var(--wdi-border); border-radius: var(--wdi-r-lg); background: var(--wdi-surface); color: var(--wdi-text); box-shadow: var(--wdi-shadow); }
+.wdi-film::backdrop { background: rgba(0, 0, 0, 0.7); }
+.wdi-film[open] { display: flex; flex-direction: column; align-items: flex-end; gap: var(--wdi-space-md); }
+.wdi-film__frame { position: relative; inline-size: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: var(--wdi-r-md); overflow: hidden; }
+.wdi-film__frame iframe { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border: 0; }
+@media (max-width: 640px) {
+	.wdi-film { padding: var(--wdi-space-sm); }
+	.wdi-film[open] { align-items: stretch; }
+}

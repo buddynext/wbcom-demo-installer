@@ -115,3 +115,12 @@ matching the site from before the build, and a browser check of every page it ad
 | `wbcom_demo_other_demos` | filter | Report other demo data that would mix with this one. |
 | `wbcom_demo_built` | action | Fires after a build, with the build id. |
 | `wbcom_demo_finished` | action | Fires after a finish, with the report. |
+
+## Link to one demo
+
+Add `&demo=<id>` to `wp-admin/themes.php?page=wbcom-demo` to open the wizard on one demo, for example from a theme's
+"Build this site" button. The id is a purpose (`community`, `learning`, `events`, `jobs`, `directory`, `services`,
+`shop`), which opens that purpose's top card; a gallery demo id such as `reign-buddynext`; or `everything`, the
+theme's all-in-one BuddyNext demo. A demo whose plugins are all active opens on its review step. Any other demo
+opens on its marked card with **Set up and use this demo** focused. An unknown id, or a site that already has a demo,
+ignores the link.

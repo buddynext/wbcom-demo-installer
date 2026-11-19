@@ -411,7 +411,7 @@
 			} else {
 				action = `<span class="wdi-muted wdi-small">${ esc( __( 'Upload what is marked, then come back.', 'wbcom-demo-installer' ) ) }</span>`;
 			}
-			const preview = d.preview ? `<a class="wdi-link" href="${ esc( d.preview ) }" target="_blank" rel="noopener">${ esc( __( 'Live preview', 'wbcom-demo-installer' ) ) }</a>` : '';
+			const preview = ( d.preview ? `<a class="wdi-link" href="${ esc( d.preview ) }" target="_blank" rel="noopener">${ esc( __( 'Live preview', 'wbcom-demo-installer' ) ) }</a>` : '' ) + filmLink( d.film, d.name );
 			const img = d.image ? `<img class="wdi-demo__img" src="${ esc( d.image ) }" alt="" loading="lazy" width="720" height="450">` : `<div class="wdi-demo__img wdi-demo__img--none">${ ic( 'palette', 'wdi-i--lg' ) }</div>`;
 			const short = [ ...upload, ...failed.filter( ( r ) => ! upload.includes( r ) ), ...better ];
 			const eyebrow = d.featured && PURPOSE[ d.purpose ] ? `<span class="wdi-demo__purpose">${ esc( PURPOSE[ d.purpose ] ) }${ d.yours ? ` <span class="wdi-badge${ 'addon' === d.yours ? ' wdi-badge--accent' : '' }">${ esc( 'addon' === d.yours ? __( 'Your add-on', 'wbcom-demo-installer' ) : __( 'On your site', 'wbcom-demo-installer' ) ) }</span>` : '' }</span>` : '';
@@ -425,6 +425,40 @@
 			top: featured.length ? `<div class="wdi-demos">${ featured.map( card ).join( '' ) }</div>` : '',
 			more: rest.length ? `<h2 class="wdi-install__title">${ esc( __( 'Other demos', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-demos">${ rest.map( card ).join( '' ) }</div>` : '',
 		};
+	}
+
+	// "Watch how" on a demo: its setup film, recorded on this theme. Nothing loads from YouTube until it is clicked.
+	function filmLink( film, name, text = '' ) {
+		if ( ! film || ! film[ 0 ] ) {
+			return '';
+		}
+		const label = sprintf( /* translators: 1: film length (m:ss), 2: demo name. */ __( 'Watch how (%1$s): %2$s', 'wbcom-demo-installer' ), film[ 1 ], name );
+		return `<button type="button" class="wdi-link wdi-film-link" data-film="${ esc( film[ 0 ] ) }" data-film-title="${ esc( name ) }" aria-label="${ esc( label ) }">${ ic( 'play' ) }${ esc( text || sprintf( /* translators: %s: film length (m:ss). */ __( 'Watch how (%s)', 'wbcom-demo-installer' ), film[ 1 ] ) ) }</button>`;
+	}
+
+	// The film plays in a dialog outside the wizard, so a re-render never restarts it; closing it stops playback.
+	function playFilm( id, title ) {
+		let dlg = document.getElementById( 'wdi-film' );
+		if ( ! dlg ) {
+			dlg = document.createElement( 'dialog' );
+			dlg.id = 'wdi-film';
+			dlg.className = 'wdi-film';
+			dlg.addEventListener( 'close', () => ( dlg.innerHTML = '' ) );
+			dlg.addEventListener( 'click', ( e ) => ( e.target === dlg || e.target.closest( '[data-film-close]' ) ) && dlg.close() );
+			document.body.appendChild( dlg );
+		}
+		dlg.setAttribute( 'aria-label', title );
+		dlg.innerHTML = `<div class="wdi-film__frame"><iframe src="https://www.youtube-nocookie.com/embed/${ encodeURIComponent( id ) }?autoplay=1&rel=0" title="${ esc( title ) }" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div><button type="button" class="wdi-btn" data-film-close>${ esc( __( 'Close', 'wbcom-demo-installer' ) ) }</button>`;
+		dlg.showModal();
+	}
+
+	// A demo named in the page link (&demo=): a purpose opens that purpose's top card, else a gallery demo id;
+	// "everything" is the theme's all-in-one BuddyNext demo. Unknown ids are ignored.
+	function linkedDemo( want ) {
+		const demos = S.site.demos || [];
+		return demos.find( ( d ) => d.featured && d.purpose === want ) ||
+			demos.find( ( d ) => d.id === want ) ||
+			( 'everything' === want ? demos.find( ( d ) => 'theme' === d.group && d.id.endsWith( '-buddynext' ) && ! d.rows.some( ( r ) => 'theme' === r.kind ) ) || demos.find( ( d ) => d.id.endsWith( '-buddynext' ) ) : null );
 	}
 
 	// Pick a demo: build exactly its products.
@@ -613,7 +647,7 @@
 				${ done( 'finish-keep', __( 'Start my real site', 'wbcom-demo-installer' ), __( 'Removes the sample people and content. Keeps the pages, menu, categories and settings so you build on them.', 'wbcom-demo-installer' ) ) }
 				${ done( 'finish-all', __( 'Remove everything', 'wbcom-demo-installer' ), __( 'Puts the site back as it was before the demo: your home page, menu and settings return.', 'wbcom-demo-installer' ) ) }
 				${ done( 'finish-again', __( 'Try a different demo', 'wbcom-demo-installer' ), __( 'Removes everything, then takes you back to pick another demo.', 'wbcom-demo-installer' ) ) }
-			</ul><p class="wdi-muted wdi-small">${ esc( __( 'You see what will be removed and confirm before anything changes. Your own users and posts are never touched.', 'wbcom-demo-installer' ) ) }</p></section>
+			</ul><p class="wdi-muted wdi-small">${ esc( __( 'You see what will be removed and confirm before anything changes. Your own users and posts are never touched.', 'wbcom-demo-installer' ) ) }</p><p class="wdi-small">${ filmLink( cfg.goLive, __( 'Take your demo site live', 'wbcom-demo-installer' ), sprintf( /* translators: %s: film length (m:ss). */ __( 'Watch how to take it live (%s)', 'wbcom-demo-installer' ), ( cfg.goLive || [] )[ 1 ] ) ) }</p></section>
 			<details class="wdi-details"><summary>${ esc( __( 'What the demo added', 'wbcom-demo-installer' ) ) }</summary><ul>${ ledgerTiles() }</ul></details>
 			${ ( st.reused || [] ).length ? `<p class="wdi-muted wdi-small">${ esc( sprintf( /* translators: %s: comma-separated page and menu names. */ __( 'Reused from an earlier demo, as they are: %s.', 'wbcom-demo-installer' ), st.reused.join( ', ' ) ) ) }</p>` : '' }
 			${ errors.length ? '' : problems }`,
@@ -926,6 +960,24 @@
 				go( 'nodata' ); // Tools > Demo data with nothing tracked.
 				return;
 			}
+			const linked = cfg.demo ? linkedDemo( cfg.demo ) : null;
+			cfg.demo = ''; // Once: Back and later reloads of the site follow the owner, not the link.
+			if ( linked ) {
+				// Ready: straight to the review of what it builds. Otherwise its card, marked, with its set-up button.
+				if ( 'ready' === linked.state && useDemo( linked.id ) ) {
+					go( 'review' );
+					return;
+				}
+				S.demo = linked.id;
+				S.showMore = S.showMore || ! linked.featured;
+				go( 'start' );
+				const card = app.querySelector( '.wdi-demo.is-on' );
+				if ( card ) {
+					card.scrollIntoView( { block: 'center' } );
+					( card.querySelector( '[data-demo-fix], [data-demo]' ) || card ).focus( { preventScroll: true } );
+				}
+				return;
+			}
 			go( [ 'start', 'products', 'look', 'review' ].includes( S.view ) ? S.view : 'check' );
 		}
 	}
@@ -985,6 +1037,11 @@
 	} );
 
 	app.addEventListener( 'click', async ( e ) => {
+		const film = e.target.closest( '[data-film]' );
+		if ( film ) {
+			playFilm( film.dataset.film, film.dataset.filmTitle );
+			return;
+		}
 		const demo = e.target.closest( '[data-demo]' );
 		if ( demo ) {
 			if ( useDemo( demo.dataset.demo ) ) {

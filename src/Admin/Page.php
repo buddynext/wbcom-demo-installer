@@ -163,6 +163,11 @@ final class Page {
 				'essential' => defined( 'WBCOM_ESSENTIAL_VERSION' ) ? (string) WBCOM_ESSENTIAL_VERSION : '',
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'view'      => isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '',
+				// A demo to open on, from a theme's "Build this site" link: a gallery demo id or a purpose; the wizard ignores unknown ones.
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'demo'      => isset( $_GET['demo'] ) ? sanitize_key( wp_unslash( $_GET['demo'] ) ) : '',
+				// The film on taking a demo site live, linked from the ready screen.
+				'goLive'    => array( 'WijuvjG6WiE', '2:39' ),
 			)
 		);
 		include WBCOM_DEMO_DIR . 'src/Admin/view.php';

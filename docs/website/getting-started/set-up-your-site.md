@@ -38,7 +38,7 @@ You see your theme and plugins working before your first real member joins. When
 
    ![The demo gallery: one card per purpose, the Reign LearnDash add-on first](../images/02-gallery.webp)
 
-   Each card lists what you still have to upload, with a **Get it** link. It also says how many free plugins it sets up for you. **Live preview** opens the same demo on our sandbox.
+   Each card lists what you still have to upload, with a **Get it** link. It also says how many free plugins it sets up for you. **Live preview** opens the same demo on our sandbox. **Watch how** plays a short film of that demo being set up, start to finish, when one was recorded on your theme.
 
    ![A demo card: what it uses and Set up and use this demo](../images/03-demo-card.webp)
 
@@ -75,6 +75,8 @@ Under **Done exploring?** you choose what happens next:
 - **Start my real site** removes the sample people and content. It keeps the pages, menu and settings.
 - **Remove everything** puts the site back the way it was.
 - **Try a different demo** removes everything and takes you back to pick another one.
+
+**Watch how to take it live** plays a short film of these choices.
 
 Each choice shows what it will remove and asks you to confirm first. You can also do this later under **Tools > Demo data**. See [Remove the demo content](finish-demo.md) for the details.
 
