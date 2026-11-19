@@ -94,6 +94,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Fix      - Remove everything restores a site name that contains &, ' or ".
 * Fix      - A stopped Remove everything that is resumed finishes as Remove everything and puts every setting back.
 * Fix      - Start my real site keeps the pictures on the pages and categories it keeps.
+* Fix      - Product categories made by a store demo get their own picture, so the kept home page's category tiles and the shop's category lists keep their images after Start my real site.
 * Fix      - The kept home page no longer shows the sample's numbers after Start my real site.
 * Fix      - Start my real site removes the Try the demo page and its menu links, which only switched into sample people.
 * Improve  - Start my real site, Remove everything and Try a different demo go straight to the confirm step, with the acknowledgement above the list of what is removed.

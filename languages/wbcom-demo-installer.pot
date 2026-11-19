@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-19T16:14:16+00:00\n"
+"POT-Creation-Date: 2026-11-19T16:55:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -629,7 +629,7 @@ msgstr ""
 
 #: src/Providers/Dokan.php:103
 #: src/Providers/WCFM.php:130
-#: src/Providers/WooCommerce.php:599
+#: src/Providers/WooCommerce.php:626
 msgid "stores"
 msgstr ""
 
@@ -1348,7 +1348,7 @@ msgid "A store with %1$d products in %2$d categories, sale prices, stock and rev
 msgstr ""
 
 #: src/Providers/WooCommerce.php:157
-#: src/Providers/WooCommerce.php:484
+#: src/Providers/WooCommerce.php:487
 msgid "products"
 msgstr ""
 
@@ -1357,21 +1357,25 @@ msgid "product photos"
 msgstr ""
 
 #: src/Providers/WooCommerce.php:163
-#: src/Providers/WooCommerce.php:485
+#: src/Providers/WooCommerce.php:488
 msgid "product categories"
 msgstr ""
 
-#: src/Providers/WooCommerce.php:248
+#: src/Providers/WooCommerce.php:164
+msgid "product category pictures"
+msgstr ""
+
+#: src/Providers/WooCommerce.php:250
 msgid "WooCommerce did not save it."
 msgstr ""
 
-#: src/Providers/WooCommerce.php:389
+#: src/Providers/WooCommerce.php:392
 #: assets/js/wizard.js:342
 msgid "Shop"
 msgstr ""
 
 #. translators: %d: number of products.
-#: src/Providers/WooCommerce.php:464
+#: src/Providers/WooCommerce.php:467
 #: assets/js/wizard.js:566
 #, php-format,js-format
 msgid "%d product"

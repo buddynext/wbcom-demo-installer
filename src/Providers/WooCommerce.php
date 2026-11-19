@@ -160,7 +160,8 @@ final class WooCommerce extends Provider {
 		);
 		$terms = self::missing_terms( array( 'product_cat' => array_values( (array) $c['categories'] ) ) );
 		if ( $terms ) {
-			$plan['term'] = array( $terms, 'setup', __( 'product categories', 'wbcom-demo-installer' ) );
+			$plan['term']           = array( $terms, 'setup', __( 'product categories', 'wbcom-demo-installer' ) );
+			$plan['category_image'] = array( $terms, 'setup', __( 'product category pictures', 'wbcom-demo-installer' ) );
 		}
 		return $plan;
 	}
@@ -192,6 +193,7 @@ final class WooCommerce extends Provider {
 				$map = array();
 				foreach ( (array) $this->content()['categories'] as $key => $label ) {
 					$map[ $key ] = $this->ensure_term( $label, 'product_cat', $ctx );
+					$this->category_picture( (int) $map[ $key ], (string) $key, $ctx );
 				}
 				$ctx->set( $this->id(), 'categories', $map );
 				break;
@@ -364,6 +366,7 @@ final class WooCommerce extends Provider {
 				}
 				return ! get_comment( $id );
 			case 'attachment':
+			case 'category_image':
 				return self::delete_post( $id, true );
 			case 'term':
 				$taxonomy = (string) ( $meta['taxonomy'] ?? 'product_cat' );
@@ -486,6 +489,30 @@ final class WooCommerce extends Provider {
 			),
 			'sections' => $sections,
 		);
+	}
+
+	/**
+	 * Give a product category the demo makes its own picture (its first product's photo, imported as setup), so the
+	 * category and the home page tile that shows it keep a picture when Keep setup removes the sample products and
+	 * their photos. A category that already has a picture (the owner's) is left alone.
+	 *
+	 * @param int     $term Category term id.
+	 * @param string  $key  Category key in the content.
+	 * @param Context $ctx  Context.
+	 */
+	private function category_picture( int $term, string $key, Context $ctx ): void {
+		if ( ! $term || get_term_meta( $term, 'thumbnail_id', true ) ) {
+			return;
+		}
+		foreach ( (array) $this->content()['products'] as $p ) {
+			if ( $key === (string) $p[2] ) {
+				$image = $ctx->attachment( 'products/' . $p[1] . '.jpg', (int) get_current_user_id(), $this->id(), 'setup', 'category_image' );
+				if ( $image ) {
+					update_term_meta( $term, 'thumbnail_id', $image );
+				}
+				return;
+			}
+		}
 	}
 
 	/**
