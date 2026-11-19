@@ -43,6 +43,26 @@ final class Demos {
 	}
 
 	/**
+	 * Whether a build of these products is that gallery demo: only then does it carry the demo's name, niche and
+	 * hero. It must build the demo's main product (its community plugin for a community demo, else the first product
+	 * beyond the community set and pages); the owner may add or drop
+	 * others on the Products step. A build from another starting point is not the demo, even when the page was
+	 * opened on the demo's link.
+	 *
+	 * @param string   $demo     Gallery demo id.
+	 * @param string[] $products Provider ids being built.
+	 */
+	public static function builds( string $demo, array $products ): bool {
+		$d   = self::all()[ $demo ] ?? null;
+		$all = is_array( $d ) ? self::products( self::expand( (array) $d['requires'] ) ) : array();
+		// A community demo is about its community plugin; any other demo about its first product beyond the community
+		// set and pages, which come with most demos.
+		$own  = array_values( array_diff( $all, self::COMMUNITY, self::OUR_MEMBERS, array( 'pages' ) ) );
+		$main = 'community' === self::lead( $demo ) ? ( $all[0] ?? '' ) : ( $own[0] ?? ( $all[0] ?? '' ) );
+		return '' !== $main && in_array( $main, $products, true );
+	}
+
+	/**
 	 * Every demo, as content/demos.php defines it.
 	 *
 	 * @return array<string,array<string,mixed>>
@@ -126,6 +146,10 @@ final class Demos {
 			foreach ( (array) ( $demo['optional'] ?? array() ) as $addon ) {
 				$rows[] = self::addon_row( (array) $addon, false );
 			}
+			foreach ( $rows as &$row ) {
+				$row['how'] = 'active' === $row['state'] ? '' : self::need( $row )['action']; // The card says the same as needs.
+			}
+			unset( $row );
 			$conflict = self::conflict( (array) $demo['requires'] );
 			$needed   = array_filter( $rows, static fn( array $r ): bool => $r['required'] && 'active' !== $r['state'] );
 			$out[]    = array(
@@ -307,7 +331,9 @@ final class Demos {
 	 * @return array{label:string,kind:string,action:string,url:string}
 	 */
 	private static function need( array $row ): array {
-		$action = $row['can'] ? 'install' : ( ! empty( $row['paid'] ) ? 'upload' : 'ask' );
+		// Upload only when the owner can: a paid item not on the site yet, on a host and account that allow installing.
+		$upload = ! empty( $row['paid'] ) && 'not_installed' === $row['state'] && wp_is_file_mod_allowed( 'wbcom_demo_install' ) && current_user_can( 'install_plugins' );
+		$action = $row['can'] ? 'install' : ( $upload ? 'upload' : 'ask' );
 		return array(
 			'label'  => (string) $row['label'],
 			'kind'   => (string) ( $row['kind'] ?? 'plugin' ), // plugin, addon (a Reign add-on, from the Wbcom account) or theme.

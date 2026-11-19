@@ -75,7 +75,8 @@ add_filter( 'wbcom_demo_return', function () {
 } );
 ```
 
-The URL must be on this site's admin; anything else falls back to the dashboard.
+The URL must be on this site (WordPress's allowed redirect hosts); anything else falls back to the dashboard. Return
+both keys: a filter that sets only `url` keeps the label Go to dashboard.
 
 ## Reacting to builds
 

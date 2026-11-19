@@ -248,6 +248,7 @@ final class Engine {
 		if ( ! $products ) {
 			return new \WP_Error( 'wbcom_demo_nothing', __( 'Choose at least one product.', 'wbcom-demo-installer' ), array( 'status' => 400 ) );
 		}
+		$demo = Demos::builds( $demo, $products ) ? $demo : '';
 		$state->set( 'status', State::BUILDING )
 			->set( 'build_id', wp_generate_uuid4() )
 			->set( 'recipe', sanitize_key( $recipe ) )
@@ -264,7 +265,13 @@ final class Engine {
 			->set( 'started_at', current_time( 'mysql', true ) )
 			->set( 'failed', array() )
 			->set( 'people', array() )
-			->set( 'refs', array() );
+			->set( 'refs', array() )
+			->save();
+		// Providers read their content (the niche's, if the demo has one) from the saved state: drop what they read
+		// before, or a WP-CLI build would keep the base set for the whole run.
+		foreach ( Registry::all() as $p ) {
+			$p->forget_content();
+		}
 
 		// The owner's own name and tagline, through the snapshot so Remove everything puts the old ones back.
 		$name    = trim( sanitize_text_field( $name ) );

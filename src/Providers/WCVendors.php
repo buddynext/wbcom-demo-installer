@@ -202,6 +202,16 @@ final class WCVendors extends Provider {
 	public function remove( object $row ): bool {
 		$id = (int) $row->object_id;
 		if ( 'attachment' === $row->object_type ) {
+			// A shop kept by a custom finish must not point at the removed banner (WC Vendors Pro shows it).
+			foreach ( get_users(
+				array(
+					'meta_key'   => '_wcv_store_banner_id', // phpcs:ignore WordPress.DB.SlowDBQuery
+					'meta_value' => (string) $id, // phpcs:ignore WordPress.DB.SlowDBQuery
+					'fields'     => 'ID',
+				)
+			) as $owner ) {
+				delete_user_meta( (int) $owner, '_wcv_store_banner_id', (string) $id );
+			}
 			return self::delete_post( $id, true );
 		}
 		$user = 'store' === $row->object_type ? get_userdata( $id ) : false;
@@ -268,7 +278,7 @@ final class WCVendors extends Provider {
 	 */
 	private function banner( int $vendor ): int {
 		$own = (int) get_user_meta( $vendor, '_wcv_store_banner_id', true );
-		if ( $own ) {
+		if ( $own && get_post( $own ) ) {
 			return $own;
 		}
 		foreach ( Ledger::ids( $this->id(), 'attachment' ) as $id ) {

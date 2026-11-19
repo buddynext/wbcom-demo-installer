@@ -321,7 +321,7 @@
 			__( "Let's see what you have", 'wbcom-demo-installer' ),
 			__( 'We only read your site on this step. Nothing changes until you click Build.', 'wbcom-demo-installer' ),
 			`<ul class="wdi-checks">${ rows.join( '' ) }</ul>${ mem }${ live }${ other }${ none }${ addonNote }${ want }${ ideaBanner() }${ ! S.brief && ( S.site.ai || {} ).available ? aiBar( 'check' ) : '' }${ panel }`,
-			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length && ! ( s.demos || [] ).length, quiet: ! Object.keys( s.recipes ).length && ticked.length > 0 } ) // Install leads until something is active.
+			foot( null, 'start', { skip: __( 'Skip, I will add my own content', 'wbcom-demo-installer' ), disabled: ! Object.keys( s.recipes ).length && ! ( s.demos || [] ).length, quiet: ! Object.keys( s.recipes ).length ? ticked.length > 0 : addonTicked.length > 0 } ) // Continue stays quiet while Install leads.
 		);
 	}
 
@@ -370,12 +370,12 @@
 			if ( r.can ) {
 				return __( 'Free: installed for you.', 'wbcom-demo-installer' );
 			}
-			if ( 'addon' === r.kind ) {
-				return __( 'Paid add-on: download it from your Wbcom account, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' );
+			if ( 'upload' !== r.how ) {
+				return __( 'This account or host cannot add plugins here: ask an administrator to add it.', 'wbcom-demo-installer' );
 			}
-			return r.paid
-				? __( 'Paid: get it, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' )
-				: __( 'This account or host cannot install plugins: ask an administrator to add it.', 'wbcom-demo-installer' );
+			return 'addon' === r.kind
+				? __( 'Paid add-on: download it from your Wbcom account, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' )
+				: __( 'Paid: get it, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' );
 		};
 		const busy = Object.values( S.installing ).includes( 'busy' );
 		const card = ( d ) => {
@@ -419,7 +419,7 @@
 			const img = d.image ? `<img class="wdi-demo__img" src="${ esc( d.image ) }" alt="" loading="lazy" width="720" height="450">` : `<div class="wdi-demo__img wdi-demo__img--none">${ ic( 'palette', 'wdi-i--lg' ) }</div>`;
 			const short = [ ...upload, ...failed.filter( ( r ) => ! upload.includes( r ) ), ...better ];
 			const eyebrow = d.featured && PURPOSE[ d.purpose ] ? `<span class="wdi-demo__purpose">${ esc( PURPOSE[ d.purpose ] ) }${ d.yours ? ` <span class="wdi-badge${ 'addon' === d.yours ? ' wdi-badge--accent' : '' }">${ esc( 'addon' === d.yours ? __( 'Your add-on', 'wbcom-demo-installer' ) : __( 'On your site', 'wbcom-demo-installer' ) ) }</span>` : '' }</span>` : '';
-			return `<article class="wdi-demo${ S.demo === d.id ? ' is-on' : '' }${ 'addon' === d.yours ? ' is-yours' : '' }" aria-label="${ esc( d.name ) }">${ img }<div class="wdi-demo__body">${ eyebrow }<b>${ esc( d.name ) }</b><span class="wdi-muted">${ esc( d.desc ) }</span>${ short.length ? `<ul class="wdi-demo__needs">${ short.map( row ).join( '' ) }</ul>` : '' }${ summary ? `<span class="wdi-small">${ esc( summary ) }</span>` : '' }<details class="wdi-demo__all"><summary class="wdi-small">${ esc( __( 'What this demo uses', 'wbcom-demo-installer' ) ) }</summary><ul class="wdi-demo__needs">${ d.rows.map( row ).join( '' ) }</ul></details></div><div class="wdi-demo__foot">${ action }${ preview }</div></article>`;
+			return `<article class="wdi-demo${ S.demo === d.id || S.focus === d.id ? ' is-on' : '' }${ 'addon' === d.yours ? ' is-yours' : '' }" aria-label="${ esc( d.name ) }">${ img }<div class="wdi-demo__body">${ eyebrow }<b>${ esc( d.name ) }</b><span class="wdi-muted">${ esc( d.desc ) }</span>${ short.length ? `<ul class="wdi-demo__needs">${ short.map( row ).join( '' ) }</ul>` : '' }${ summary ? `<span class="wdi-small">${ esc( summary ) }</span>` : '' }<details class="wdi-demo__all"><summary class="wdi-small">${ esc( __( 'What this demo uses', 'wbcom-demo-installer' ) ) }</summary><ul class="wdi-demo__needs">${ d.rows.map( row ).join( '' ) }</ul></details></div><div class="wdi-demo__foot">${ action }${ preview }</div></article>`;
 		};
 		// Ready first, then the ones set up in one click, then the ones waiting for an upload.
 		const rank = { ready: 0, fixable: 1, blocked: 2, conflict: 3 };
@@ -536,7 +536,11 @@
 			: list;
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
 			focus ? sprintf( /* translators: %s: demo name. */ __( 'Set up %s', 'wbcom-demo-installer' ), focus.name ) : ( locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'What is your site for?', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ) ) ),
-			focus ? ( 'blocked' === focus.state ? __( 'The demo you picked. Upload what is marked, then come back here to set it up.', 'wbcom-demo-installer' ) : __( 'The demo you picked. One click installs the free plugins it needs, then you choose what to include.', 'wbcom-demo-installer' ) ) : locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'Pick one. It installs the free plugins it needs, and you can change every product on the next step.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ) ),
+			focus ? ( {
+				blocked: __( 'The demo you picked. Upload what is marked, then come back here to set it up.', 'wbcom-demo-installer' ),
+				conflict: __( 'The demo you picked is built on a different community plugin than this site runs. Choose a different demo below.', 'wbcom-demo-installer' ),
+				fixable: __( 'The demo you picked. One click installs the free plugins it needs, then you choose what to include.', 'wbcom-demo-installer' ),
+			}[ focus.state ] || __( 'The demo you picked. Use it to choose what to include.', 'wbcom-demo-installer' ) ) : locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'Pick one. It installs the free plugins it needs, and you can change every product on the next step.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ) ),
 			`${ S.brief || focus ? '' : aiPanel() }${ ideaNote( 'start' ) }${ body }`,
 			foot( 'check', 'products', { disabled: ! S.recipe } )
 		);
@@ -938,6 +942,8 @@
 
 	function route() {
 		const st = S.status.status;
+		const want = cfg.demo; // A theme's link on one demo: read once, whatever state the site is in.
+		cfg.demo = '';
 		if ( 'building' === st ) {
 			S.view = 'building';
 			render();
@@ -967,15 +973,15 @@
 				go( 'nodata' ); // Tools > Demo data with nothing tracked.
 				return;
 			}
-			const linked = cfg.demo ? linkedDemo( cfg.demo ) : null;
-			cfg.demo = ''; // Once: Back and later reloads of the site follow the owner, not the link.
+			const linked = want ? linkedDemo( want ) : null;
 			if ( linked ) {
 				// Ready: straight to the review of what it builds. Otherwise its card, marked, with its set-up button.
 				if ( 'ready' === linked.state && useDemo( linked.id ) ) {
 					go( 'review' );
 					return;
 				}
-				S.demo = linked.id;
+				// Highlighted and on top, but not chosen: S.demo is set only once its set-up runs (useDemo), so a build
+				// from another starting point is never tagged with this demo.
 				S.focus = linked.id; // One card on top; the rest of the gallery behind "Choose a different demo".
 				go( 'start' );
 				const card = app.querySelector( '.wdi-demo.is-on' );
@@ -1051,6 +1057,7 @@
 		}
 		const demo = e.target.closest( '[data-demo]' );
 		if ( demo ) {
+			S.focus = '';
 			if ( useDemo( demo.dataset.demo ) ) {
 				go( 'products' );
 			}
@@ -1058,12 +1065,14 @@
 		}
 		const demoFix = e.target.closest( '[data-demo-fix]' );
 		if ( demoFix ) {
+			S.focus = demoFix.dataset.demoFix === S.focus ? S.focus : '';
 			installDemo( demoFix.dataset.demoFix );
 			return;
 		}
 		const recipe = e.target.closest( '[data-recipe]' );
 		if ( recipe ) {
 			S.demo = '';
+			S.focus = '';
 			S.recipe = recipe.dataset.recipe;
 			S.include = new Set( S.site.recipes[ S.recipe ].use );
 			render();

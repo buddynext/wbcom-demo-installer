@@ -106,7 +106,7 @@ final class State {
 	 *
 	 * Status: idle (no demo, or Remove everything put the site back), building, built, finishing, or finished (the
 	 * owner took the demo live and nothing is left to remove). finished_at is set once a finish has run on this
-	 * build and kept something, so "built" with a finished_at is a demo already taken live whose kept pages are still
+	 * build and kept something, so "built" with a finished_at and samples_left 0 is a demo already taken live whose kept pages are still
 	 * removable; samples_left says whether sample people or content remain (0 = live).
 	 *
 	 * @return array{status:string,demo_id:string,demo_label:string,built_at:string,finished_at:string,samples_left:int}

@@ -161,11 +161,16 @@ final class Command {
 			$waits  = isset( $demo ) && 'blocked' === $demo['state'];
 			$want   = array_values( array_unique( $want ) );
 			$addons = array_values( array_filter( $want, static fn( string $id ): bool => str_starts_with( $id, 'addon:' ) ) );
-			$this->install_ids( array_values( array_diff( $want, $addons ) ), ! $waits && ! $addons );
+			$theme  = array_values( array_intersect( $want, array( 'buddyx' ) ) );
+			// Plugins first, then the Reign add-ons that need them, the theme last; only the last step says done.
+			$this->install_ids( array_values( array_diff( $want, $addons, $theme ) ), ! $waits && ! $addons && ! $theme );
 			if ( $addons ) {
 				// WordPress checks an add-on's required plugins once per request: switch the add-ons on in a fresh one,
 				// now that their plugins are active.
-				$this->relaunch( 'wbcom-demo install ' . implode( ' ', $addons ) );
+				$this->relaunch( 'wbcom-demo install ' . implode( ' ', $addons ) . ( $waits || $theme ? ' --quiet-done' : '' ) );
+			}
+			if ( $theme ) {
+				$this->install_ids( $theme, ! $waits );
 			}
 			if ( $waits ) {
 				// The free part is in; what is left is the owner's to upload, so stop here and say exactly what.
@@ -471,6 +476,9 @@ final class Command {
 	 * [--all]
 	 * : Every free product in the list.
 	 *
+	 * [--quiet-done]
+	 * : Do not print the closing success line (used when another step follows).
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp wbcom-demo install buddynext mediaverse jetonomy
@@ -486,7 +494,7 @@ final class Command {
 		if ( ! $ids ) {
 			WP_CLI::error( 'Name the products to install, or pass --all.' );
 		}
-		$this->install_ids( $ids );
+		$this->install_ids( $ids, ! isset( $assoc['quiet-done'] ) );
 	}
 
 	/**
@@ -592,11 +600,17 @@ final class Command {
 	 * wizard's background page load does. A host that blocks requests to itself gets told what to do instead.
 	 */
 	private function settle(): void {
-		$user   = get_current_user_id();
-		$url    = admin_url( 'index.php' );
-		$secure = 'https' === wp_parse_url( $url, PHP_URL_SCHEME );
-		$expiry = time() + 5 * MINUTE_IN_SECONDS;
-		$res    = wp_remote_get(
+		$user = get_current_user_id();
+		if ( ! $user ) {
+			WP_CLI::warning( 'No administrator to open wp-admin as, so some new plugins may not have finished their setup. Open any wp-admin page once in the browser, then run the build again.' );
+			return;
+		}
+		$url      = admin_url( 'index.php' );
+		$secure   = 'https' === wp_parse_url( $url, PHP_URL_SCHEME );
+		$expiry   = time() + 5 * MINUTE_IN_SECONDS;
+		$sessions = \WP_Session_Tokens::get_instance( $user );
+		$token    = $sessions->create( $expiry ); // One short session for this request, ended right after it.
+		$res      = wp_remote_get(
 			$url,
 			array(
 				'timeout'     => 60,
@@ -606,23 +620,29 @@ final class Command {
 					new \WP_Http_Cookie(
 						array(
 							'name'  => $secure ? SECURE_AUTH_COOKIE : AUTH_COOKIE,
-							'value' => wp_generate_auth_cookie( $user, $expiry, $secure ? 'secure_auth' : 'auth' ),
+							'value' => wp_generate_auth_cookie( $user, $expiry, $secure ? 'secure_auth' : 'auth', $token ),
 						)
 					),
 					new \WP_Http_Cookie(
 						array(
 							'name'  => LOGGED_IN_COOKIE,
-							'value' => wp_generate_auth_cookie( $user, $expiry, 'logged_in' ),
+							'value' => wp_generate_auth_cookie( $user, $expiry, 'logged_in', $token ),
 						)
 					),
 				),
 			)
 		);
-		$code   = (int) wp_remote_retrieve_response_code( $res );
-		if ( is_wp_error( $res ) || $code < 200 || $code >= 400 ) {
+		$sessions->destroy( $token );
+		$code = (int) wp_remote_retrieve_response_code( $res );
+		// A redirect is fine when it stays in wp-admin (a plugin sending the owner to its welcome screen); one to the
+		// login page, or off the admin, means the page never ran.
+		$to = (string) wp_remote_retrieve_header( $res, 'location' );
+		$ok = ! is_wp_error( $res ) && ( ( $code >= 200 && $code < 300 ) || ( $code >= 300 && $code < 400 && str_starts_with( $to, admin_url() ) ) );
+		if ( ! $ok ) {
 			WP_CLI::warning( 'Could not open wp-admin from here, so some new plugins may not have finished their setup. Open any wp-admin page once in the browser, then run the build again.' );
 		}
 	}
+
 
 	/**
 	 * Keep what the demo left (settings, pages, menus, categories) as your own and end the demo.
