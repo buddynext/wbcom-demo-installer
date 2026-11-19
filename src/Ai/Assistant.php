@@ -43,7 +43,7 @@ final class Assistant {
 		$names = array();
 		if ( function_exists( 'wp_get_connectors' ) ) {
 			foreach ( wp_get_connectors() as $connector ) {
-				if ( 'ai_provider' === ( $connector['type'] ?? '' ) ) {
+				if ( 'ai_provider' === $connector['type'] ) {
 					$names[] = (string) $connector['name'];
 				}
 			}

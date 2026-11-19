@@ -35,6 +35,12 @@ abstract class Provider {
 		if ( null === $this->content ) {
 			$file = WBCOM_DEMO_DIR . 'content/' . $this->id() . '.php';
 			$data = is_readable( $file ) ? require $file : array();
+			// A demo with a niche (a store community) swaps in its own version of the keys its niche file sets.
+			$niche = sanitize_key( (string) ( new State() )->get( 'niche' ) );
+			$file  = WBCOM_DEMO_DIR . 'content/niches/' . $niche . '/' . $this->id() . '.php';
+			if ( '' !== $niche && is_readable( $file ) ) {
+				$data = array_replace( (array) $data, (array) require $file );
+			}
 			/**
 			 * Sample content for one provider.
 			 *
@@ -372,6 +378,19 @@ abstract class Provider {
 	}
 
 	/**
+	 * Steps that walk a list in fixed-size batches ("people:0", "people:10", ...), sized from the list itself so a
+	 * pack extended through wbcom_demo_content builds every item, not just the first steps' worth.
+	 *
+	 * @param string $prefix Step prefix; run() reads the offset after the colon.
+	 * @param int    $count  Items in the list.
+	 * @param int    $size   Items per step.
+	 * @return string[]
+	 */
+	protected static function batches( string $prefix, int $count, int $size ): array {
+		return array_map( static fn( int $i ): string => $prefix . ':' . $i, range( 0, max( 0, $count - 1 ), max( 1, $size ) ) );
+	}
+
+	/**
 	 * A term's id, created and recorded when the site does not have it yet (an existing term is used as is and
 	 * never recorded, so Finish leaves it).
 	 *
@@ -380,9 +399,10 @@ abstract class Provider {
 	 * @param Context $ctx      Context.
 	 * @param string  $slug     Slug to look up and create with; the name when empty.
 	 * @param string  $type     Ledger object type.
+	 * @param string  $kind     Ledger kind: setup (kept by Keep setup) or sample (removed with the sample content).
 	 * @return int Term id, 0 when it could not be created.
 	 */
-	protected function ensure_term( string $name, string $taxonomy, Context $ctx, string $slug = '', string $type = 'term' ): int {
+	protected function ensure_term( string $name, string $taxonomy, Context $ctx, string $slug = '', string $type = 'term', string $kind = 'setup' ): int {
 		$found = term_exists( '' !== $slug ? $slug : $name, $taxonomy );
 		if ( is_array( $found ) ) {
 			return (int) $found['term_id'];
@@ -391,7 +411,7 @@ abstract class Provider {
 		if ( is_wp_error( $new ) ) {
 			return 0;
 		}
-		$ctx->record( $this->id(), $type, (int) $new['term_id'], 'setup', array( 'taxonomy' => $taxonomy ) );
+		$ctx->record( $this->id(), $type, (int) $new['term_id'], $kind, array( 'taxonomy' => $taxonomy ) );
 		return (int) $new['term_id'];
 	}
 

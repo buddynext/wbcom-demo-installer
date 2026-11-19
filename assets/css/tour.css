@@ -1,5 +1,5 @@
 /* Wbcom Demo Installer: the Demo tour block (Try the demo page). Colours follow the theme. */
-.wdi-tour{--wdi-accent:var(--reign-colors-theme,var(--wp--preset--color--primary,#2563eb));--wdi-line:color-mix(in srgb,currentColor 14%,transparent);--wdi-soft:color-mix(in srgb,var(--wdi-accent) 10%,transparent);--wdi-muted:color-mix(in srgb,currentColor 68%,transparent);display:grid;gap:clamp(40px,6vw,64px);margin-block:8px 48px}
+.wdi-tour{--wdi-accent:var(--reign-colors-theme,var(--wp--preset--color--primary,#2563eb));--wdi-line:color-mix(in srgb,currentColor 14%,transparent);--wdi-soft:color-mix(in srgb,var(--wdi-accent) 10%,transparent);--wdi-ink:color-mix(in srgb,var(--wdi-accent) 40%,currentColor);--wdi-btn:var(--reign-site-button-bg-color,var(--button-background-color,var(--wdi-accent)));--wdi-on:#fff;--wdi-btn-on:var(--reign-site-button-text-color,var(--button-text-color,var(--wdi-on)));--wdi-muted:color-mix(in srgb,currentColor 90%,transparent);display:grid;gap:clamp(40px,6vw,64px);margin-block:8px 48px}
 .wdi-tour h2{margin:0 0 6px;font-size:clamp(24px,3vw,30px);letter-spacing:-.015em;line-height:1.2}
 .wdi-tour__lede{margin:0 0 24px;color:var(--wdi-muted);max-width:62ch}
 .wdi-tour__roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:18px}
@@ -8,19 +8,19 @@
 .wdi-tour__who{display:flex;gap:14px;align-items:center}
 .wdi-tour__who strong{display:block;font-size:17px}
 .wdi-tour__face{width:56px;height:56px;border-radius:50%;flex:none;object-fit:cover}
-.wdi-tour__face--icon{display:grid;place-items:center;background:var(--wdi-accent);color:#fff;font-weight:700;font-size:18px}
+.wdi-tour__face--icon{display:grid;place-items:center;background:var(--wdi-btn);color:var(--wdi-btn-on);font-weight:700;font-size:18px}
 .wdi-tour__launch{margin-top:20px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between;padding:22px 24px;border-radius:16px;background:var(--wdi-soft)}
 .wdi-tour__launch strong{display:block;font-size:17px}.wdi-tour__launch span{color:var(--wdi-muted)}
 .wdi-tour__launch .wdi-tour__btn{flex:none;padding-inline:28px}
-.wdi-tour__badge{display:inline-block;margin-top:3px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--wdi-soft);color:var(--wdi-accent)}
+.wdi-tour__badge{display:inline-block;margin-top:3px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--wdi-soft);color:var(--wdi-ink)}
 .wdi-tour__badge.is-here{background:transparent;padding-inline-start:0}
 .wdi-tour__points{list-style:none;margin:0;padding:0;display:grid;gap:8px;flex:1;color:var(--wdi-muted);font-size:15px}
 .wdi-tour__points li{display:flex;gap:9px;align-items:flex-start}.wdi-tour__points svg{flex:none;margin-top:3px;color:var(--wdi-accent)}
-.wdi-tour__btn{display:block;text-align:center;padding:12px 18px;border-radius:10px;background:var(--wdi-accent);color:#fff!important;font-weight:600;text-decoration:none!important}
+.wdi-tour__btn{display:block;text-align:center;padding:12px 18px;border-radius:10px;background:var(--wdi-btn);color:var(--wdi-btn-on)!important;font-weight:600;text-decoration:none!important}
 .wdi-tour__btn:hover,.wdi-tour__btn:focus-visible{filter:brightness(.92)}
 .wdi-tour__tabs{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:color-mix(in srgb,currentColor 7%,transparent);margin-bottom:20px;flex-wrap:wrap}
 .wdi-tour__tabs button{border:0;background:transparent;color:var(--wdi-muted);font:inherit;font-weight:600;font-size:15px;padding:9px 16px;border-radius:9px;cursor:pointer}
-.wdi-tour__tabs button[aria-selected=true]{background:var(--wdi-accent);color:#fff}
+.wdi-tour__tabs button[aria-selected=true]{background:var(--wdi-btn);color:var(--wdi-btn-on)}
 .wdi-tour__steps{display:grid;grid-template-columns:repeat(var(--wdi-cols,4),minmax(0,1fr));gap:16px}
 @media (max-width:1024px){.wdi-tour__steps{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}}
 .wdi-tour__steps[hidden]{display:none}
@@ -32,8 +32,14 @@ a.wdi-tour__step:hover,a.wdi-tour__step:focus-visible{border-color:var(--wdi-acc
 .wdi-tour__n{font-size:13px;font-weight:700;color:var(--wdi-muted)}
 .wdi-tour__title{font-size:17px}
 .wdi-tour__text{color:var(--wdi-muted);font-size:15px;flex:1}
-.wdi-tour__go{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--wdi-accent)}
+.wdi-tour__go{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--wdi-ink)}
 .wdi-tour__feats{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:24px 28px}
 .wdi-tour__feat{display:flex;gap:14px;align-items:flex-start}
 .wdi-tour__feat strong{display:block;margin-bottom:3px}.wdi-tour__feat span{color:var(--wdi-muted);font-size:15px}
 @media (prefers-reduced-motion:reduce){.wdi-tour__step{transition:none}a.wdi-tour__step:hover{transform:none}}
+/* Text in the accent blends 40% into the page text, then its lightness is held at or below .48 on a light page and at or above
+   .8 on a dark one, keeping the hue: the raw accent on its own tint measured 2.16:1 (orange) to 4.25:1 (BuddyX red). Labels on
+   the accent are dark on a light accent, white on a dark one. Buttons, the chosen tab and the owner badge use the theme's own
+   button colours when it has them (Reign, BuddyX and BuddyX Pro do), so they match every other button on the site; without
+   them the label is worked out from the same background. */
+@supports (color:oklch(from red l c h)){.wdi-tour{--wdi-on:oklch(from var(--wdi-btn) round(1.07 - l) 0 0);--wdi-ink:oklch(from color-mix(in srgb,var(--wdi-accent) 40%,currentColor) calc(round(l - .12) * max(l,.8) + (1 - round(l - .12)) * min(l,.48)) c h)}}

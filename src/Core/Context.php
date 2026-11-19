@@ -51,8 +51,21 @@ final class Context {
 	 * @param string $role Optional role tag.
 	 */
 	public function person( int $i, string $role = '' ): int {
-		$ids = $this->people( $role );
-		return $ids ? $ids[ abs( $i ) % count( $ids ) ] : 0;
+		// Resolve by roster slot, not by position among the people made: when a demo login was already taken and
+		// its slot skipped, everyone else keeps their own content and only the skipped slot's items move on.
+		$slots = '' === $role || 'member' === $role ? array_keys( \WbcomDemo\Providers\People::roster() ) : \WbcomDemo\Providers\People::indexes( $role );
+		$made  = array();
+		foreach ( (array) $this->state->get( 'people' ) as $person ) {
+			$made[ (int) $person['index'] ] = (int) $person['id'];
+		}
+		$n = count( $slots );
+		for ( $k = 0; $k < $n; $k++ ) {
+			$slot = $slots[ ( abs( $i ) + $k ) % $n ];
+			if ( isset( $made[ $slot ] ) ) {
+				return $made[ $slot ];
+			}
+		}
+		return 0;
 	}
 
 	/**
@@ -148,9 +161,10 @@ final class Context {
 	 * @param int    $author   Owner user id.
 	 * @param string $provider Provider that owns the attachment in the ledger.
 	 * @param string $kind     'sample' or 'setup'.
+	 * @param string $type     Ledger object type: a setup image used by a kept page or term gets its own type, so the plan and Finish list it apart.
 	 * @return int Attachment id, 0 on failure.
 	 */
-	public function attachment( string $rel, int $author, string $provider, string $kind = 'sample' ): int {
+	public function attachment( string $rel, int $author, string $provider, string $kind = 'sample', string $type = 'attachment' ): int {
 		$tmp = $this->temp_copy( $rel );
 		if ( ! $tmp ) {
 			return 0;
@@ -173,7 +187,7 @@ final class Context {
 		update_post_meta( $id, '_wbcom_demo', $this->build_id() );
 		// Every image needs alt text for screen readers: the curated file names describe the photos.
 		update_post_meta( $id, '_wp_attachment_image_alt', self::alt_text( $rel ) );
-		$this->record( $provider, 'attachment', (int) $id, $kind );
+		$this->record( $provider, $type, (int) $id, $kind );
 		return (int) $id;
 	}
 
@@ -264,6 +278,18 @@ final class Context {
 		}
 		$list[] = sprintf( '%s: %s (%s)', $provider, $what, $detail );
 		$this->state->set( 'warnings', array_slice( $list, -100 ) );
+	}
+
+	/**
+	 * Note something the build reused instead of making again (a page or menu kept from an earlier demo).
+	 * Shown beside the warnings, but it is not a problem.
+	 *
+	 * @param string $title What was reused, as the owner sees it.
+	 */
+	public function reused( string $title ): void {
+		$list   = (array) $this->state->get( 'reused' );
+		$list[] = $title;
+		$this->state->set( 'reused', array_values( array_unique( $list ) ) );
 	}
 
 	/**

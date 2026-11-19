@@ -98,7 +98,7 @@ final class Installer {
 		$catalog += array(
 			// The member side of a Reign add-on (places, courses, orders in profiles and activity). Offered only while
 			// the site has no community plugin; see overview().
-			'buddypress'    => $addon(
+			'buddypress'     => $addon(
 				'BuddyPress',
 				'buddypress/bp-loader.php',
 				'buddypress',
@@ -114,7 +114,7 @@ final class Installer {
 					'reign-wp-job-manager-addon' => 'Reign WP Job Manager',
 				)
 			) + array( 'community' => true ),
-			'woocommerce'   => $addon(
+			'woocommerce'    => $addon(
 				'WooCommerce',
 				'woocommerce/woocommerce.php',
 				'woocommerce',
@@ -124,33 +124,42 @@ final class Installer {
 					'reign-wc-vendor-addon' => 'Reign WC Vendors',
 				)
 			),
-			'dokan'         => $addon( 'Dokan', 'dokan-lite/dokan.php', 'dokan-lite', array( 'reign-dokan-addon' => 'Reign Dokan' ) ),
-			'wcfm-frontend' => $addon( 'WCFM Frontend Manager', 'wc-frontend-manager/wc_frontend_manager.php', 'wc-frontend-manager', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
-			'wcfm'          => $addon( 'WCFM Marketplace', 'wc-multivendor-marketplace/wc-multivendor-marketplace.php', 'wc-multivendor-marketplace', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
-			'wcvendors'     => $addon( 'WC Vendors', 'wc-vendors/class-wc-vendors.php', 'wc-vendors', array( 'reign-wc-vendor-addon' => 'Reign WC Vendors' ) ),
-			'jobmanager'    => $addon( 'WP Job Manager', 'wp-job-manager/wp-job-manager.php', 'wp-job-manager', array( 'reign-wp-job-manager-addon' => 'Reign WP Job Manager' ) ),
-			'geodirectory'  => $addon( 'GeoDirectory', 'geodirectory/geodirectory.php', 'geodirectory', array( 'reign-geodirectory' => 'Reign GeoDirectory' ) ),
-			'tutorlms'      => $addon( 'Tutor LMS', 'tutor/tutor.php', 'tutor', array( 'reign-tutorlms-addon' => 'Reign TutorLMS' ) ),
-			'lifterlms'     => $addon( 'LifterLMS', 'lifterlms/lifterlms.php', 'lifterlms', array( 'reign-lifterlms-addon' => 'Reign LifterLMS' ) ),
-			'sensei'        => $addon( 'Sensei LMS', 'sensei-lms/sensei-lms.php', 'sensei-lms', array( 'reign-sensei-addon' => 'Reign Sensei' ) ),
+			'dokan'          => $addon( 'Dokan', 'dokan-lite/dokan.php', 'dokan-lite', array( 'reign-dokan-addon' => 'Reign Dokan' ) ),
+			'wcfm-frontend'  => $addon( 'WCFM Frontend Manager', 'wc-frontend-manager/wc_frontend_manager.php', 'wc-frontend-manager', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
+			'wcfm'           => $addon( 'WCFM Marketplace', 'wc-multivendor-marketplace/wc-multivendor-marketplace.php', 'wc-multivendor-marketplace', array( 'reign-wcfm-addon' => 'Reign WCFM' ) ),
+			'wcvendors'      => $addon( 'WC Vendors', 'wc-vendors/class-wc-vendors.php', 'wc-vendors', array( 'reign-wc-vendor-addon' => 'Reign WC Vendors' ) ),
+			'jobmanager'     => $addon( 'WP Job Manager', 'wp-job-manager/wp-job-manager.php', 'wp-job-manager', array( 'reign-wp-job-manager-addon' => 'Reign WP Job Manager' ) ),
+			'geodirectory'   => $addon( 'GeoDirectory', 'geodirectory/geodirectory.php', 'geodirectory', array( 'reign-geodirectory' => 'Reign GeoDirectory' ) ),
+			'tutorlms'       => $addon( 'Tutor LMS', 'tutor/tutor.php', 'tutor', array( 'reign-tutorlms-addon' => 'Reign TutorLMS' ) ),
+			'lifterlms'      => $addon( 'LifterLMS', 'lifterlms/lifterlms.php', 'lifterlms', array( 'reign-lifterlms-addon' => 'Reign LifterLMS' ) ),
+			'sensei'         => $addon( 'Sensei LMS', 'sensei-lms/sensei-lms.php', 'sensei-lms', array( 'reign-sensei-addon' => 'Reign Sensei' ) ),
 			// Uploaded by hand (not on WordPress.org): the demo gallery reads them from the installed plugins and
 			// can switch an installed one on; hidden from the site check's product list.
-			'buddyboss'     => array(
+			'buddyboss'      => array(
 				'label'    => 'BuddyBoss Platform',
 				'type'     => 'plugin',
 				'basename' => 'buddyboss-platform/bp-loader.php',
 				'url'      => 'https://www.buddyboss.com/platform/',
 				'hidden'   => true,
 			),
-			'peepso'        => array(
+			'peepso'         => array(
 				'label'    => 'PeepSo',
 				'type'     => 'plugin',
 				'basename' => 'peepso/peepso.php',
 				'url'      => 'https://www.peepso.com/',
 				'hidden'   => true,
 			),
+			// The free plugin Try the demo switches accounts with. Installed by the guide step, never listed on the site check;
+			// Remove everything takes it away again when the demo installed it (Finisher::complete()).
+			'user-switching' => array(
+				'label'    => 'User Switching',
+				'type'     => 'plugin',
+				'basename' => 'user-switching/user-switching.php',
+				'wporg'    => 'user-switching',
+				'hidden'   => true,
+			),
 			// Sold by LearnDash, not on WordPress.org: named with where to get it, never installed from here.
-			'learndash'     => array(
+			'learndash'      => array(
 				'label'    => 'LearnDash',
 				'type'     => 'plugin',
 				'basename' => 'sfwd-lms/sfwd_lms.php',
@@ -181,8 +190,8 @@ final class Installer {
 				continue; // Only the demo gallery lists it.
 			}
 			$state = self::state( (string) $id, $entry, $plugins );
-			if ( 'theme' === $entry['type'] && 'active' !== $state && self::wbcom_theme() ) {
-				continue; // A Wbcom theme is active: BuddyX is not offered over it.
+			if ( 'theme' === $entry['type'] && 'active' !== $state && ! self::offer_buddyx() ) {
+				continue; // A Wbcom theme is active or installed: BuddyX is not offered over it.
 			}
 			// A Reign add-on's plugin shows only while one of its add-ons is active (matched by folder: the main
 			// file names differ, Reign GeoDirectory's is reign-geolocation.php), or installed and waiting for it: an
@@ -532,10 +541,12 @@ final class Installer {
 	}
 
 	/**
-	 * A Wbcom theme (BuddyX, BuddyX Pro, Reign or a child of one) is active.
+	 * Whether to offer the free BuddyX theme from WordPress.org: no Wbcom theme (BuddyX, BuddyX Pro, Reign or a
+	 * child of one) is active, and the owner has not installed BuddyX Pro or Reign, which they would use instead.
 	 */
-	private static function wbcom_theme(): bool {
-		return in_array( get_template(), array( 'buddyx', 'buddyx-pro', 'reign-theme' ), true );
+	public static function offer_buddyx(): bool {
+		return ! in_array( get_template(), array( 'buddyx', 'buddyx-pro', 'reign-theme' ), true )
+			&& ! wp_get_theme( 'buddyx-pro' )->exists() && ! wp_get_theme( 'reign-theme' )->exists();
 	}
 
 	/**

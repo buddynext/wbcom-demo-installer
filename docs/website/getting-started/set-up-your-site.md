@@ -24,6 +24,7 @@ You see your theme and plugins working before your first real member joins. When
 - **Activate your theme.** Reign, BuddyX, BuddyX Pro or any other theme works.
 - **Install your paid plugins first.** This means Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo and any Pro add-on. Activate their licences too. The installer never downloads paid plugins, but it can install free ones for you.
 - **Use one set of sample content.** Some plugins come with their own sample data. Use either that or this installer, never both. Two sets mix together and cannot be removed cleanly.
+- **Give PHP 256 MB of memory.** That is the requirement with every product active. Ask your host, or add `define( 'WP_MEMORY_LIMIT', '256M' );` to `wp-config.php`. The site check warns when it is lower.
 - **Sign in as a site administrator.**
 
 ## Steps
@@ -38,7 +39,7 @@ You see your theme and plugins working before your first real member joins. When
 
    ![The demo gallery: one card per purpose, the Reign LearnDash add-on first](../images/02-gallery.webp)
 
-   Each card lists what you still have to upload, with a **Get it** link. It also says how many free plugins it sets up for you. **Live preview** opens the same demo on our sandbox.
+   Each card lists what you still have to upload, with a **Get it** link. It also says how many free plugins it sets up for you. **Live preview** opens the same demo on our sandbox. **Watch how** plays a short film of that demo being set up, start to finish, when one was recorded on your theme.
 
    ![A demo card: what it uses and Set up and use this demo](../images/03-demo-card.webp)
 
@@ -75,6 +76,8 @@ Under **Done exploring?** you choose what happens next:
 - **Start my real site** removes the sample people and content. It keeps the pages, menu and settings.
 - **Remove everything** puts the site back the way it was.
 - **Try a different demo** removes everything and takes you back to pick another one.
+
+**Watch how to take it live** plays a short film of these choices.
 
 Each choice shows what it will remove and asks you to confirm first. You can also do this later under **Tools > Demo data**. See [Remove the demo content](finish-demo.md) for the details.
 
@@ -120,7 +123,7 @@ Choose **See every combination** on the Starting point step. It opens three more
 | Reign GeoDirectory | Reign GeoDirectory Addon | GeoDirectory, BuddyPress, Wbcom Essential | Local directories with a map |
 | Reign WP Job Manager | Reign WP Job Manager Addon | WP Job Manager, BuddyPress, Wbcom Essential | Job boards |
 
-**Theme demos** show for your active theme. Wbcom products install as their free versions, so add your Pro add-ons yourself if you have them. Add-ons marked optional make the demo look better, but the demo builds without them.
+**Theme demos** show for your active theme. On a site without BuddyX Pro or Reign, the BuddyX demos show too: **Set up and use this demo** installs the free BuddyX theme from WordPress.org with the plugins, and switches it on last. **Remove everything** keeps BuddyX as your theme. Wbcom products install as their free versions, so add your Pro add-ons yourself if you have them. Add-ons marked optional make the demo look better, but the demo builds without them.
 
 | Demo | You install | Installed for you | Best for |
 |---|---|---|---|
@@ -131,7 +134,6 @@ Choose **See every combination** on the Starting point step. It opens three more
 | Reign + BuddyNext + LearnDash + Dokan | LearnDash; optional: Reign LearnDash Addon, Reign Dokan Addon | BuddyNext set, WooCommerce, Dokan, Wbcom Essential | Learning communities with a marketplace |
 | Reign + BuddyNext + Tutor LMS + WCFM | Optional: Reign TutorLMS Addon, Reign WCFM Addon | BuddyNext set, Tutor LMS, WooCommerce, WCFM, Wbcom Essential | Learning communities with a marketplace |
 | Reign + BuddyNext + LifterLMS + WC Vendors | Optional: Reign LifterLMS Addon, Reign WC Vendors Addon | BuddyNext set, LifterLMS, WooCommerce, WC Vendors, Wbcom Essential | Learning communities with vendor shops |
-| Reign Shop | | WooCommerce, Wbcom Essential | A single store |
 | BuddyX + BuddyPress | | BuddyPress, Learnomy, Eventonomy, Jetonomy, WP Career Board, WooCommerce, Wbcom Essential | BuddyPress communities on the free BuddyX theme |
 | BuddyX + BuddyNext | | BuddyNext set, Learnomy, Wbcom Essential | BuddyNext communities on BuddyX |
 | BuddyX Pro + BuddyPress | | BuddyPress, Learnomy, Eventonomy, Jetonomy, WP Career Board, WooCommerce, Dokan, Wbcom Essential | Communities with a marketplace on BuddyX Pro |
@@ -216,7 +218,8 @@ Open the page in the block editor. Change any text in place, swap the About phot
 - **WP Job Manager:** 8 jobs from 3 companies run by sample people, with logos, job types, salaries and remote roles. Each company's first job is featured. If there is no Jobs page yet, the demo adds one. **Remove everything** takes it away again.
 - **GeoDirectory:** 24 places in Philadelphia, GeoDirectory's default city, across 8 categories. Each place has a photo, address, map pin, phone, website and opening hours. There are 56 star-rated reviews. GeoDirectory's location page is offered as the home page. **Remove everything** takes away the categories, the extra fields and the place page details.
 - **Your home page, menu and logo**, if you chose them.
-- **Each product's own setup is finished**, so no setup wizards or reminders are waiting for you. Product pages show without sidebars.
+- **A Try the demo page** with the sample people and a guided tour. To let you sign in as any of them in one click, the demo installs and switches on the free User Switching plugin from WordPress.org. **Remove everything** takes it away again; if you already had it, it stays as it was.
+- **Each product's own setup is finished**, so no setup wizards or reminders are waiting for you. On BuddyX, BuddyX Pro and Reign, product pages show without sidebars; other themes keep their own page layout.
 
 ### Does the demo send emails?
 

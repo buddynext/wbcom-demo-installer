@@ -150,19 +150,41 @@ final class Page {
 		}
 		wp_enqueue_script( 'wbcom-demo', WBCOM_DEMO_URL . 'assets/js/wizard.js', array_values( array_unique( $deps ) ), self::ver( 'assets/js/wizard.js' ), true );
 		wp_set_script_translations( 'wbcom-demo', 'wbcom-demo-installer' );
+		$home = array(
+			'url'   => admin_url(),
+			'label' => __( 'Go to dashboard', 'wbcom-demo-installer' ),
+		);
+		/**
+		 * Where the done screens send the owner (Go to dashboard by default), e.g. back to the theme's own setup screen.
+		 *
+		 * @param array<string,string> $back Admin URL ('url') and link text ('label').
+		 */
+		$back = wp_parse_args( array_filter( (array) apply_filters( 'wbcom_demo_return', $home ) ), $home );
+		$back = array(
+			'url'   => wp_validate_redirect( (string) $back['url'], admin_url() ),
+			'label' => (string) $back['label'],
+		);
 		wp_localize_script(
 			'wbcom-demo',
 			'wbcomDemo',
 			array(
 				'dashboard' => admin_url(),
+				'back'      => $back['url'],
+				'backLabel' => $back['label'],
 				'home'      => home_url( '/' ),
 				'customize' => admin_url( 'customize.php' ),
 				'users'     => admin_url( 'user-new.php' ),
 				'plugins'   => admin_url( 'plugins.php' ),
+				'upload'    => admin_url( 'plugin-install.php?tab=upload' ),
 				// The Wbcom Essential block code on this page; when the wizard updates Essential it reloads first.
 				'essential' => defined( 'WBCOM_ESSENTIAL_VERSION' ) ? (string) WBCOM_ESSENTIAL_VERSION : '',
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'view'      => isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '',
+				// A demo to open on, from a theme's "Build this site" link: a gallery demo id or a purpose; the wizard ignores unknown ones.
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'demo'      => isset( $_GET['demo'] ) ? sanitize_key( wp_unslash( $_GET['demo'] ) ) : '',
+				// The film on taking a demo site live, linked from the ready screen.
+				'goLive'    => \WbcomDemo\Core\Demos::GO_LIVE,
 			)
 		);
 		include WBCOM_DEMO_DIR . 'src/Admin/view.php';

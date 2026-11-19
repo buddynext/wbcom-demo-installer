@@ -20,11 +20,11 @@ You need a demo built with **Appearance > Set up your site**. See [Import a demo
 
 1. Go to **Tools > Demo data**. This screen is there whenever the demo has left anything on the site.
 
-   You can also start from the wizard's last screen, under **Done exploring?** Each choice there opens this screen with that choice already made. **Start my real site** keeps your setup. **Remove everything** removes it all. **Try a different demo** removes it all and lets you pick another demo.
+   You can also start from the wizard's last screen, under **Done exploring?** Each choice there goes straight to the confirm step with that choice made; **Back** brings you to these choices if you want **Let me choose** instead. **Start my real site** keeps your setup. **Remove everything** removes it all. **Try a different demo** removes it all and lets you pick another demo.
 
 2. Choose what should stay:
 
-   - **Keep my setup, remove sample content** is the usual choice. It removes the sample people and everything they made. It keeps settings, pages, menus, spaces, categories and plans.
+   - **Keep my setup, remove sample content** is the usual choice. It removes the sample people, everything they made and the Try the demo page (its menu links go with it). It keeps settings, pages, menus, spaces, categories and plans. The home page keeps its layout; its sections show your own courses, events or products as you add them.
    - **Let me choose** lets you tick what to remove for each product.
    - **Remove everything the demo added** also removes sample spaces, categories and plans. It puts back your previous home page, menu and logo.
 

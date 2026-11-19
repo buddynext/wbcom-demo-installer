@@ -227,7 +227,7 @@ final class CareerBoard extends Provider {
 		$companies = (array) $ctx->get( $this->id(), 'companies', array() );
 		$currency  = class_exists( '\WCB\Modules\Jobs\JobsMeta' ) ? \WCB\Modules\Jobs\JobsMeta::default_currency() : 'USD';
 		foreach ( $this->content()['jobs'] as $i => $j ) {
-			list( $ci, $title, $cat, $type, $loc, $exp, $min, $max, $remote, $body ) = $j;
+			list( $ci, $title, $cat, $type, $loc, $exp, $min, $max, $remote, $body, $cur ) = array_pad( $j, 11, '' );
 			if ( empty( $companies[ $ci ] ) ) {
 				continue;
 			}
@@ -252,8 +252,8 @@ final class CareerBoard extends Provider {
 			$meta = array(
 				'_wcb_salary_min'      => (string) $min,
 				'_wcb_salary_max'      => (string) $max,
-				'_wcb_salary_currency' => $currency,
-				'_wcb_salary_type'     => 'Contract' === $type && $max < 1000 ? 'daily' : 'annual',
+				'_wcb_salary_currency' => '' !== $cur ? $cur : $currency, // Each job's own (EUR in Berlin, INR in Kochi), else the site's.
+				'_wcb_salary_type'     => 'Contract' === $type && $max < 1000 ? 'hourly' : 'yearly', // Career Board reads yearly, monthly or hourly; anything else shows as a year.
 				'_wcb_remote'          => $remote ? '1' : '0',
 				'_wcb_deadline'        => gmdate( 'Y-m-d', strtotime( '+' . ( 20 + $i * 5 ) . ' days' ) ),
 				'_wcb_featured'        => 0 === $i % 3 ? '1' : '0',

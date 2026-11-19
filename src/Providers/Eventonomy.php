@@ -19,6 +19,8 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Eventonomy extends Provider {
 
+	private const PER_STEP = 5;
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -153,7 +155,7 @@ final class Eventonomy extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		return array( 'events:0', 'events:5', 'rsvps' );
+		return array_merge( self::batches( 'events', count( $this->events() ), self::PER_STEP ), array( 'rsvps' ) );
 	}
 
 	/**
@@ -167,13 +169,27 @@ final class Eventonomy extends Provider {
 			$this->rsvps( $ctx );
 			return;
 		}
-		$offset = (int) substr( $step, 7 );
-		$svc    = evnm( \Eventonomy\Services\EventService::class );
-		$repo   = evnm( \Eventonomy\Contracts\EventRepositoryInterface::class );
-		$tz     = wp_timezone_string();
-		foreach ( array_slice( $this->events(), $offset, 5, true ) as $i => $e ) {
+		$offset   = (int) substr( $step, 7 );
+		$svc      = evnm( \Eventonomy\Services\EventService::class );
+		$repo     = evnm( \Eventonomy\Contracts\EventRepositoryInterface::class );
+		$tz       = wp_timezone_string();
+		$approver = (int) current(
+			get_users(
+				array(
+					'role'    => 'administrator',
+					'number'  => 1,
+					'fields'  => 'ID',
+					'orderby' => 'ID',
+				)
+			)
+		); // The owner who approves the sample events.
+		$approver = $approver && \Eventonomy\Core\Capabilities::user_can( $approver, 'evnm_edit_others_events' ) ? $approver : 0; // Eventonomy grants it at runtime, not on the role.
+		foreach ( array_slice( $this->events(), $offset, self::PER_STEP, true ) as $i => $e ) {
 			$i = (int) $i; // The events are a list.
 			list( $title, $cat, $venue, $address, $city, $country, $who, $days, $time, $desc, $virtual, $image ) = $e;
+			if ( Ledger::find( $this->id(), 'event', (string) $i ) ) {
+				continue; // Made before the engine retried this step.
+			}
 			$organizer = $ctx->person( $who );
 			if ( function_exists( 'evnm_grant_organizer_role' ) ) {
 				evnm_grant_organizer_role( $organizer );
@@ -224,6 +240,23 @@ final class Eventonomy extends Provider {
 				continue;
 			}
 			$id = (int) $row['id'];
+			// Recorded first, so a step that dies after this point is retried without making the event again.
+			$ctx->record(
+				$this->id(),
+				'event',
+				$id,
+				'sample',
+				array(
+					'organizer' => $organizer,
+					'key'       => (string) $i,
+				)
+			);
+			if ( 'pending' === ( $row['status'] ?? '' ) && $approver ) {
+				// A fresh Eventonomy holds member events for approval (its activation default). The sample organizers'
+				// events are approved the way the owner would, through Eventonomy's own update by a moderator, so the
+				// demo has live events with RSVPs; the site's approval setting itself is left as Eventonomy set it.
+				$svc->update( $id, array( 'status' => 'published' ), array( 'user_id' => $approver ) );
+			}
 			$repo->update( $id, array( 'created_at' => $ctx->date( $i, 12, 50 ) ) );
 			if ( ! empty( $row['venue_id'] ) ) {
 				$ctx->record( $this->id(), 'venue', (int) $row['venue_id'], 'setup' );
@@ -235,7 +268,6 @@ final class Eventonomy extends Provider {
 			if ( $term ) {
 				wp_set_object_terms( $id, array( $term ), 'evnm_event_category' );
 			}
-			$ctx->record( $this->id(), 'event', $id, 'sample', array( 'organizer' => $organizer ) );
 		}
 	}
 

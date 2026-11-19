@@ -65,7 +65,6 @@ html, body { margin: 0; }
 .wdi-body { background: var(--wdi-bg); color: var(--wdi-text); font: 15px/1.5 var(--wdi-font); }
 .wdi-sprite { position: absolute; }
 .wdi-app { min-height: 100vh; padding-block: var(--wdi-space-2xl) 40px; padding-inline: var(--wdi-space-lg); display: grid; gap: 18px; justify-items: center; align-content: start; }
-.wdi-loading { color: var(--wdi-text-2); }
 .wdi-i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .wdi-i--lg { width: 20px; height: 20px; }
 
@@ -98,6 +97,8 @@ html, body { margin: 0; }
 .wdi-spacer { flex: 1; }
 /* The step's actions stay in view on long steps (Products, Review): pinned to the bottom of the window. */
 .wdi-card__foot { position: sticky; bottom: 0; z-index: 2; background: var(--wdi-surface); border-end-start-radius: var(--wdi-r-lg); border-end-end-radius: var(--wdi-r-lg); }
+/* The demo-ready screen ends in its own Finish choices: a floating Visit your site there sat over them on phones. */
+.wdi-card:has(.wdi-done) .wdi-card__foot { position: static; }
 
 .wdi-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--wdi-space-sm); min-height: 40px; padding: 0 var(--wdi-space-lg); border-radius: var(--wdi-r-md); border: 1px solid var(--wdi-border-strong); background: var(--wdi-surface); color: var(--wdi-text); font: 600 14px var(--wdi-font); cursor: pointer; text-decoration: none; }
 .wdi-btn--primary { background: var(--wdi-accent); border-color: var(--wdi-accent); color: var(--wdi-accent-ink); }
@@ -322,3 +323,34 @@ html, body { margin: 0; }
 @media (max-width: 640px) {
 	.wdi-done__opt { flex-direction: column; align-items: stretch; }
 }
+
+/* Setup film: "Watch how" on a demo card and the ready screen, played in a dialog. */
+.wdi-film-link { display: inline-flex; align-items: center; gap: var(--wdi-space-xs); }
+.wdi-film { inline-size: min(960px, calc(100vw - 2 * var(--wdi-space-lg))); max-inline-size: none; padding: var(--wdi-space-md); border: 1px solid var(--wdi-border); border-radius: var(--wdi-r-lg); background: var(--wdi-surface); color: var(--wdi-text); box-shadow: var(--wdi-shadow); }
+.wdi-film::backdrop { background: rgba(0, 0, 0, 0.7); }
+.wdi-film[open] { display: flex; flex-direction: column; align-items: flex-end; gap: var(--wdi-space-md); }
+.wdi-film__frame { position: relative; inline-size: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: var(--wdi-r-md); overflow: hidden; }
+.wdi-film__frame iframe { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border: 0; }
+@media (max-width: 640px) {
+	.wdi-film { padding: var(--wdi-space-sm); }
+	.wdi-film[open] { align-items: stretch; }
+}
+
+/* A demo card's picture loads from the sandbox: a soft shimmer holds its place instead of a blank box. */
+.wdi-demo__img:not(.wdi-demo__img--none) { background: linear-gradient(110deg, var(--wdi-surface-2) 35%, var(--wdi-border) 50%, var(--wdi-surface-2) 65%) 0 0 / 200% 100%; }
+@media (prefers-reduced-motion: no-preference) {
+	.wdi-demo__img:not(.wdi-demo__img--none) { animation: wdi-shimmer 1.6s linear infinite; }
+}
+@keyframes wdi-shimmer { to { background-position: -200% 0; } }
+
+/* Build screen: each product ticked off as the build moves through it. */
+.wdi-steps-list { list-style: none; margin: 0 0 var(--wdi-space-md); padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--wdi-space-sm) var(--wdi-space-lg); font-size: 14px; }
+.wdi-steps-list li { display: flex; align-items: center; gap: var(--wdi-space-sm); color: var(--wdi-text-2); }
+.wdi-steps-list li.is-done { color: var(--wdi-success); }
+.wdi-steps-list li.is-now { color: var(--wdi-text); font-weight: 600; }
+/* The film dialog names the film. */
+.wdi-film__title { margin: 0; align-self: flex-start; font-size: 16px; }
+/* Footer buttons keep their label on one line ("Build my demo" wrapped at 390). */
+.wdi-card__foot .wdi-btn { white-space: nowrap; }
+/* While the wizard starts: a card-shaped placeholder, not a bare line of text. */
+.wdi-loading { max-inline-size: 720px; margin: 64px auto; min-block-size: 220px; border-radius: var(--wdi-r-lg); border: 1px solid var(--wdi-border); padding: var(--wdi-space-2xl); background: var(--wdi-surface); color: var(--wdi-text-2); }

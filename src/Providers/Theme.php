@@ -10,6 +10,7 @@ namespace WbcomDemo\Providers;
 use WbcomDemo\Core\Blocks;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Guide;
+use WbcomDemo\Core\Installer;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
 use WbcomDemo\Core\Registry;
@@ -25,6 +26,11 @@ final class Theme extends Provider {
 
 	/** Post meta on the designed home page: its layout and the core-block parts Wbcom Essential blocks replace. */
 	private const HOME_META = '_wbcom_demo_home';
+
+	/**
+	 * Term meta on the menu a demo made, so a retried step or a later build finds it instead of making "Demo menu 2".
+	 */
+	private const MENU_META = '_wbcom_demo_menu';
 
 	/** The Wbcom Essential blocks the wizard puts on the designed home page. */
 	public const ESSENTIAL = array( 'wbcom-essential/hero', 'wbcom-essential/stats-counter', 'wbcom-essential/cta' );
@@ -83,12 +89,16 @@ final class Theme extends Provider {
 	 */
 	public function plan(): array {
 		// BuddyX and BuddyX Pro also get the light-text logo for dark mode.
-		$dark   = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
-		$home   = (bool) array_filter( Registry::all(), static fn( Provider $p ): bool => $p->available() && $p->offers_home() );
-		$plan   = array(
-			'menu' => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
-			'page' => $home ? array( 2, 'setup', __( 'home page and Try the demo page', 'wbcom-demo-installer' ) ) : array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
+		$dark = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
+		$home = (bool) array_filter( Registry::all(), static fn( Provider $p ): bool => $p->available() && $p->offers_home() );
+		$plan = array(
+			'menu'  => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
+			// Try the demo switches into sample people, so it goes with the sample content when the owner keeps their setup.
+			'guide' => array( 1, 'sample', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
 		);
+		if ( $home ) {
+			$plan['page'] = array( 1, 'setup', __( 'home page', 'wbcom-demo-installer' ) );
+		}
 		$brand  = self::branded() ? ( $dark ? 3 : 2 ) : 0;
 		$photos = $brand + ( $home ? 1 : 0 );
 		if ( $photos ) {
@@ -142,6 +152,10 @@ final class Theme extends Provider {
 		// shop, a directory) it would brand the owner's site as a product they do not use, so the header keeps the
 		// site name instead.
 		if ( ! self::branded() ) {
+			return;
+		}
+		// A demo about something else (courses, events, a shop) is not a BuddyNext community: no BuddyNext wordmark.
+		if ( '' !== (string) $ctx->state->get( 'demo_id' ) && 'community' !== $ctx->state->get( 'lead' ) ) {
 			return;
 		}
 		$admin = (int) get_current_user_id();
@@ -198,6 +212,22 @@ final class Theme extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function designed_home( Context $ctx ): int {
+		// One home page per site: made before a retry of this step, or kept by the owner from an earlier demo (adopted).
+		$found = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => self::HOME_META, // phpcs:ignore WordPress.DB.SlowDBQuery -- one page, read once per build.
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		if ( $found ) {
+			if ( ! Ledger::has( $this->id(), 'page', (int) $found[0] ) ) {
+				$ctx->reused( get_the_title( (int) $found[0] ) );
+			}
+			return (int) $found[0];
+		}
 		$hero     = array();
 		$fallback = array();
 		$stats    = array();
@@ -206,6 +236,7 @@ final class Theme extends Provider {
 		$people   = array();
 		$parts    = array();
 		$lead     = -1;
+		$by_crowd = 'community' === $ctx->state->get( 'lead' ); // A community demo: the community's hero, numbers and members first.
 		foreach ( array_values( $this->included( $ctx ) ) as $p ) {
 			$part = $p->home( $ctx );
 			if ( ! $part ) {
@@ -213,7 +244,7 @@ final class Theme extends Provider {
 			}
 			$parts[] = array( $p, $part );
 			if ( ! empty( $part['hero'] ) ) {
-				if ( $p->community() ) {
+				if ( $p->community() !== $by_crowd ) {
 					$fallback = $fallback ? $fallback : $part['hero'];
 				} elseif ( ! $hero ) {
 					$hero = $part['hero'];
@@ -237,8 +268,12 @@ final class Theme extends Provider {
 		if ( ! $sections && ! $people ) {
 			return 0;
 		}
-		$hero   = $hero ? $hero : $fallback;
-		$stats  = array_merge( $stats, $crowd ); // The product's numbers lead, the community's follow.
+		$hero  = $hero ? $hero : $fallback;
+		$stats = $by_crowd ? array_merge( $crowd, $stats ) : array_merge( $stats, $crowd ); // The lead's numbers first.
+		if ( $by_crowd ) {
+			$sections = array_merge( $people, $sections ); // The members section opens a community demo's page.
+			$people   = array();
+		}
 		$admin  = (int) get_current_user_id();
 		$layout = array();
 		$parts  = array();
@@ -285,6 +320,13 @@ final class Theme extends Provider {
 				'post_name'    => 'home',
 				'post_content' => $body,
 				'post_author'  => $admin,
+				// With the page itself, so a retried step finds it (above). See home_upgrade() for how it is used.
+				'meta_input'   => array(
+					self::HOME_META => array(
+						'layout' => $layout,
+						'parts'  => $parts,
+					),
+				),
 			),
 			true
 		);
@@ -293,19 +335,40 @@ final class Theme extends Provider {
 			return 0;
 		}
 		$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
-		self::no_sidebar( (int) $id );
+		self::no_sidebar( (int) $id, true );
 		// The hero, numbers and closing are core blocks here (valid on every path, WP-CLI too). When Wbcom Essential
 		// is active the wizard swaps them for its hero, stats counter and call to action, built by those blocks' own
-		// code in the browser so the editor accepts them (see home_upgrade()).
-		update_post_meta(
-			(int) $id,
-			self::HOME_META,
-			array(
-				'layout' => $layout,
-				'parts'  => $parts,
-			)
-		);
+		// code in the browser so the editor accepts them (see home_upgrade(), which reads HOME_META).
 		return (int) $id;
+	}
+
+	/**
+	 * Remove the numbers row (members, spaces, discussions...) from the designed home page once sample content is
+	 * removed and the page is kept: its counts were the sample's. Both forms go, the core columns built here and
+	 * the Wbcom Essential stats counter the wizard swaps in; the hero, sections and closing stay. Runs only on our
+	 * own home page, and never touches a page the owner edited past recognition (no match, no change).
+	 */
+	public static function drop_home_numbers(): void {
+		$id   = (int) get_option( 'page_on_front' );
+		$data = $id ? get_post_meta( $id, self::HOME_META, true ) : '';
+		if ( ! is_array( $data ) ) {
+			return;
+		}
+		$content = (string) get_post_field( 'post_content', $id );
+		$out     = ! empty( $data['parts']['stats'] ) ? str_replace( (string) $data['parts']['stats'], '', $content ) : $content;
+		$blocks  = parse_blocks( $out );
+		$kept    = array_filter( $blocks, static fn( array $b ): bool => ! ( 'wbcom-essential/stats-counter' === $b['blockName'] && 'wdihomestats' === ( $b['attrs']['uniqueId'] ?? '' ) ) );
+		if ( count( $kept ) !== count( $blocks ) ) {
+			$out = serialize_blocks( array_values( $kept ) );
+		}
+		if ( $out !== $content ) {
+			wp_update_post(
+				array(
+					'ID'           => $id,
+					'post_content' => wp_slash( $out ),
+				)
+			);
+		}
 	}
 
 	/**
@@ -349,8 +412,31 @@ final class Theme extends Provider {
 		}
 		$id = self::guide_page();
 		if ( $id ) {
-			$ctx->record( $this->id(), 'page', $id, 'setup' );
+			$ctx->record( $this->id(), 'guide', $id, 'sample' );
 		}
+		self::switching( $ctx );
+	}
+
+	/**
+	 * The guide's "Explore as" buttons switch into a sample person with the free User Switching plugin: install and
+	 * switch it on with the guide, and remember whether the demo did, so Remove everything takes away only what the
+	 * demo added. Already active: left alone. Not possible (offline, DISALLOW_FILE_MODS): the guide's buttons open
+	 * each person's page instead, as they always have.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private static function switching( Context $ctx ): void {
+		$ctx->state->set( 'switching', '' );
+		$before = Installer::status( 'user-switching' )['state'];
+		if ( 'active' === $before ) {
+			return;
+		}
+		$done = Installer::install( 'user-switching' );
+		if ( is_wp_error( $done ) ) {
+			$ctx->warn( 'theme', 'User Switching', $done );
+			return;
+		}
+		$ctx->state->set( 'switching', 'not_installed' === $before ? 'installed' : 'activated' );
 	}
 
 	/**
@@ -414,9 +500,35 @@ final class Theme extends Provider {
 		if ( ! $locations ) {
 			return;
 		}
+		$found = get_terms(
+			array(
+				'taxonomy'   => 'nav_menu',
+				'hide_empty' => false,
+				'meta_key'   => self::MENU_META, // phpcs:ignore WordPress.DB.SlowDBQuery -- one menu, read once per build.
+				'fields'     => 'ids',
+				'number'     => 1,
+			)
+		);
+		if ( $found && ! is_wp_error( $found ) ) {
+			// Made before a retry of this step, or kept by the owner from an earlier demo (adopted): one demo menu,
+			// used as it is and put back in the theme's menu locations.
+			$menu_id = (int) $found[0];
+			if ( ! Ledger::has( $this->id(), 'menu', $menu_id ) ) {
+				$term = get_term( $menu_id, 'nav_menu' );
+				$ctx->reused( $term instanceof \WP_Term ? $term->name : __( 'Menu', 'wbcom-demo-installer' ) );
+			}
+			$assigned = (array) get_theme_mod( 'nav_menu_locations', array() );
+			foreach ( $locations as $loc ) {
+				$assigned[ $loc ] = $menu_id;
+			}
+			Snapshot::write( 'theme_mod:nav_menu_locations', $assigned );
+			return;
+		}
 		$name = __( 'Demo menu', 'wbcom-demo-installer' );
 		$i    = 2;
 		while ( wp_get_nav_menu_object( $name ) ) {
+			// The owner's own menu with this name, not one a demo made (that one is found above): wp_create_nav_menu()
+			// refuses a taken name.
 			/* translators: %d: number */
 			$name = sprintf( __( 'Demo menu %d', 'wbcom-demo-installer' ), $i++ );
 		}
@@ -424,13 +536,14 @@ final class Theme extends Provider {
 		if ( is_wp_error( $menu_id ) ) {
 			return;
 		}
+		add_term_meta( (int) $menu_id, self::MENU_META, 1, true );
 		$ctx->record( $this->id(), 'menu', (int) $menu_id, 'setup' );
 		// Themes hook wp_update_nav_menu_item and call get_current_screen() unguarded (BuddyX Pro menu
 		// icons, card 10480406536), which is undefined in a REST request. Loading the screen API makes it return null.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 		require_once ABSPATH . 'wp-admin/includes/screen.php';
 		$pos   = 1;
-		$guide = array_map( 'intval', Ledger::ids( $this->id(), 'page' ) );
+		$guide = array_map( 'intval', Ledger::ids( $this->id(), 'guide' ) );
 		if ( $guide ) {
 			// First, so a visitor sees how to try the demo before anything else.
 			wp_update_nav_menu_item(
@@ -446,28 +559,37 @@ final class Theme extends Provider {
 				)
 			);
 		}
+		// Each product's links in its group. Past six links the menu reads as a wall, so the groups become
+		// dropdowns (a group with one link stays a plain link); a small demo keeps one flat row.
+		$groups = array_fill_keys( array_keys( self::groups() ), array() );
+		// The product the demo is about (Courses on a course site) sits top-level, before the groups.
+		$main = \WbcomDemo\Core\Demos::main( (string) $ctx->state->get( 'demo_id' ) );
+		$lead = array();
 		foreach ( $this->included( $ctx ) as $p ) {
 			foreach ( $p->menu_items() as $item ) {
-				$args = array(
-					'menu-item-title'    => $item['title'],
-					'menu-item-status'   => 'publish',
-					'menu-item-position' => $pos++,
-				);
-				if ( ! empty( $item['page_id'] ) ) {
-					$args += array(
-						'menu-item-object'    => 'page',
-						'menu-item-object-id' => (int) $item['page_id'],
-						'menu-item-type'      => 'post_type',
-					);
-				} else {
-					$args += array(
-						'menu-item-url'  => $item['url'],
-						'menu-item-type' => 'custom',
-					);
+				if ( $p->id() === $main && 'explore' === self::group_of( $main ) ) {
+					$lead[] = $item;
+					continue;
 				}
-				wp_update_nav_menu_item( (int) $menu_id, 0, $args );
+				$groups[ self::group_of( $p->id() ) ][] = $item;
 			}
 		}
+		foreach ( $lead as $item ) {
+			self::menu_link( (int) $menu_id, $item, $pos++ );
+		}
+		$groups = array_filter( $groups );
+		$nested = count( $groups, COUNT_RECURSIVE ) - count( $groups ) > 6;
+		foreach ( $groups as $key => $items ) {
+			$parent = 0;
+			if ( $nested && count( $items ) > 1 ) {
+				// The group opens its first link when clicked, so it is never a dead "#" link.
+				$parent = self::menu_link( (int) $menu_id, array( 'title' => self::groups()[ $key ] ) + array_diff_key( $items[0], array( 'title' => 1 ) ), $pos++ );
+			}
+			foreach ( $items as $item ) {
+				self::menu_link( (int) $menu_id, $item, $pos++, $parent );
+			}
+		}
+		$this->footer( $ctx );
 		$assigned = (array) get_theme_mod( 'nav_menu_locations', array() );
 		foreach ( $locations as $loc ) {
 			$assigned[ $loc ] = (int) $menu_id;
@@ -510,11 +632,13 @@ final class Theme extends Provider {
 	 * Give one page the active theme's layout without sidebars: the "Page No Sidebar" template on
 	 * BuddyX and BuddyX Pro, the full width layout in Reign's page settings. Other themes are left as they are.
 	 *
-	 * @param int $id Page id.
+	 * @param int  $id   Page id.
+	 * @param bool $edge The home page: edge to edge where the theme has such a template.
 	 */
-	public static function no_sidebar( int $id ): void {
-		$meta     = array();
-		$template = 'page-templates/full-width-container.php';
+	public static function no_sidebar( int $id, bool $edge = false ): void {
+		$meta = array();
+		// The home page's hero runs edge to edge: BuddyX Pro's full-width.php; other pages keep the contained one.
+		$template = $edge && isset( wp_get_theme()->get_page_templates()['page-templates/full-width.php'] ) ? 'page-templates/full-width.php' : 'page-templates/full-width-container.php';
 		if ( isset( wp_get_theme()->get_page_templates()[ $template ] ) ) {
 			if ( in_array( (string) get_post_meta( $id, '_wp_page_template', true ), array( '', 'default' ), true ) ) {
 				$meta['_wp_page_template'] = $template;
@@ -539,6 +663,153 @@ final class Theme extends Provider {
 		foreach ( (array) apply_filters( 'wbcom_demo_page_layout', $meta, $id, get_template() ) as $key => $value ) {
 			Snapshot::write( 'post_meta:' . $id . ':' . $key, $value );
 		}
+	}
+
+	/**
+	 * Menu groups, in menu order.
+	 *
+	 * @return array<string,string> Key => label.
+	 */
+	private static function groups(): array {
+		return array(
+			'community' => __( 'Community', 'wbcom-demo-installer' ),
+			'explore'   => __( 'Explore', 'wbcom-demo-installer' ),
+			'about'     => __( 'About', 'wbcom-demo-installer' ),
+		);
+	}
+
+	/**
+	 * Which group a product's links belong to: the social network and forums, the site's own pages, or the rest.
+	 *
+	 * @param string $provider Provider id.
+	 */
+	private static function group_of( string $provider ): string {
+		if ( 'pages' === $provider ) {
+			return 'about';
+		}
+		return in_array( $provider, array( 'buddynext', 'buddypress', 'peepso', 'jetonomy' ), true ) ? 'community' : 'explore';
+	}
+
+	/**
+	 * Add one link (a page, or a custom URL) to a menu.
+	 *
+	 * @param int                 $menu_id  Menu.
+	 * @param array<string,mixed> $item     title plus page_id or url, as menu_items() returns.
+	 * @param int                 $position Position.
+	 * @param int                 $parent_id Parent menu item, 0 for top level.
+	 * @return int Menu item id.
+	 */
+	private static function menu_link( int $menu_id, array $item, int $position, int $parent_id = 0 ): int {
+		$args = array(
+			'menu-item-title'     => $item['title'],
+			'menu-item-status'    => 'publish',
+			'menu-item-position'  => $position,
+			'menu-item-parent-id' => $parent_id,
+		);
+		if ( ! empty( $item['page_id'] ) ) {
+			$args += array(
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => (int) $item['page_id'],
+				'menu-item-type'      => 'post_type',
+			);
+		} else {
+			$args += array(
+				'menu-item-url'  => $item['url'],
+				'menu-item-type' => 'custom',
+			);
+		}
+		$id = wp_update_nav_menu_item( $menu_id, 0, $args );
+		return is_wp_error( $id ) ? 0 : (int) $id;
+	}
+
+	/**
+	 * The footer: the site logo and tagline, then one footer menu of its own (About, Join, FAQ, Blog, Try the demo),
+	 * not a copy of the main menu. Block and menu widgets in the theme's empty footer areas (Reign has one, BuddyX
+	 * four), written through Snapshot so Remove everything puts the owner's widgets back. The copyright line under
+	 * it is the theme's own.
+	 *
+	 * @param Context $ctx Context.
+	 */
+	private function footer( Context $ctx ): void {
+		global $wp_registered_sidebars;
+		$sidebars = (array) get_option( 'sidebars_widgets', array() );
+		$areas    = array_values(
+			array_filter(
+				(array) apply_filters( 'wbcom_demo_footer_areas', array( 'footer-1', 'footer-2', 'footer-3', 'footer-4', 'footer-widget-area' ), get_template() ),
+				static fn( $a ) => isset( $wp_registered_sidebars[ $a ] ) && empty( $sidebars[ $a ] )
+			)
+		);
+		if ( ! $areas ) {
+			return;
+		}
+		$place = static function ( int $k, string $widget ) use ( &$sidebars, $areas ): void {
+			// One column per area; a theme with a single footer area (Reign) gets them side by side.
+			$area              = $areas[ min( $k, count( $areas ) - 1 ) ];
+			$sidebars[ $area ] = array_merge( (array) ( $sidebars[ $area ] ?? array() ), array( $widget ) );
+		};
+		$next  = static fn( array $w ): int => max( 1, (int) max( array_merge( array( 0 ), array_filter( array_keys( $w ), 'is_int' ) ) ) + 1 );
+
+		// 1. Who this site is: the logo the demo set (or the owner's), and the tagline.
+		$pages                  = Registry::get( 'pages' );
+		$line                   = $pages instanceof Pages && $ctx->includes( 'pages' ) ? $pages->footer_line() : '';
+		$blocks                 = (array) get_option( 'widget_block', array() );
+		$b                      = $next( $blocks );
+		$blocks[ $b ]           = array( 'content' => '<!-- wp:site-logo {"width":140} /-->' . "\n" . ( '' !== $line ? Blocks::paragraph( $line ) : '<!-- wp:site-tagline /-->' ) );
+		$blocks['_multiwidget'] = 1;
+		$place( 0, 'block-' . $b );
+
+		// 2. Its own short menu: the pages a visitor looks for at the bottom of a page.
+		$links = array();
+		if ( $pages && $ctx->includes( 'pages' ) ) {
+			$links = $pages->menu_items();
+			$join  = Pages::demo_page( 'join' );
+			if ( $join ) {
+				array_splice(
+					$links,
+					1,
+					0,
+					array(
+						array(
+							'title'   => get_the_title( $join ),
+							'page_id' => $join,
+						),
+					)
+				);
+			}
+		}
+		$guide = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => '_wbcom_demo_guide', // phpcs:ignore WordPress.DB.SlowDBQuery -- one page, read once per build.
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		if ( $guide ) {
+			$links[] = array(
+				'title'   => __( 'Try the demo', 'wbcom-demo-installer' ),
+				'page_id' => (int) $guide[0],
+			);
+		}
+		$menu_id = $links ? wp_create_nav_menu( __( 'Demo footer', 'wbcom-demo-installer' ) ) : 0;
+		if ( $menu_id && ! is_wp_error( $menu_id ) ) {
+			$ctx->record( $this->id(), 'menu', (int) $menu_id, 'setup' );
+			foreach ( array_values( $links ) as $n => $item ) {
+				self::menu_link( (int) $menu_id, $item, $n + 1 );
+			}
+			$widgets                 = (array) get_option( 'widget_nav_menu', array() );
+			$w                       = $next( $widgets );
+			$widgets[ $w ]           = array(
+				'title'    => get_bloginfo( 'name' ),
+				'nav_menu' => (int) $menu_id,
+			);
+			$widgets['_multiwidget'] = 1;
+			Snapshot::write( 'widget_nav_menu', $widgets );
+			$place( 1, 'nav_menu-' . $w );
+		}
+		Snapshot::write( 'widget_block', $blocks );
+		Snapshot::write( 'sidebars_widgets', $sidebars );
 	}
 
 	/**
@@ -584,8 +855,8 @@ final class Theme extends Provider {
 			}
 			return ! wp_get_nav_menu_object( $id );
 		}
-		if ( 'page' === $row->object_type ) {
-			return self::delete_post( $id );
+		if ( in_array( $row->object_type, array( 'page', 'guide' ), true ) ) {
+			return self::delete_post( $id ); // A guide page's menu links go with it (WordPress removes them).
 		}
 		return true;
 	}

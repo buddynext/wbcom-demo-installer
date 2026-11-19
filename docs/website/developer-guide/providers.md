@@ -115,3 +115,6 @@ matching the site from before the build, and a browser check of every page it ad
 | `wbcom_demo_other_demos` | filter | Report other demo data that would mix with this one. |
 | `wbcom_demo_built` | action | Fires after a build, with the build id. |
 | `wbcom_demo_finished` | action | Fires after a finish, with the report. |
+| `wbcom_demo_return` | filter | Where the done screens send the owner: `array( 'url' => URL on this site, 'label' => link text )`, default Go to dashboard. |
+
+Themes: see [Theme onboarding](theme-onboarding.md) for `wbcom_demo_status()`, `wbcom_demo_list()` and `&demo=` links.

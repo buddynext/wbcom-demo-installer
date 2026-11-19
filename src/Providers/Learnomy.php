@@ -1,6 +1,6 @@
 <?php
 /**
- * Learnomy: courses with sections and lessons, instructors, enrolments, progress and reviews.
+ * Learnomy: courses with sections and lessons, quizzes, instructors, enrolments, progress and reviews.
  *
  * @package WbcomDemo
  */
@@ -95,7 +95,7 @@ final class Learnomy extends Provider {
 		}
 		return sprintf(
 			/* translators: 1: courses, 2: lessons */
-			__( '%1$d courses with %2$d lessons, instructors, enrolments, progress and reviews', 'wbcom-demo-installer' ),
+			__( '%1$d courses with %2$d lessons, quizzes, instructors, enrolments, progress and reviews', 'wbcom-demo-installer' ),
 			count( $c['courses'] ),
 			$lessons
 		);
@@ -110,6 +110,10 @@ final class Learnomy extends Provider {
 			'category'   => array( count( $c['categories'] ), 'setup', __( 'course categories', 'wbcom-demo-installer' ) ),
 			'course'     => array( count( $c['courses'] ), 'sample', __( 'courses', 'wbcom-demo-installer' ) ),
 			'enrollment' => array( $this->enrolment_count(), 'sample', __( 'enrolments', 'wbcom-demo-installer' ) ),
+			'quiz'       => array( count( array_filter( array_column( $c['courses'], 'quiz' ) ) ), 'sample', __( 'quizzes', 'wbcom-demo-installer' ) ),
+			// One by the learner who finishes each course (learners()).
+			'review'     => array( count( $c['courses'] ), 'sample', __( 'course reviews', 'wbcom-demo-installer' ) ),
+			'question'   => array( array_sum( array_map( static fn( $q ) => count( $q['questions'] ) + ( empty( $q['essay'] ) ? 0 : 1 ), array_filter( array_column( $c['courses'], 'quiz' ) ) ) ), 'sample', __( 'quiz questions', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $c['courses'] ), 'sample', __( 'course images', 'wbcom-demo-installer' ) ),
 		);
 	}
@@ -246,7 +250,6 @@ final class Learnomy extends Provider {
 						'section_id'       => (int) $section_id,
 						'author_id'        => $instructor,
 						'title'            => $lesson[0],
-						'slug'             => sanitize_title( $lesson[0] ) . '-' . $course_id,
 						'content'          => $html,
 						'content_type'     => 'text',
 						'duration_seconds' => 300 + ( $l * 120 ),
@@ -255,6 +258,141 @@ final class Learnomy extends Provider {
 						'status'           => 'published',
 					)
 				);
+			}
+		}
+		if ( ! empty( $c['quiz'] ) && ! empty( $section_id ) ) {
+			$this->quiz( $ctx, (int) $course_id, (int) $section_id, $instructor, $c['quiz'] );
+		}
+	}
+
+	/**
+	 * The course's end-of-course quiz in its last section, made by its instructor through Learnomy's REST routes (the
+	 * course builder's path, so its quiz defaults apply): single-choice questions and an essay the instructor grades.
+	 *
+	 * @param Context             $ctx        Context.
+	 * @param int                 $course_id  Course.
+	 * @param int                 $section_id Last section.
+	 * @param int                 $instructor Instructor.
+	 * @param array<string,mixed> $q          Quiz content.
+	 */
+	private function quiz( Context $ctx, int $course_id, int $section_id, int $instructor, array $q ): void {
+		$was = get_current_user_id();
+		wp_set_current_user( $instructor );
+		$rest    = static function ( string $route, array $params ): array {
+			$req = new \WP_REST_Request( 'POST', '/learnomy/v1' . $route );
+			foreach ( $params as $k => $v ) {
+				$req->set_param( $k, $v );
+			}
+			$res = rest_do_request( $req );
+			return $res->is_error() ? array( 'error' => $res->as_error() ) : (array) ( $res->get_data()['data'] ?? array() );
+		};
+		$quiz    = $rest(
+			'/quizzes',
+			array(
+				'title'         => $q['title'],
+				'course_id'     => $course_id,
+				'section_id'    => $section_id,
+				'status'        => 'published',
+				'passing_score' => 70,
+			)
+		);
+		$quiz_id = (int) ( $quiz['id'] ?? 0 );
+		if ( ! $quiz_id ) {
+			$ctx->warn( $this->id(), 'quiz ' . $q['title'], $quiz['error'] ?? 'not created' );
+			wp_set_current_user( $was );
+			return;
+		}
+		$ctx->record( $this->id(), 'quiz', $quiz_id, 'sample', array( 'course' => $course_id ) );
+		$questions = array_map(
+			static fn( $mc ) => array(
+				'title'   => $mc[0],
+				'type'    => 'mc_single',
+				'answers' => array_map(
+					static fn( $text, $i ) => array(
+						'content'    => $text,
+						'is_correct' => $i === $mc[2],
+					),
+					$mc[1],
+					array_keys( $mc[1] )
+				),
+			),
+			(array) $q['questions']
+		);
+		if ( ! empty( $q['essay'] ) ) {
+			$questions[] = array(
+				'title' => $q['essay'][0],
+				'type'  => 'essay',
+			);
+		}
+		foreach ( $questions as $question ) {
+			$made = $rest( '/questions', $question + array( 'quiz_ids' => array( $quiz_id ) ) );
+			$qid  = (int) ( $made['question']['id'] ?? 0 );
+			if ( ! $qid ) {
+				$ctx->warn( $this->id(), 'quiz question', $made['error'] ?? 'not created' );
+				continue;
+			}
+			$ctx->record( $this->id(), 'question', $qid, 'sample', array( 'quiz' => $quiz_id ) );
+		}
+		wp_set_current_user( $was );
+	}
+
+	/**
+	 * A learner takes the course's quiz through Learnomy's quiz service: the right single-choice answers (or one wrong
+	 * when $slip) and an essay answer left for the instructor to grade.
+	 *
+	 * @param int    $uid       Learner.
+	 * @param int    $course_id Course.
+	 * @param int    $eid       Enrolment.
+	 * @param bool   $slip      Answer the last single-choice question wrong.
+	 * @param string $essay     The learner's essay answer.
+	 * @return int Attempt id, 0 when the course has no quiz.
+	 */
+	private function take_quiz( int $uid, int $course_id, int $eid, bool $slip, string $essay ): int {
+		$quiz = \Learnomy\Models\Quiz::where( array( 'course_id' => $course_id ) );
+		$quiz = is_array( $quiz ) ? reset( $quiz ) : null;
+		if ( ! $quiz ) {
+			return 0;
+		}
+		$svc     = new \Learnomy\Services\Quiz_Service();
+		$attempt = $svc->start_attempt( $uid, (int) $quiz->id, $eid );
+		$slots   = \Learnomy\Models\QuizSlot::where( array( 'quiz_id' => (int) $quiz->id ), 'sort_order', 'ASC' );
+		$last    = count( $slots ) - 2; // The last single-choice question; the essay comes after it.
+		foreach ( array_values( (array) $slots ) as $n => $slot ) {
+			$question = \Learnomy\Models\Question::find( (int) $slot->question_id );
+			if ( ! $question ) {
+				continue;
+			}
+			if ( 'essay' === $question->type ) {
+				$svc->answer_question( $attempt, (int) $question->id, $essay );
+				continue;
+			}
+			$pick = null;
+			foreach ( \Learnomy\Models\Answer::get_for_question( (int) $question->id ) as $answer ) {
+				$wrong = $slip && $n === $last; // The slip picks a wrong answer.
+				if ( $wrong xor (bool) $answer->is_correct ) {
+					$pick = (int) $answer->id;
+					break;
+				}
+			}
+			if ( $pick ) {
+				$svc->answer_question( $attempt, (int) $question->id, $pick );
+			}
+		}
+		$svc->submit_attempt( $attempt );
+		return $attempt;
+	}
+
+	/**
+	 * The instructor grades the attempt's essay with a short note, which finalises it (passed or not).
+	 *
+	 * @param int $attempt    Attempt.
+	 * @param int $instructor Grader.
+	 */
+	private function grade_essay( int $attempt, int $instructor ): void {
+		foreach ( \Learnomy\Models\QuestionResponse::where( array( 'attempt_id' => $attempt ) ) as $response ) {
+			$question = \Learnomy\Models\Question::find( (int) $response->question_id );
+			if ( $question && 'essay' === $question->type ) {
+				( new \Learnomy\Services\Quiz_Service() )->grade_question( (int) $response->id, 1.0, __( 'Specific and doable. Nice work.', 'wbcom-demo-installer' ), $instructor );
 			}
 		}
 	}
@@ -317,16 +455,51 @@ final class Learnomy extends Provider {
 				// First learner finishes, others are part way through.
 				$done = 0 === $s ? count( $lessons ) : (int) floor( count( $lessons ) * ( ( $s * 29 ) % 90 ) / 100 );
 				$when = $ctx->date( $k * 6 + $s, 40, 40 );
+				// Learnomy stamps the enrolment "now"; it starts the learner's timeline, before their first lesson.
+				\Learnomy\Models\Enrollment::update( (int) $eid, array( 'enrolled_at' => $when ) );
 				\WbcomDemo\Core\Clock::set( $when );
 				foreach ( array_slice( $lessons, 0, $done ) as $n => $lesson ) {
 					$when = $ctx->after( $when, $n + $s );
 					$progress->mark_lesson_complete( $uid, (int) $lesson->id, true, 240 + $n * 30, array(), $when );
 				}
+				// The first two learners take the quiz. The one who finished aces it and the instructor has graded the
+				// essay (a result to show); the second slips once and their essay waits in the instructor's queue.
+				if ( $s < 2 ) {
+					try {
+						$attempt = $this->take_quiz( $uid, (int) $course_id, (int) $eid, 1 === $s, (string) ( $this->content()['courses'][ $k ]['quiz']['essay'][1] ?? '' ) );
+						$course  = \Learnomy\Models\Course::find( (int) $course_id );
+						if ( $attempt && 0 === $s && $course ) {
+							$this->grade_essay( $attempt, (int) $course->author_id );
+						}
+						// Learnomy stamps attempts "now": the quiz follows the learner's last lesson, the grading a day or so later.
+						if ( $attempt ) {
+							$taken = $ctx->after( $when, 40 + $s );
+							$dates = array(
+								'started_at'   => $taken,
+								'submitted_at' => $taken,
+							);
+							if ( 0 === $s ) {
+								$dates['graded_at'] = $ctx->after( $taken, 41 );
+							}
+							\Learnomy\Models\QuizAttempt::update( $attempt, $dates );
+						}
+					} catch ( \Throwable $e ) {
+						$ctx->warn( $this->id(), 'quiz attempt', $e->getMessage() );
+					}
+				}
 				if ( 0 === $s || ( 1 === $s && count( $lessons ) === $done ) ) {
 					$body = $bodies[ $r % count( $bodies ) ];
 					++$r;
 					try {
-						$reviews->submit( $uid, $course_id, $body[0], $body[1], $body[2] );
+						$rid = $reviews->submit( $uid, $course_id, $body[0], $body[1], $body[2] );
+						if ( $rid ) {
+							// Learnomy holds new reviews for moderation, which is right for real ones; a demo course with
+							// only pending reviews shows none. The admin approves our own sample reviews through Learnomy's
+							// moderation (the owner's setting is not changed), dated after the learner's last lesson.
+							\Learnomy\Models\Review::update( $rid, array( 'created_at' => $ctx->after( $when, 60 + $s ) ) );
+							$reviews->approve( $rid );
+							$ctx->record( $this->id(), 'review', $rid, 'sample', array( 'course' => (int) $course_id ) );
+						}
 					} catch ( \Throwable $e ) {
 						$ctx->warn( $this->id(), 'review', $e->getMessage() );
 					}
@@ -367,6 +540,24 @@ final class Learnomy extends Provider {
 				return ! \Learnomy\Models\Category::find( $id );
 			case 'attachment':
 				return self::delete_post( $id, true );
+			case 'review':
+				// Learnomy's delete recounts the course rating; the course delete removes it too when it went first.
+				if ( \Learnomy\Models\Review::find( $id ) ) {
+					( new \Learnomy\Services\Review_Service() )->delete( $id );
+				}
+				return ! \Learnomy\Models\Review::find( $id );
+			case 'question':
+				// A bank question outlives its quiz in Learnomy; the model delete clears its answers, slots and responses.
+				if ( \Learnomy\Models\Question::find( $id ) ) {
+					\Learnomy\Models\Question::delete( $id );
+				}
+				return ! \Learnomy\Models\Question::find( $id );
+			case 'quiz':
+				// Attempts and slots go with the quiz; the course delete removes it too when it is already gone.
+				if ( \Learnomy\Models\Quiz::find( $id ) ) {
+					( new \Learnomy\Services\Quiz_Service() )->delete_quiz( $id );
+				}
+				return ! \Learnomy\Models\Quiz::find( $id );
 		}
 		return true;
 	}

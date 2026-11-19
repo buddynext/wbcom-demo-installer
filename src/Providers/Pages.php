@@ -8,6 +8,7 @@
 namespace WbcomDemo\Providers;
 
 use WbcomDemo\Core\Blocks;
+use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -95,8 +96,9 @@ final class Pages extends Provider {
 			'page'       => array( count( self::PAGES ), 'setup', __( 'pages', 'wbcom-demo-installer' ) ),
 			'category'   => array( $new_cats, 'setup', __( 'blog categories', 'wbcom-demo-installer' ) ),
 			'post'       => array( count( $c['posts'] ), 'sample', __( 'blog posts', 'wbcom-demo-installer' ) ),
-			// One per post, About and Join, and one per new category (an owner's existing category is not touched).
-			'attachment' => array( count( $c['posts'] ) + 2 + $new_cats, 'sample', __( 'page, post and category images', 'wbcom-demo-installer' ) ),
+			// About and Join, and one per new category (an owner's existing category is not touched).
+			'image'      => array( 2 + $new_cats, 'setup', __( 'page and category images', 'wbcom-demo-installer' ) ),
+			'attachment' => array( count( $c['posts'] ), 'sample', __( 'blog post images', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -108,7 +110,8 @@ final class Pages extends Provider {
 			'page'       => __( 'pages', 'wbcom-demo-installer' ),
 			'category'   => __( 'blog categories', 'wbcom-demo-installer' ),
 			'post'       => __( 'blog posts', 'wbcom-demo-installer' ),
-			'attachment' => __( 'page, post and category images', 'wbcom-demo-installer' ),
+			'image'      => __( 'page and category images', 'wbcom-demo-installer' ),
+			'attachment' => __( 'blog post images', 'wbcom-demo-installer' ),
 		);
 	}
 
@@ -138,14 +141,13 @@ final class Pages extends Provider {
 		$items = array();
 		$short = array( 'faq' => (string) ( $this->content()['faq']['menu'] ?? '' ) );
 		foreach ( array( 'about', 'blog', 'faq' ) as $key ) {
-			$ids = Ledger::ids( $this->id(), 'page' );
-			foreach ( $ids as $id ) {
-				if ( get_post_meta( $id, '_wbcom_demo_page', true ) === $key ) {
-					$items[] = array(
-						'title'   => '' !== ( $short[ $key ] ?? '' ) ? $short[ $key ] : get_the_title( $id ),
-						'page_id' => (int) $id,
-					);
-				}
+			// This demo's page, or the one the owner kept from an earlier demo and this build reused.
+			$id = self::demo_page( $key );
+			if ( $id ) {
+				$items[] = array(
+					'title'   => '' !== ( $short[ $key ] ?? '' ) ? $short[ $key ] : get_the_title( $id ),
+					'page_id' => $id,
+				);
 			}
 		}
 		return $items;
@@ -171,7 +173,7 @@ final class Pages extends Provider {
 			$terms[ $key ]        = $this->ensure_term( $name, 'category', $ctx, '', 'category' );
 			// A photo only on a category the demo made, so the category grid shows pictures, not placeholders.
 			if ( $terms[ $key ] && Ledger::has( $this->id(), 'category', $terms[ $key ] ) && ! get_term_meta( $terms[ $key ], 'thumbnail_id', true ) ) {
-				$image = $ctx->attachment( $photo, (int) get_current_user_id(), $this->id() );
+				$image = $ctx->attachment( $photo, (int) get_current_user_id(), $this->id(), 'setup', 'image' );
 				if ( $image ) {
 					update_term_meta( $terms[ $key ], 'thumbnail_id', $image );
 				}
@@ -191,7 +193,9 @@ final class Pages extends Provider {
 				$body[] = Blocks::paragraph( $text );
 			}
 			$date = $ctx->date( $i, $n, 45 );
-			$id   = wp_insert_post(
+			// What other products post about it (BuddyNext shares a new blog post to the feed) takes the post's date.
+			Clock::set( $date );
+			$id = wp_insert_post(
 				array(
 					'post_type'     => 'post',
 					'post_status'   => 'publish',
@@ -205,6 +209,7 @@ final class Pages extends Provider {
 				),
 				true
 			);
+			Clock::reset();
 			if ( is_wp_error( $id ) ) {
 				$ctx->warn( $this->id(), 'post ' . $post['title'], $id );
 				continue;
@@ -223,32 +228,37 @@ final class Pages extends Provider {
 	 * @param Context $ctx Context.
 	 */
 	private function pages( Context $ctx ): void {
-		$c          = $this->content();
-		$admin      = (int) get_current_user_id();
-		$about      = $c['about'];
-		$cats       = array_map( 'intval', (array) $ctx->state->ref( $this->id(), 'categories', array() ) );
-		$image      = $ctx->attachment( $about['image'], $admin, $this->id() );
-		$join_image = $ctx->attachment( $c['join']['image'], $admin, $this->id() );
+		$c     = $this->content();
+		$admin = (int) get_current_user_id();
+		$about = $c['about'];
+		$cats  = array_map( 'intval', (array) $ctx->state->ref( $this->id(), 'categories', array() ) );
+		// Setup, like the pages that show them: Keep setup keeps About and Join, so it keeps their pictures.
+		$image      = $ctx->attachment( $about['image'], $admin, $this->id(), 'setup', 'image' );
+		$join_image = $ctx->attachment( $c['join']['image'], $admin, $this->id(), 'setup', 'image' );
 		$cols       = array();
 		foreach ( $about['values'] as $value ) {
-			$cols[] = Blocks::heading( $value[0], 3 ) . "\n" . Blocks::paragraph( $value[1] );
+			$cols[] = Blocks::card( Blocks::heading( $value[0], 3, false, true ) . "\n" . Blocks::paragraph( $value[1] ) );
 		}
+		// A photo hero opens About and Join. On Reign the page title moves into it (hide_title() below); BuddyX always
+		// prints the title above the content, so there the hero carries only the opening line.
+		$reign  = 'Reign' === Theme::theme_family();
+		$hero   = static fn( int $photo, string $title, string $intro ): string => $photo
+			? Blocks::cover( $photo, ( $reign ? Blocks::heading( $title, 1, true ) : '' ) . Blocks::paragraph( $intro ) )
+			: Blocks::paragraph( $intro );
 		$quoted = get_userdata( $ctx->person( (int) $about['quote'][1] ) );
 		$blocks = array(
 			'about' => array(
-				$image ? Blocks::image( $image ) : '',
-				Blocks::paragraph( $about['intro'] ),
+				$hero( (int) $image, (string) $about['title'], (string) $about['intro'] ),
 				Blocks::columns( $cols ),
 				Blocks::quote( $about['quote'][0], $quoted ? $quoted->display_name : '' ),
 				Blocks::heading( __( 'From the blog', 'wbcom-demo-installer' ) ),
 				self::posts_block( $cats, 'grid', 3 ), // One row of three: no carousel arrows over the cards.
 			),
 			'join'  => array(
-				$join_image ? Blocks::image( $join_image ) : '',
-				Blocks::paragraph( $c['join']['intro'] ),
+				$hero( (int) $join_image, (string) $c['join']['title'], (string) $c['join']['intro'] ),
 				Blocks::columns(
 					array_map(
-						static fn( array $step ): string => Blocks::heading( $step[0], 3 ) . "\n" . Blocks::paragraph( $step[1] ),
+						static fn( array $step ): string => Blocks::card( Blocks::heading( $step[0], 3, false, true ) . "\n" . Blocks::paragraph( $step[1] ) ),
 						$c['join']['steps']
 					)
 				),
@@ -256,6 +266,7 @@ final class Pages extends Provider {
 			),
 			'faq'   => array_merge(
 				array( Blocks::paragraph( $c['faq']['intro'] ) ),
+				// Plain details: themes draw their own box around each question (BuddyX does), so no card around it.
 				array_map( static fn( array $qa ): string => Blocks::details( $qa[0], $qa[1] ), $c['faq']['items'] )
 			),
 			'blog'  => array(
@@ -283,6 +294,14 @@ final class Pages extends Provider {
 			'blog'  => $c['blog']['title'],
 		);
 		foreach ( self::PAGES as $key ) {
+			$found = self::demo_page( $key );
+			if ( $found ) {
+				// Made before a retry of this step, or kept by the owner from an earlier demo (adopted): never a second copy.
+				if ( ! Ledger::has( $this->id(), 'page', $found ) ) {
+					$ctx->reused( get_the_title( $found ) );
+				}
+				continue;
+			}
 			$id = wp_insert_post(
 				array(
 					'post_type'    => 'page',
@@ -290,6 +309,7 @@ final class Pages extends Provider {
 					'post_title'   => $titles[ $key ],
 					'post_content' => implode( "\n\n", array_filter( $blocks[ $key ] ) ),
 					'post_author'  => $admin,
+					'meta_input'   => array( '_wbcom_demo_page' => $key ),
 				),
 				true
 			);
@@ -297,9 +317,38 @@ final class Pages extends Provider {
 				$ctx->warn( $this->id(), 'page ' . $titles[ $key ], $id );
 				continue;
 			}
-			update_post_meta( (int) $id, '_wbcom_demo_page', $key );
 			$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
+			if ( $reign && in_array( $key, array( 'about', 'join' ), true ) && ( 'about' === $key ? $image : $join_image ) ) {
+				Theme::hide_title( (int) $id ); // The hero shows it.
+			}
 		}
+	}
+
+	/**
+	 * One line about the site for the footer: the first sentence of the About page's opening.
+	 */
+	public function footer_line(): string {
+		$intro = (string) ( $this->content()['about']['intro'] ?? '' );
+		return (string) preg_replace( '/(?<=[.!?])\s.*$/s', '', $intro );
+	}
+
+	/**
+	 * The published page a demo made for a key (about, join, faq, blog), or 0.
+	 *
+	 * @param string $key Page key.
+	 */
+	public static function demo_page( string $key ): int {
+		$found = get_posts(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'meta_key'    => '_wbcom_demo_page', // phpcs:ignore WordPress.DB.SlowDBQuery -- four pages, read once per build.
+				'meta_value'  => $key, // phpcs:ignore WordPress.DB.SlowDBQuery
+				'fields'      => 'ids',
+				'numberposts' => 1,
+			)
+		);
+		return $found ? (int) $found[0] : 0;
 	}
 
 	/**
@@ -312,7 +361,7 @@ final class Pages extends Provider {
 		if ( 'category' === $row->object_type ) {
 			return self::remove_unused_term( $id, 'category' );
 		}
-		return self::delete_post( $id, 'attachment' === $row->object_type );
+		return self::delete_post( $id, in_array( $row->object_type, array( 'attachment', 'image' ), true ) );
 	}
 
 	/**

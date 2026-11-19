@@ -20,11 +20,55 @@ final class Demos {
 	/** Community plugins that give any demo its members (catalog ids). */
 	private const COMMUNITY = array( 'buddyboss', 'peepso', 'buddynext', 'buddypress' ); // BuddyBoss first: it also answers to BuddyPress's functions.
 
+	/** The film on taking a demo site live: YouTube id and length. */
+	public const GO_LIVE = array( 'WijuvjG6WiE', '2:39' );
+
 	/** Purposes, in the order the gallery shows them. */
 	private const PURPOSES = array( 'community', 'learning', 'events', 'jobs', 'directory', 'services', 'shop' );
 
 	/** BuddyNext with what makes a BuddyNext community: "members" on a site without a community plugin. */
 	private const OUR_MEMBERS = array( 'buddynext', 'mediaverse', 'jetonomy', 'gamification' );
+
+	/**
+	 * What a demo's home page leads with. A demo whose first requirement is a community plugin is about that
+	 * community (BuddyX + BuddyNext, Reign + BuddyPress), so its hero is the community's; any other demo leads
+	 * with the product it is named for, the community around it following.
+	 *
+	 * @param string $demo Gallery demo id; empty for a build started without one.
+	 * @return string 'community' or ''.
+	 */
+	public static function lead( string $demo ): string {
+		$first = (string) ( self::all()[ $demo ]['requires'][0] ?? '' );
+		return in_array( $first, array( 'buddynext', 'buddypress', 'buddyboss', 'peepso' ), true ) ? 'community' : '';
+	}
+
+	/**
+	 * Whether a build of these products is that gallery demo: only then does it carry the demo's name, niche and
+	 * hero. It must build the demo's main product (its community plugin for a community demo, else the first product
+	 * beyond the community set and pages); the owner may add or drop
+	 * others on the Products step. A build from another starting point is not the demo, even when the page was
+	 * opened on the demo's link.
+	 *
+	 * @param string   $demo     Gallery demo id.
+	 * @param string[] $products Provider ids being built.
+	 */
+	public static function builds( string $demo, array $products ): bool {
+		$main = self::main( $demo );
+		return '' !== $main && in_array( $main, $products, true );
+	}
+
+	/**
+	 * The product a demo is about (provider id): its community plugin for a community demo, else its first product
+	 * beyond the community set and pages, which come with most demos. Empty for an unknown demo.
+	 *
+	 * @param string $demo Gallery demo id.
+	 */
+	public static function main( string $demo ): string {
+		$d   = self::all()[ $demo ] ?? null;
+		$all = is_array( $d ) ? self::products( self::expand( (array) $d['requires'] ) ) : array();
+		$own = array_values( array_diff( $all, self::COMMUNITY, self::OUR_MEMBERS, array( 'pages' ) ) );
+		return (string) ( 'community' === self::lead( $demo ) ? ( $all[0] ?? '' ) : ( $own[0] ?? ( $all[0] ?? '' ) ) );
+	}
 
 	/**
 	 * Every demo, as content/demos.php defines it.
@@ -41,19 +85,66 @@ final class Demos {
 	}
 
 	/**
+	 * The gallery for a theme's own setup screen (see wbcom_demo_list()): the featured cards first, as the gallery shows
+	 * them, each with a link that opens the wizard on it.
+	 *
+	 * @return array{demos:array<int,array<string,mixed>>,go_live:array{id:string,length:string}}
+	 */
+	public static function listing(): array {
+		$film  = static fn( array $f ): array => $f ? array(
+			'id'     => (string) $f[0],
+			'length' => (string) $f[1],
+		) : array();
+		$cards = self::overview();
+		usort( $cards, static fn( array $a, array $b ): int => (int) $b['featured'] <=> (int) $a['featured'] );
+		$demos = array();
+		foreach ( $cards as $c ) {
+			$demos[] = array(
+				'id'       => $c['id'],
+				'name'     => $c['name'],
+				'desc'     => $c['desc'],
+				'group'    => $c['group'],
+				'purpose'  => $c['purpose'],
+				'featured' => $c['featured'],
+				'state'    => $c['state'],
+				'image'    => $c['image'],
+				'preview'  => $c['preview'],
+				'film'     => $film( $c['film'] ),
+				'needs'    => $c['needs'],
+				'optional' => $c['optional'],
+				'url'      => add_query_arg( 'demo', rawurlencode( $c['id'] ), admin_url( 'themes.php?page=wbcom-demo' ) ),
+			);
+		}
+		return array(
+			'demos'   => $demos,
+			'go_live' => array(
+				'id'     => self::GO_LIVE[0],
+				'length' => self::GO_LIVE[1],
+			),
+		);
+	}
+
+	/**
 	 * The demos for the active theme, with each requirement's state.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
 	public static function overview(): array {
 		$family = Theme::theme_family();
+		$buddyx = Installer::offer_buddyx();
 		$out    = array();
 		foreach ( self::all() as $id => $demo ) {
-			if ( '*' !== ( $demo['theme'] ?? '' ) && ( $demo['theme'] ?? '' ) !== $family ) {
+			// Without BuddyX Pro or Reign, the BuddyX demos are offered too: the free theme installs with them.
+			$theme = 'BuddyX' === ( $demo['theme'] ?? '' ) && 'BuddyX' !== $family && $buddyx;
+			if ( '*' !== ( $demo['theme'] ?? '' ) && ( $demo['theme'] ?? '' ) !== $family && ! $theme ) {
 				continue;
 			}
 			$demo['requires'] = self::expand( (array) $demo['requires'] );
 			$rows             = array();
+			if ( $theme ) {
+				$rows[]          = array_merge( self::plugin_row( 'buddyx' ), array( 'kind' => 'theme' ) );
+				$demo['purpose'] = ''; // A demo that switches the theme is never put on top of the gallery.
+			}
 			if ( ! empty( $demo['addon'] ) ) {
 				$rows[] = self::addon_row( (array) $demo['addon'], true );
 			}
@@ -63,6 +154,10 @@ final class Demos {
 			foreach ( (array) ( $demo['optional'] ?? array() ) as $addon ) {
 				$rows[] = self::addon_row( (array) $addon, false );
 			}
+			foreach ( $rows as &$row ) {
+				$row['how'] = 'active' === $row['state'] ? '' : self::need( $row )['action']; // The card says the same as needs.
+			}
+			unset( $row );
 			$conflict = self::conflict( (array) $demo['requires'] );
 			$needed   = array_filter( $rows, static fn( array $r ): bool => $r['required'] && 'active' !== $r['state'] );
 			$out[]    = array(
@@ -79,10 +174,22 @@ final class Demos {
 				// uploads something first (a paid add-on or plugin).
 				'state'    => $conflict ? 'conflict' : ( ! $needed ? 'ready' : ( array_filter( $needed, static fn( array $r ): bool => ! $r['can'] ) ? 'blocked' : 'fixable' ) ),
 				'fix'      => array_values( array_map( static fn( array $r ): string => (string) $r['id'], array_filter( $needed, static fn( array $r ): bool => $r['can'] ) ) ),
+				// What is still missing and who does it: the installer (install), the owner (upload a paid plugin or
+				// add-on from their account), or an administrator (this account or host cannot install plugins).
+				'needs'    => array_values( array_map( array( self::class, 'need' ), $needed ) ),
+				'optional' => array_values(
+					array_map(
+						array( self::class, 'need' ),
+						array_filter( $rows, static fn( array $r ): bool => ! $r['required'] && 'active' !== $r['state'] )
+					)
+				),
 				'purpose'  => (string) ( $demo['purpose'] ?? '' ),
+				'lead'     => self::lead( (string) $id ), // 'community' when the BuddyNext logo and community hero go with it.
 				'ours'     => 'ours' === ( $demo['group'] ?? '' ),
 				'yours'    => self::triggered( $demo ),
 				'featured' => false,
+				// The setup film recorded on this theme: YouTube id and length, or none.
+				'film'     => array_values( (array) ( $demo['film'][ $family ] ?? $demo['film']['*'] ?? array() ) ),
 			);
 		}
 		return self::feature( $out );
@@ -223,6 +330,24 @@ final class Demos {
 			'paid'     => $s['paid'],
 			'url'      => $s['url'],
 			'required' => true,
+		);
+	}
+
+	/**
+	 * One missing item, as a card, a theme or WP-CLI tells the owner about it.
+	 *
+	 * @param array<string,mixed> $row Requirement row.
+	 * @return array{label:string,kind:string,action:string,url:string}
+	 */
+	private static function need( array $row ): array {
+		// Upload only when the owner can: a paid item not on the site yet, on a host and account that allow installing.
+		$upload = ! empty( $row['paid'] ) && 'not_installed' === $row['state'] && wp_is_file_mod_allowed( 'wbcom_demo_install' ) && current_user_can( 'install_plugins' );
+		$action = $row['can'] ? 'install' : ( $upload ? 'upload' : 'ask' );
+		return array(
+			'label'  => (string) $row['label'],
+			'kind'   => (string) ( $row['kind'] ?? 'plugin' ), // plugin, addon (a Reign add-on, from the Wbcom account) or theme.
+			'action' => $action,
+			'url'    => 'upload' === $action ? (string) $row['url'] : '',
 		);
 	}
 

@@ -118,22 +118,49 @@ final class SellServices extends Provider {
 			'service'    => array( count( $this->content()['services'] ), 'sample', __( 'services', 'wbcom-demo-installer' ) ),
 			'order'      => array( $this->order_count(), 'sample', __( 'orders', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $this->content()['services'] ), 'sample', __( 'service images', 'wbcom-demo-installer' ) ),
+			'review'     => array( $this->order_count( true ), 'sample', __( 'reviews', 'wbcom-demo-installer' ) ),
 		);
 	}
 
 	/**
-	 * Orders orders() places: one or two per service from the buyers, never by the service's own seller.
+	 * Services whose seller gets enough completed, reviewed orders to reach Sell Services' Rising level
+	 * (5 completed orders, 3 reviews, 4.0 or better): the first and the fourth, so the marketplace shows
+	 * New and Rising sellers side by side instead of every card reading "New vendor".
 	 */
-	private function order_count(): int {
+	private const RISING = array( 0, 3 );
+
+	/**
+	 * The orders orders() places, in order: [ service position, buyer roster index, reviewed ]. One or two per
+	 * service from the buyers (five for a Rising seller), never by the service's own seller. plan() counts the same list.
+	 *
+	 * @return array<int,array{0:int,1:int,2:bool}>
+	 */
+	private function order_plan(): array {
 		$buyers = People::indexes( 'buyer' );
-		$n      = 0;
+		$total  = count( $buyers );
+		$out    = array();
 		foreach ( array_values( $this->content()['services'] ) as $k => $s ) {
-			for ( $o = 0; $o < 1 + $k % 2; $o++ ) {
-				$buyer = $buyers[ ( $k + $o ) % max( 1, count( $buyers ) ) ] ?? null;
-				$n    += ( null === $buyer || $buyer === $s[0] ) ? 0 : 1;
+			$want = in_array( $k, self::RISING, true ) ? 5 : 1 + $k % 2;
+			$made = 0;
+			for ( $o = 0; $o < $total && $made < $want; $o++ ) {
+				$buyer = $buyers[ ( $k + $o ) % $total ];
+				if ( $buyer === $s[0] ) {
+					continue;
+				}
+				$out[] = array( $k, $buyer, $made < ( in_array( $k, self::RISING, true ) ? 3 : 1 ) );
+				++$made;
 			}
 		}
-		return $n;
+		return $out;
+	}
+
+	/**
+	 * How many orders (or reviewed orders) orders() places.
+	 *
+	 * @param bool $reviewed Count only the reviewed ones.
+	 */
+	private function order_count( bool $reviewed = false ): int {
+		return count( array_filter( $this->order_plan(), static fn( array $o ): bool => ! $reviewed || $o[2] ) );
 	}
 
 	/**
@@ -189,7 +216,13 @@ final class SellServices extends Provider {
 			list( $who, $title, $cat, $base, $desc, $image ) = $s;
 			$vendor = $ctx->person( $who );
 			if ( ! isset( $done[ $vendor ] ) ) {
+				// "Member since" on the seller card reads the profile's created_at: the sample person's join date, not today.
+				$since = (string) get_userdata( $vendor )->user_registered;
+				$join  = static fn( $data ) => array( 'created_at' => $since ) + (array) $data;
+				add_filter( 'wpss_pre_vendor_register', $join );
 				$vendors->register( $vendor, array( 'status' => 'active' ) );
+				remove_filter( 'wpss_pre_vendor_register', $join );
+				update_user_meta( $vendor, '_wpss_vendor_since', $since );
 				$p = $ctx->profile( $vendor );
 				if ( method_exists( $vendors, 'update_profile' ) ) {
 					$vendors->update_profile(
@@ -273,59 +306,116 @@ final class SellServices extends Provider {
 		if ( ! class_exists( '\WPSellServices\Integrations\Standalone\StandaloneOrderProvider' ) ) {
 			return;
 		}
-		$buyers   = $ctx->people( 'buyer' );
 		$provider = new \WPSellServices\Integrations\Standalone\StandaloneOrderProvider();
 		$orders   = new \WPSellServices\Services\OrderService();
 		$reviews  = new \WPSellServices\Services\ReviewService();
+		$repo     = class_exists( '\WPSellServices\Database\Repositories\OrderRepository' ) ? new \WPSellServices\Database\Repositories\OrderRepository() : null;
 		$texts    = array( 'Clear communication and delivered early. Would hire again.', 'Exactly what we needed, thank you!', 'Great quality and very patient with my changes.' );
+		$path     = array( 'pending_requirements', 'in_progress', 'pending_approval', 'completed' );
 		$was      = get_current_user_id();
-		foreach ( Ledger::ids( $this->id(), 'service' ) as $k => $service_id ) {
-			for ( $o = 0; $o < 1 + $k % 2; $o++ ) {
-				$buyer = $buyers[ ( $k + $o ) % max( 1, count( $buyers ) ) ] ?? 0;
-				if ( ! $buyer || (int) get_post_field( 'post_author', $service_id ) === $buyer ) {
-					continue;
-				}
-				wp_set_current_user( $buyer );
-				$order = $provider->create_order(
-					array(
-						'service_id'     => $service_id,
-						'package_id'     => 0,
-						'customer_id'    => $buyer,
-						'payment_method' => 'manual',
-						'subtotal'       => (float) get_post_meta( $service_id, '_wpss_starting_price', true ),
-					)
-				);
-				if ( ! $order ) {
-					$ctx->warn( $this->id(), 'order', 'not created' );
-					continue;
-				}
-				$order_id = (int) $order->id;
-				$ctx->record( $this->id(), 'order', $order_id, 'sample', array( 'buyer' => $buyer ) );
-				// The natural path an order takes: paid, brief received, worked on, delivered, accepted.
-				wp_set_current_user( $was );
-				foreach ( array( 'pending_requirements', 'in_progress', 'pending_approval', 'completed' ) as $status ) {
-					if ( ! $orders->update_status( $order_id, $status ) ) {
-						$ctx->warn( $this->id(), 'order status ' . $status, 'refused' );
-						break;
-					}
-				}
-				wp_set_current_user( $buyer );
-				if ( 0 === $o ) {
-					$review = $reviews->create(
+		// Each order's placed, started and completed times, so sellers do not all read "Last delivery: seconds ago".
+		// Sell Services 1.9.3+ stamps every order column through wpss_order_timestamp; older versions keep "now".
+		/**
+		 * Order column => UTC time for the order being made.
+		 *
+		 * @var array<string,string> $at
+		 */
+		$at    = array();
+		$stamp = static function ( $now, $field ) use ( &$at ) {
+			return $at[ $field ] ?? $now;
+		};
+		add_filter( 'wpss_order_timestamp', $stamp, 10, 2 );
+		// Those completions are days to weeks old, past the review window; the sample buyers review them anyway.
+		add_filter( 'wpss_review_window_days', '__return_zero' );
+		$services = Ledger::ids( $this->id(), 'service' );
+		$sellers  = array();
+		$n        = array();
+		foreach ( $this->order_plan() as list( $k, $slot, $reviewed ) ) {
+			$service_id = (int) ( $services[ $k ] ?? 0 );
+			$buyer      = $ctx->person( $slot ); // The buyer's roster slot; a taken demo login falls to the next person.
+			$seller     = (int) get_post_field( 'post_author', $service_id );
+			if ( ! $service_id || ! $buyer || $seller === $buyer ) {
+				continue;
+			}
+			$o       = $n[ $k ] ?? 0;
+			$n[ $k ] = $o + 1;
+			// Placed after the service went live, then started and completed a little later, never in the future.
+			$seq                = $k * 6 + $o;
+			$at['created_at']   = $ctx->after( (string) get_post_field( 'post_date_gmt', $service_id ), $seq );
+			$at['started_at']   = $ctx->after( $at['created_at'], $seq + 1 );
+			$at['completed_at'] = $ctx->after( $ctx->after( $at['started_at'], $seq + 2 ), $seq + 3 );
+			wp_set_current_user( $buyer );
+			$order = $provider->create_order(
+				array(
+					'service_id'     => $service_id,
+					'package_id'     => 0,
+					'customer_id'    => $buyer,
+					'payment_method' => 'manual',
+					'subtotal'       => (float) get_post_meta( $service_id, '_wpss_starting_price', true ),
+				)
+			);
+			if ( ! $order ) {
+				$ctx->warn( $this->id(), 'order', 'not created' );
+				continue;
+			}
+			$order_id = (int) $order->id;
+			$ctx->record( $this->id(), 'order', $order_id, 'sample', array( 'buyer' => $buyer ) );
+			wp_set_current_user( $was );
+			// Paid through Sell Services' own payment step, so the order earns: without it every row read "No earnings"
+			// beside the seller's total. It moves the order on to the brief or the work; the walk continues from there.
+			if ( $provider->mark_as_paid( $order_id, 'demo-' . $order_id, 'manual' ) ) {
+				if ( $repo ) {
+					// The payment step stamps "now"; the sample order was paid when it was placed, weeks ago.
+					$repo->update(
 						$order_id,
-						$buyer,
 						array(
-							'rating'  => 5 - $k % 2,
-							'content' => $texts[ $k % count( $texts ) ],
+							'paid_at'    => $at['created_at'],
+							'started_at' => $at['started_at'],
 						)
 					);
-					if ( ! $review ) {
-						$ctx->warn( $this->id(), 'review', 'not created' );
-					}
+				}
+				$now  = (string) ( wpss_get_order( $order_id )->status ?? '' );
+				$from = array_search( $now, $path, true );
+				$walk = false === $from ? $path : array_slice( $path, (int) $from + 1 );
+			} else {
+				$ctx->warn( $this->id(), 'order payment', 'refused' );
+				$walk = $path;
+			}
+			// The natural path an order takes: brief received, worked on, delivered, accepted.
+			foreach ( $walk as $status ) {
+				if ( ! $orders->update_status( $order_id, $status ) ) {
+					$ctx->warn( $this->id(), 'order status ' . $status, 'refused' );
+					break;
+				}
+			}
+			$sellers[ $seller ] = true;
+			wp_set_current_user( $buyer );
+			if ( $reviewed ) {
+				$review = $reviews->create(
+					$order_id,
+					$buyer,
+					array(
+						'rating'  => 5 - ( $k + $o ) % 2,
+						'content' => $texts[ ( $k + $o ) % count( $texts ) ],
+					)
+				);
+				if ( ! $review ) {
+					$ctx->warn( $this->id(), 'review', 'not created' );
+				} else {
+					$ctx->record( $this->id(), 'review', (int) $review->id, 'sample', array( 'order' => $order_id ) );
 				}
 			}
 		}
+		remove_filter( 'wpss_order_timestamp', $stamp, 10 );
+		remove_filter( 'wpss_review_window_days', '__return_zero' );
 		wp_set_current_user( $was );
+		// Levels follow the orders and reviews just made (Sell Services recalculates on completion, before the reviews).
+		if ( class_exists( '\WPSellServices\Services\SellerLevelService' ) ) {
+			$levels = new \WPSellServices\Services\SellerLevelService();
+			foreach ( array_keys( $sellers ) as $seller ) {
+				$levels->recalculate( (int) $seller );
+			}
+		}
 	}
 
 	/**
@@ -343,7 +433,8 @@ final class SellServices extends Provider {
 			case 'service':
 				return self::delete_post( $id );
 			case 'order':
-				// Orders are removed with the buyer (Sell Services cascades orders, reviews and wallet rows on user delete).
+			case 'review':
+				// Orders and their reviews are removed with the buyer (Sell Services cascades orders, reviews and wallet rows on user delete).
 				return true;
 		}
 		return true;

@@ -1,6 +1,7 @@
 <?php
 /**
- * WooCommerce sample content: a small community store. Photos are CC0, in media/products (media/CREDITS.json).
+ * WooCommerce sample content: a small community store. Photos are CC0, in media/products (media/CREDITS.json),
+ * cropped square so product cards fill without letterboxing.
  *
  * Products: name, photo slug (media/products/<slug>.jpg), category key, regular price, sale price ('' for none),
  * stock (null: not tracked), short description, description, featured, virtual.
@@ -17,6 +18,7 @@ return array(
 		'accessories' => 'Accessories',
 		'home'        => 'Home',
 		'learning'    => 'Books & Learning',
+		'digital'     => 'Digital downloads',
 	),
 	'products'   => array(
 		array( 'Everyday Grey Hoodie', 'hoodie', 'apparel', '48', '39', 24, 'Heavyweight cotton hoodie with a lined hood and a front pocket.', 'Our best seller for cold mornings and long meetups. Brushed fleece inside, a hood that keeps its shape, and ribbed cuffs that do not stretch out. Machine washable.', true, false ),
@@ -31,7 +33,7 @@ return array(
 		array( 'Wooden Breakfast Tray', 'serving-tray', 'home', '38', '32', 14, 'A beech serving tray with carved handles.', 'Breakfast in bed, a coffee table organiser or a serving board for friends. Oiled beech that is easy to wipe clean.', false, false ),
 		array( 'The Community Field Guide', 'field-guide', 'learning', '19', '', 50, 'A paperback guide to starting and growing a local community.', 'Practical chapters on first meetups, welcoming newcomers, running events and keeping members coming back, with stories from organisers around the world.', true, false ),
 		array( 'Dotted Hardcover Notebook', 'notebook', 'learning', '14', '', 70, 'A5 notebook with dotted pages and a lay-flat binding.', '192 pages of thick, ink-friendly paper, a ribbon marker and an elastic closure. For sketches, plans and meeting notes.', false, false ),
-		array( 'Remote Work Masterclass', 'online-course', 'learning', '59', '45', null, 'A self-paced online class on working well from anywhere.', 'Six short video lessons and worksheets on focus, async communication and healthy routines. Instant access after purchase, watch at your own pace.', false, true ),
+		array( 'Remote Work Masterclass', 'online-course', 'digital', '59', '45', null, 'A self-paced online class on working well from anywhere.', 'Six short video lessons and worksheets on focus, async communication and healthy routines. Instant access after purchase, watch at your own pace.', false, true ),
 	),
 	'home'       => array(
 		'title'   => 'Good things for everyday life, made with care',

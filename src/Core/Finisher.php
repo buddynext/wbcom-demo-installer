@@ -248,7 +248,19 @@ final class Finisher {
 		if ( ! $keys || ! self::count_keys( $keys ) ) {
 			return new \WP_Error( 'wbcom_demo_nothing_waiting', __( 'Nothing is waiting to be removed.', 'wbcom-demo-installer' ), array( 'status' => 409 ) );
 		}
-		return self::start( 'custom', array_fill_keys( $keys, true ) );
+		if ( 'all' !== ( $report['mode'] ?? '' ) ) {
+			return self::start( 'custom', array_fill_keys( $keys, true ) );
+		}
+		// A Remove everything that stopped part way stays one: everything left goes, then the product settings and
+		// fresh_site come back in complete(). The settings the owner changed, reported by the first run, stay reported.
+		$out = self::start( 'all' );
+		if ( ! is_wp_error( $out ) ) {
+			$state                  = new State();
+			$finish                 = (array) $state->get( 'finish' );
+			$finish['kept_options'] = array_values( array_unique( array_merge( (array) ( $report['kept_options'] ?? array() ), (array) ( $finish['kept_options'] ?? array() ) ) ) );
+			$state->set( 'finish', $finish )->save();
+		}
+		return $out;
 	}
 
 	/**
@@ -292,6 +304,27 @@ final class Finisher {
 	}
 
 	/**
+	 * Take away the User Switching plugin the guide added (deactivate; delete when the demo installed it).
+	 *
+	 * @param State $state State.
+	 */
+	private static function remove_switching( State $state ): void {
+		$how = (string) $state->get( 'switching' );
+		if ( '' === $how ) {
+			return; // The demo did not add it: the owner's own copy stays as it is.
+		}
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$file = 'user-switching/user-switching.php';
+		deactivate_plugins( $file, true );
+		// Deleting needs direct file access: asking for FTP details is not possible in this request. Then it stays, off.
+		if ( 'installed' === $how && 'direct' === get_filesystem_method( array(), WP_PLUGIN_DIR ) ) {
+			delete_plugins( array( $file ) );
+		}
+		$state->set( 'switching', '' );
+	}
+
+	/**
 	 * WordPress turns `fresh_site` off when the demo publishes a page. After "Remove everything",
 	 * turn it back on, unless the owner has published something of their own since the build.
 	 *
@@ -332,8 +365,11 @@ final class Finisher {
 			// Product settings go back only once nothing chosen is left: a retry may still need them on.
 			if ( ! Ledger::next_batch( $f['remove'], array(), 1 ) ) {
 				$kept_options = array_merge( $kept_options, Snapshot::restore( true ) );
+				self::remove_switching( $state );
 			}
 			self::restore_fresh_site( $state ); // Last: restoring a setting can turn it off again.
+		} elseif ( $f['remove'] ) {
+			\WbcomDemo\Providers\Theme::drop_home_numbers(); // The kept home page no longer claims the sample's 20 members.
 		}
 		// Kept items stay in the ledger (owner, 10 November 2026): they can still be removed later, until the
 		// owner says they are theirs (adopt()).
@@ -390,6 +426,10 @@ final class Finisher {
 				)
 			) )->get_total(),
 			'finished_at'  => current_time( 'mysql', true ),
+			// What was finished, for wbcom_demo_status() once the state resets to idle.
+			'demo_id'      => (string) $state->get( 'demo_id' ),
+			'demo'         => (string) $state->get( 'demo' ),
+			'built_at'     => (string) $state->get( 'built_at' ),
 		);
 		$state->set( 'report', $report );
 

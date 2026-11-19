@@ -118,10 +118,20 @@ final class Engine {
 		$posts          = (int) wp_count_posts( 'post' )->publish + (int) wp_count_posts( 'page' )->publish;
 		$theme_provider = Registry::get( 'theme' );
 		$links          = array();
+		$manage         = array();
 		$state          = new State();
 		foreach ( Registry::all() as $id => $p ) {
 			if ( ! in_array( $id, (array) $state->get( 'include' ), true ) || ! $p->available() ) {
 				continue;
+			}
+			// Where the owner manages it: the first owner step of its guide (its own admin screen).
+			$owner = (array) ( $p->guide()['owner'] ?? array() );
+			$first = reset( $owner );
+			if ( is_array( $first ) && ! empty( $first['url'] ) ) {
+				$manage[] = array(
+					'title' => $p->label(),
+					'url'   => (string) $first['url'],
+				);
 			}
 			foreach ( $p->menu_items() as $item ) {
 				$url = ! empty( $item['page_id'] ) ? get_permalink( (int) $item['page_id'] ) : ( $item['url'] ?? '' );
@@ -135,6 +145,7 @@ final class Engine {
 		}
 		return array(
 			'links'       => $links,
+			'manage'      => $manage,
 			'theme'       => array(
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
@@ -248,19 +259,30 @@ final class Engine {
 		if ( ! $products ) {
 			return new \WP_Error( 'wbcom_demo_nothing', __( 'Choose at least one product.', 'wbcom-demo-installer' ), array( 'status' => 400 ) );
 		}
+		$demo = Demos::builds( $demo, $products ) ? $demo : '';
 		$state->set( 'status', State::BUILDING )
 			->set( 'build_id', wp_generate_uuid4() )
 			->set( 'recipe', sanitize_key( $recipe ) )
 			->set( 'include', $products )
 			->set( 'demo', (string) ( Demos::all()[ $demo ]['name'] ?? '' ) ) // The gallery demo it was built from, for the ready screen.
+			->set( 'demo_id', isset( Demos::all()[ $demo ] ) ? $demo : '' )
+			->set( 'niche', sanitize_key( (string) ( Demos::all()[ $demo ]['niche'] ?? '' ) ) ) // Whose sample content (content/niches).
+			->set( 'lead', Demos::lead( $demo ) ) // Whose hero opens the home page.
 			->set( 'look', 'keep' === $look ? 'keep' : 'demo' )
 			->set( 'errors', array() )
 			->set( 'warnings', array() )
+			->set( 'reused', array() )
 			->set( 'fresh_site', (string) get_option( 'fresh_site', '0' ) )
 			->set( 'started_at', current_time( 'mysql', true ) )
 			->set( 'failed', array() )
 			->set( 'people', array() )
-			->set( 'refs', array() );
+			->set( 'refs', array() )
+			->save();
+		// Providers read their content (the niche's, if the demo has one) from the saved state: drop what they read
+		// before, or a WP-CLI build would keep the base set for the whole run.
+		foreach ( Registry::all() as $p ) {
+			$p->forget_content();
+		}
 
 		// The owner's own name and tagline, through the snapshot so Remove everything puts the old ones back.
 		$name    = trim( sanitize_text_field( $name ) );
@@ -302,7 +324,9 @@ final class Engine {
 		}
 		// Product pages without a sidebar, also when the owner keeps their own home page and menu.
 		$queue[] = array( 'theme', 'pages' );
-		$state->set( 'queue', $queue )->set( 'total', count( $queue ) )->set( 'done', 0 )->save();
+		$state->set( 'queue', $queue )->set( 'total', count( $queue ) )->set( 'done', 0 )
+			->set( 'order', array_values( array_unique( array_column( $queue, 0 ) ) ) ) // For the build screen's checklist.
+			->save();
 		return self::status();
 	}
 
@@ -470,6 +494,8 @@ final class Engine {
 							$state->set( 'reload', true );
 						}
 					} else {
+						// Each step starts with no date or parent, whatever an earlier step in this process left set.
+						Clock::reset();
 						$provider->run( $step, $ctx );
 					}
 				} catch ( \Throwable $e ) {
@@ -477,6 +503,9 @@ final class Engine {
 					$errors   = (array) $state->get( 'errors' );
 					$errors[] = sprintf( '%s: %s', $provider->label(), $e->getMessage() );
 					$state->set( 'failed', $failed )->set( 'errors', $errors );
+				} finally {
+					// WP-CLI runs every step in one process: a provider's Clock must not date the next provider's items.
+					Clock::reset();
 				}
 			}
 			$state->set( 'queue', $queue )->set( 'done', (int) $state->get( 'done' ) + 1 )->set( 'trying', array() );
@@ -541,8 +570,18 @@ final class Engine {
 			'total'            => $total,
 			'current'          => $label,
 			'current_provider' => $next[0] ?? '',
+			// The build screen ticks off each product: in build order, with what is still in the queue.
+			'order'            => array_map(
+				static fn( string $id ): array => array(
+					'id'    => $id,
+					'label' => Registry::get( $id ) ? Registry::get( $id )->label() : $id,
+				),
+				array_values( array_map( 'strval', (array) $state->get( 'order' ) ) )
+			),
+			'remaining'        => array_values( array_unique( array_map( 'strval', array_column( $queue, 0 ) ) ) ),
 			'errors'           => $state->get( 'errors' ),
 			'warnings'         => (array) $state->get( 'warnings' ),
+			'reused'           => (array) $state->get( 'reused' ),
 			'built_at'         => $state->get( 'built_at' ),
 			'ledger'           => $counts,
 			'report'           => $state->get( 'report' ),

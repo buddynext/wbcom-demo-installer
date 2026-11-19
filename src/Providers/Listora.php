@@ -148,7 +148,24 @@ final class Listora extends Provider {
 			),
 			'listing'    => array( count( $this->content()['listings'] ), 'sample', __( 'listings', 'wbcom-demo-installer' ) ),
 			'attachment' => array( count( $this->content()['listings'] ), 'sample', __( 'listing photos', 'wbcom-demo-installer' ) ),
+			'review'     => array( $this->review_count(), 'sample', __( 'reviews', 'wbcom-demo-installer' ) ),
 		);
+	}
+
+	/**
+	 * Reviews reviews() writes: two to four per listing, never by the listing's own owner.
+	 */
+	private function review_count(): int {
+		$reviewers = array_values( array_unique( array_merge( People::indexes( 'reviewer' ), People::indexes( 'buyer' ) ) ) );
+		$roster    = max( 1, count( People::roster() ) );
+		$n         = 0;
+		foreach ( array_values( $this->content()['listings'] ) as $k => $l ) {
+			for ( $r = 0; $r < 2 + $k % 3; $r++ ) {
+				$who = $reviewers[ ( $k * 2 + $r ) % max( 1, count( $reviewers ) ) ] ?? null;
+				$n  += ( null === $who || $who === (int) $l[0] % $roster ) ? 0 : 1;
+			}
+		}
+		return $n;
 	}
 
 	/**
@@ -184,7 +201,13 @@ final class Listora extends Provider {
 		foreach ( $this->content()['listings'] as $i => $l ) {
 			list( $who, $title, $cat, $street, $city, $country, $lat, $lng, $price, $photo, $desc, $features ) = $l;
 			$owner = $ctx->person( $who );
-			$id    = wp_insert_post(
+			// A step the engine retries after it died part way: a listing it already published is done; one still
+			// a draft is finished below instead of being made a second time.
+			$id = Ledger::find( $this->id(), 'listing', (string) $i );
+			if ( $id && 'publish' === get_post_status( $id ) ) {
+				continue;
+			}
+			$id = $id ? $id : wp_insert_post(
 				array(
 					'post_type'    => 'listora_listing',
 					'post_status'  => 'draft',
@@ -198,7 +221,7 @@ final class Listora extends Provider {
 				$ctx->warn( $this->id(), 'listing ' . $title, $id );
 				continue;
 			}
-			$ctx->record( $this->id(), 'listing', (int) $id );
+			$ctx->record( $this->id(), 'listing', (int) $id, 'sample', array( 'key' => (string) $i ) );
 			wp_set_object_terms( $id, $type, 'listora_listing_type' );
 			wp_set_object_terms( $id, array( $this->ensure_term( $cat, 'listora_listing_cat', $ctx ) ), 'listora_listing_cat' );
 			$feature_ids = array();
@@ -236,7 +259,7 @@ final class Listora extends Provider {
 			) as $key => $value ) {
 				\WBListora\Core\Meta_Handler::set_value( (int) $id, $key, $value );
 			}
-			$thumb = $ctx->attachment( 'photos/' . $photo, $owner, $this->id() );
+			$thumb = has_post_thumbnail( (int) $id ) ? 0 : $ctx->attachment( 'photos/' . $photo, $owner, $this->id() );
 			if ( $thumb ) {
 				set_post_thumbnail( (int) $id, $thumb );
 			}
@@ -288,6 +311,9 @@ final class Listora extends Provider {
 					continue;
 				}
 				$data = (array) $res->get_data();
+				if ( ! empty( $data['id'] ) ) {
+					$ctx->record( $this->id(), 'review', (int) $data['id'], 'sample', array( 'listing' => $listing_id ) );
+				}
 				if ( 'pending' === ( $data['status'] ?? '' ) && ! empty( $data['id'] ) ) {
 					// Listora holds new reviews for moderation by default, which is right for real reviews. A demo
 					// listing with only pending reviews reads "No reviews yet", so the admin approves our own sample
@@ -318,6 +344,13 @@ final class Listora extends Provider {
 		}
 		if ( 'attachment' === $row->object_type ) {
 			return self::delete_post( $id, true );
+		}
+		if ( 'review' === $row->object_type ) {
+			// Listora's own delete route, so the listing's rating and review count are recounted. Removed before
+			// its listing (newest first); a review already gone with its listing answers 404.
+			$req = new \WP_REST_Request( 'DELETE', '/listora/v1/reviews/' . $id );
+			$res = rest_do_request( $req );
+			return ! $res->is_error() || 404 === $res->get_status();
 		}
 		return self::delete_post( $id );
 	}

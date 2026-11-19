@@ -83,12 +83,12 @@ final class BuddyNext extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function summary(): string {
-		$c = $this->content();
+		$plan = $this->plan(); // The same numbers as the Will create row, so the two never disagree.
 		return sprintf(
 			/* translators: 1: spaces, 2: posts */
 			__( 'Profiles for everyone, %1$d spaces, %2$d posts with comments, replies, mentions and reactions, follows, polls and direct messages', 'wbcom-demo-installer' ),
-			count( $c['spaces'] ) + count( $c['subspaces'] ),
-			count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + count( $this->polls() )
+			$plan['space'][0],
+			$plan['post'][0]
 		);
 	}
 
@@ -121,7 +121,7 @@ final class BuddyNext extends Provider {
 			'space'          => array( count( $c['spaces'] ) + count( $c['subspaces'] ), 'setup', $c['subspaces'] ? __( 'spaces and sub-spaces', 'wbcom-demo-installer' ) : __( 'spaces', 'wbcom-demo-installer' ) ),
 			// Own posts, links, photo posts, the polls and three shares; other products add their own feed posts.
 			'post'           => array( count( $c['posts'] ) + count( $c['links'] ) + count( $c['photos'] ) + count( $this->polls() ) + 3, 'sample', __( 'feed posts, plus posts other products share to the feed', 'wbcom-demo-installer' ) ),
-			'media'          => array( count( $c['photos'] ) + 6, 'sample', __( 'photos', 'wbcom-demo-installer' ) ),
+			'media'          => array( count( $c['photos'] ) + 6, 'sample', __( 'feed and album photos', 'wbcom-demo-installer' ) ), // Its own label: WPMediaVerse's photos are counted apart.
 			'album'          => array( count( $c['albums'] ), 'sample', __( 'space albums', 'wbcom-demo-installer' ) ),
 			'profile_images' => array( 20, 'sample', __( 'profile pictures', 'wbcom-demo-installer' ) ),
 			'hashtag'        => array( count( array_filter( $this->hashtag_slugs() ) ), 'sample', __( 'hashtags', 'wbcom-demo-installer' ) ),

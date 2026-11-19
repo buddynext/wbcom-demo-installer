@@ -124,9 +124,12 @@ final class MediaVerse extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
+		$photos = $this->content()['photos'];
 		return array(
-			'media' => array( count( $this->content()['photos'] ), 'sample', __( 'photos', 'wbcom-demo-installer' ) ),
-			'album' => array( 3, 'sample', __( 'albums', 'wbcom-demo-installer' ) ),
+			'category' => array( count( array_unique( array_column( $photos, 'category' ) ) ), 'setup', __( 'media categories', 'wbcom-demo-installer' ) ),
+			'tag'      => array( count( array_unique( array_merge( ...array_column( $photos, 'tags' ) ) ) ), 'sample', __( 'media tags', 'wbcom-demo-installer' ) ),
+			'media'    => array( count( $photos ), 'sample', __( 'photos', 'wbcom-demo-installer' ) ),
+			'album'    => array( 3, 'sample', __( 'albums', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -136,12 +139,7 @@ final class MediaVerse extends Provider {
 	 * @param Context $ctx See parent.
 	 */
 	public function steps( Context $ctx ): array {
-		$steps = array();
-		for ( $i = 0, $n = count( $this->content()['photos'] ); $i < $n; $i += self::PER_STEP ) {
-			$steps[] = 'photos:' . $i;
-		}
-		$steps[] = 'albums';
-		return $steps;
+		return array_merge( self::batches( 'photos', count( $this->content()['photos'] ), self::PER_STEP ), array( 'albums' ) );
 	}
 
 	/**
@@ -187,8 +185,11 @@ final class MediaVerse extends Provider {
 			if ( ! $tmp ) {
 				continue;
 			}
-			$date = $ctx->date( $i, count( $photos ), 55 );
-			$was  = get_current_user_id();
+			// Terms first, so their ledger rows come before the photo's and are removed after it (newest first).
+			$cat_id  = $this->ensure_term( $p['category'], 'mvs_category', $ctx, '', 'category' );
+			$tag_ids = array_filter( array_map( fn( $tag ) => $this->ensure_term( $tag, 'mvs_tag', $ctx, '', 'tag', 'sample' ), $p['tags'] ) );
+			$date    = $ctx->date( $i, count( $photos ), 55 );
+			$was     = get_current_user_id();
 			wp_set_current_user( $owner );
 			Clock::set( $date );
 			$id = $upload->handle(
@@ -219,8 +220,14 @@ final class MediaVerse extends Provider {
 			}
 			$id = (int) $id;
 			$ctx->record( $this->id(), 'media', $id, 'sample', array( 'owner' => $owner ) );
+			// The same writes as MediaVerse's own upload (MediaController): terms plus the name copies its cards read.
+			wp_set_object_terms( $id, array_values( $tag_ids ), 'mvs_tag' );
+			if ( $cat_id ) {
+				wp_set_object_terms( $id, array( $cat_id ), 'mvs_category' );
+			}
 			if ( $repo && method_exists( $repo, 'set' ) ) {
 				$repo->set( $id, 'tags', wp_json_encode( $p['tags'] ) );
+				$repo->set( $id, 'category', wp_json_encode( array( $p['category'] ) ) );
 			}
 			$by_cat[ $p['category'] ][] = array( $id, $owner );
 			$this->engage( $id, $i, $owner, $people );
@@ -284,11 +291,19 @@ final class MediaVerse extends Provider {
 			'Food'         => array( __( 'Food we loved', 'wbcom-demo-installer' ), __( 'Dishes worth travelling for.', 'wbcom-demo-installer' ) ),
 		);
 		foreach ( (array) $ctx->get( $this->id(), 'by_category', array() ) as $cat => $items ) {
-			if ( empty( $titles[ $cat ] ) || count( $items ) < 2 ) {
+			if ( empty( $titles[ $cat ] ) ) {
 				continue;
 			}
-			$owner = (int) $items[0][1];
-			$was   = get_current_user_id();
+			// MediaVerse files only an owner's own media into their album (AlbumService::add_items), so the album
+			// belongs to the person with most photos of the subject and holds just theirs.
+			$counts = array_count_values( array_map( 'intval', array_column( $items, 1 ) ) );
+			arsort( $counts );
+			$owner = (int) array_key_first( $counts );
+			$items = array_values( array_filter( $items, static fn( $it ) => (int) $it[1] === $owner ) );
+			if ( count( $items ) < 2 ) {
+				continue;
+			}
+			$was = get_current_user_id();
 			wp_set_current_user( $owner );
 			$album = $albums->create(
 				$owner,
@@ -319,6 +334,9 @@ final class MediaVerse extends Provider {
 		$id = (int) $row->object_id;
 		if ( 'album' === $row->object_type ) {
 			return self::delete_post( $id );
+		}
+		if ( 'category' === $row->object_type || 'tag' === $row->object_type ) {
+			return self::remove_unused_term( $id, (string) ( $row->meta['taxonomy'] ?? '' ) );
 		}
 		if ( 'media' === $row->object_type ) {
 			$repo = $this->service( 'media_repository' );

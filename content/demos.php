@@ -7,7 +7,8 @@
  * Each demo: theme family (Providers\Theme::theme_family()), the plugins it needs (catalog ids, see
  * Core\Installer::catalog(); "community" means any community plugin, else BuddyPress), the Reign add-on it presents
  * (addon demos) or the add-ons that improve it (theme demos, optional), the products it builds (provider ids) and
- * its live sandbox. The card image is that sandbox's image on wbcomdesigns.com/demos, or media/demos/<id>.webp for a demo with no sandbox of its own.
+ * its live sandbox, its niche (content/niches/<niche>/<provider>.php replaces those keys of the provider's sample
+ * content), and its setup film per theme family ('*': any; YouTube id and length). The card image is that sandbox's image on wbcomdesigns.com/demos, or media/demos/<id>.webp for a demo with no sandbox of its own.
  *
  * Filter: wbcom_demo_demos.
  *
@@ -31,6 +32,7 @@ return array(
 		'desc'     => 'Members, spaces, a feed with photos and video, forums, a roadmap and points.',
 		'requires' => array( 'buddynext', 'mediaverse', 'jetonomy', 'roadmap', 'gamification', 'pages' ),
 		'preview'  => 'https://buddynext.instawp.link/',
+		'film'     => array( 'Reign' => array( 'vxM1m22RxJ8', '3:11' ) ),
 	),
 	'learning'                  => array(
 		'group'    => 'ours',
@@ -40,6 +42,7 @@ return array(
 		'desc'     => 'Courses with lessons, instructors and students making progress, inside a member community.',
 		'requires' => array( 'members', 'learnomy', 'mediashield', 'pages' ),
 		'preview'  => 'https://learnomy.instawp.co/',
+		'film'     => array( 'Reign' => array( 'csWX1FwJ3XY', '3:01' ) ),
 	),
 	'events'                    => array(
 		'group'    => 'ours',
@@ -49,6 +52,7 @@ return array(
 		'desc'     => 'Meetups with tickets, RSVPs and venues, and the members who come.',
 		'requires' => array( 'members', 'eventonomy', 'pages' ),
 		'preview'  => 'https://eventonomy.instawp.co/',
+		'film'     => array( 'Reign' => array( 'IQkm4nDu4IM', '2:50' ) ),
 	),
 	'jobs'                      => array(
 		'group'    => 'ours',
@@ -58,6 +62,7 @@ return array(
 		'desc'     => 'Employers, job listings and candidate profiles, with members around them.',
 		'requires' => array( 'members', 'careerboard', 'pages' ),
 		'preview'  => 'https://wpcareerboard.instawp.co/',
+		'film'     => array( 'Reign' => array( 'I_lc8uBm8Q8', '2:56' ) ),
 	),
 	'directory'                 => array(
 		'group'    => 'ours',
@@ -67,6 +72,7 @@ return array(
 		'desc'     => 'Listings with photos, reviews, maps and favorites, and the members who use them.',
 		'requires' => array( 'members', 'listora', 'pages' ),
 		'preview'  => 'https://wblistora.instawp.co/',
+		'film'     => array( 'Reign' => array( '6vXdtmoZ-uc', '3:03' ) ),
 	),
 	'services'                  => array(
 		'group'    => 'ours',
@@ -76,6 +82,7 @@ return array(
 		'desc'     => 'Freelancers selling services, with orders, messages and reviews.',
 		'requires' => array( 'members', 'sellservices', 'pages' ),
 		'preview'  => 'https://wpsellservices.instawp.co/',
+		'film'     => array( 'Reign' => array( 'WmfIJOV8Tgc', '2:57' ) ),
 	),
 	'shop'                      => array(
 		'group'    => 'ours',
@@ -129,6 +136,7 @@ return array(
 		'desc'     => 'The full Wbcom suite: BuddyNext community, media, forums, courses, events, jobs, a directory and services.',
 		'requires' => array( 'buddynext', 'mediaverse', 'jetonomy', 'learnomy', 'eventonomy', 'careerboard', 'listora', 'sellservices', 'gamification', 'pages' ),
 		'preview'  => 'https://buddynext.instawp.link/',
+		'film'     => array( '*' => array( 'jLANmm3uAGI', '3:10' ) ),
 	),
 	'reign-buddynext-learndash' => array(
 		'group'    => 'theme',
@@ -157,14 +165,6 @@ return array(
 		'optional' => array( array( 'reign-lifterlms-addon', 'Reign LifterLMS Addon' ), array( 'reign-wc-vendor-addon', 'Reign WC Vendors Addon' ) ),
 		'preview'  => 'https://reign-buddynext-lifterlms.instawp.xyz/',
 	),
-	'reign-shop'                => array(
-		'group'    => 'theme',
-		'theme'    => 'Reign',
-		'name'     => 'Reign Shop',
-		'desc'     => 'A WooCommerce store with product photos, sale prices, stock and reviews.',
-		'requires' => array( 'woocommerce', 'pages' ),
-		'preview'  => 'https://reign-shop.instawp.xyz/',
-	),
 	// Theme demos: BuddyX and BuddyX Pro.
 	'buddyx-buddypress'         => array(
 		'purpose'  => 'community',
@@ -184,6 +184,7 @@ return array(
 		'desc'     => 'A BuddyNext community with media, forums, courses, events and jobs.',
 		'requires' => array_merge( $wbcom_demo_bn, array( 'learnomy', 'pages' ) ),
 		'preview'  => 'https://buddynext-buddyx.instawp.co/',
+		'film'     => array( '*' => array( 'Q1MPFOxc388', '3:47' ) ),
 	),
 	'buddyxpro-buddypress'      => array(
 		'purpose'  => 'community',
@@ -214,6 +215,7 @@ return array(
 		'desc'     => 'The full Wbcom suite on BuddyX Pro: community, media, forums, courses, events, jobs, a directory and services.',
 		'requires' => array( 'buddynext', 'mediaverse', 'jetonomy', 'learnomy', 'eventonomy', 'careerboard', 'listora', 'sellservices', 'gamification', 'pages' ),
 		'preview'  => 'https://buddynext-buddyxpro.instawp.co/',
+		'film'     => array( '*' => array( 'W2rs9rpKEYk', '3:12' ) ),
 	),
 	// Add-on demos: one per Reign add-on.
 	'reign-learndash'           => array(
@@ -250,7 +252,7 @@ return array(
 		'desc'     => 'LifterLMS courses with access plans, reviews and students making progress.',
 		'addon'    => array( 'reign-lifterlms-addon', 'Reign LifterLMS Addon' ),
 		'requires' => array( 'lifterlms', 'community', 'pages' ),
-		'preview'  => 'https://reign-wcfm.instawp.xyz/',
+		'preview'  => 'https://reign-buddynext-lifterlms.instawp.xyz/',
 	),
 	'reign-sensei'              => array(
 		'purpose'  => 'learning',
@@ -265,6 +267,7 @@ return array(
 		'preview'  => '',
 	),
 	'reign-dokan'               => array(
+		'niche'    => 'store', // The community talks about what the shops sell (content/niches/store).
 		'purpose'  => 'shop',
 		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
 		'trigger'  => array( 'dokan' ),
@@ -277,6 +280,7 @@ return array(
 		'preview'  => 'https://dmine-base-nice.instawp.xyz/',
 	),
 	'reign-wcfm'                => array(
+		'niche'    => 'store', // The community talks about what the shops sell (content/niches/store).
 		'purpose'  => 'shop',
 		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
 		'trigger'  => array( 'wcfm' ),
@@ -289,6 +293,7 @@ return array(
 		'preview'  => 'https://reign-wcfm.instawp.xyz/',
 	),
 	'reign-wc-vendors'          => array(
+		'niche'    => 'store', // The community talks about what the shops sell (content/niches/store).
 		'purpose'  => 'shop',
 		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
 		'trigger'  => array( 'wcvendors' ),

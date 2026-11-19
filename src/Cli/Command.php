@@ -110,10 +110,12 @@ final class Command {
 	 * : Add these products to the demo that is already built (same ledger, so Finish removes them too).
 	 *
 	 * [--install-missing]
-	 * : First install and activate the free Wbcom products the starting point uses that are not active yet.
+	 * : First install and activate what is missing: with --demo, what its gallery card sets up (free plugins, uploaded
+	 * Reign add-ons, the free BuddyX theme last); otherwise the free Wbcom products the starting point uses.
 	 *
 	 * ## EXAMPLES
 	 *
+	 *     wp wbcom-demo build --demo=events --install-missing --yes
 	 *     wp wbcom-demo build --recipe=community
 	 *     wp wbcom-demo build --include=buddynext,jetonomy --keep-look
 	 *
@@ -139,13 +141,41 @@ final class Command {
 			return;
 		}
 		if ( isset( $assoc['install-missing'] ) ) {
-			$recipe = (string) ( $assoc['recipe'] ?? 'community' );
-			$all    = \WbcomDemo\Core\Recipes::all();
-			if ( ! isset( $all[ $recipe ] ) ) {
-				WP_CLI::error( sprintf( 'Unknown starting point "%s". Starting points: %s', $recipe, implode( ', ', array_keys( $all ) ) ) );
+			if ( isset( $assoc['demo'] ) ) {
+				// What the demo's card would set up: its free plugins, then Reign add-ons, the theme last.
+				$demo = $this->demo( (string) $assoc['demo'] );
+				if ( 'conflict' === $demo['state'] ) {
+					WP_CLI::error( $this->needs( $demo ) );
+				}
+				$want = $demo['fix'];
+				$late = static fn( string $t ): int => 'buddyx' === $t ? 2 : ( str_starts_with( $t, 'addon:' ) ? 1 : 0 );
+				usort( $want, static fn( string $a, string $b ): int => $late( $a ) <=> $late( $b ) );
+			} else {
+				$recipe = (string) ( $assoc['recipe'] ?? 'community' );
+				$all    = \WbcomDemo\Core\Recipes::all();
+				if ( ! isset( $all[ $recipe ] ) ) {
+					WP_CLI::error( sprintf( 'Unknown starting point "%s". Starting points: %s', $recipe, implode( ', ', array_keys( $all ) ) ) );
+				}
+				$want = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : array_merge( Installer::CORE, $all[ $recipe ]['use'], $all[ $recipe ]['needs'] );
 			}
-			$want = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : array_merge( Installer::CORE, $all[ $recipe ]['use'], $all[ $recipe ]['needs'] );
-			$this->install_ids( array_values( array_unique( $want ) ) );
+			$waits  = isset( $demo ) && 'blocked' === $demo['state'];
+			$want   = array_values( array_unique( $want ) );
+			$addons = array_values( array_filter( $want, static fn( string $id ): bool => str_starts_with( $id, 'addon:' ) ) );
+			$theme  = array_values( array_intersect( $want, array( 'buddyx' ) ) );
+			// Plugins first, then the Reign add-ons that need them, the theme last; only the last step says done.
+			$this->install_ids( array_values( array_diff( $want, $addons, $theme ) ), ! $waits && ! $addons && ! $theme );
+			if ( $addons ) {
+				// WordPress checks an add-on's required plugins once per request: switch the add-ons on in a fresh one,
+				// now that their plugins are active.
+				$this->relaunch( 'wbcom-demo install ' . implode( ' ', $addons ) . ( $waits || $theme ? ' --quiet-done' : '' ) );
+			}
+			if ( $theme ) {
+				$this->install_ids( $theme, ! $waits );
+			}
+			if ( $waits ) {
+				// The free part is in; what is left is the owner's to upload, so stop here and say exactly what.
+				WP_CLI::error( $this->needs( $demo, true ) );
+			}
 			// New plugins boot on the next request, so the build runs in a fresh process.
 			unset( $assoc['install-missing'] );
 			$flags = '';
@@ -172,6 +202,10 @@ final class Command {
 			WP_CLI::success( sprintf( 'Added to the demo: %d items in total now.', array_sum( array_column( $status['ledger'], 'count' ) ) ) );
 			return;
 		}
+		$demo = isset( $assoc['demo'] ) ? $this->demo( (string) $assoc['demo'] ) : null;
+		if ( $demo && 'ready' !== $demo['state'] ) {
+			WP_CLI::error( $this->needs( $demo ) );
+		}
 		$recipes = Recipes::available();
 		if ( ! $recipes ) {
 			WP_CLI::error( 'No supported products are active.' );
@@ -181,16 +215,8 @@ final class Command {
 			WP_CLI::error( sprintf( 'Unknown or unavailable starting point "%s". Available: %s', $recipe, implode( ', ', array_keys( $recipes ) ) ) );
 		}
 		$include = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : $recipes[ $recipe ]['use'];
-		if ( isset( $assoc['demo'] ) ) {
-			// A named demo from the Starting point gallery: exactly its products, once everything it needs is active.
-			$demo = current( array_filter( \WbcomDemo\Core\Demos::overview(), static fn( array $d ): bool => $d['id'] === $assoc['demo'] ) );
-			if ( ! $demo ) {
-				WP_CLI::error( sprintf( 'Unknown demo "%s" for this theme. Demos: %s', $assoc['demo'], implode( ', ', array_column( \WbcomDemo\Core\Demos::overview(), 'id' ) ) ) );
-			}
-			if ( 'ready' !== $demo['state'] ) {
-				$missing = array_column( array_filter( $demo['rows'], static fn( array $r ): bool => $r['required'] && 'active' !== $r['state'] ), 'label' );
-				WP_CLI::error( sprintf( 'Demo "%s" needs: %s.%s', $demo['name'], implode( ', ', $missing ), $demo['conflict'] ? ' This site runs ' . $demo['conflict'] . '.' : ' Install them with: wp wbcom-demo install <id>, or upload the paid ones under Plugins.' ) );
-			}
+		if ( $demo ) {
+			// A named demo from the Starting point gallery (checked ready above): exactly its products.
 			$recipe  = 'everything';
 			$include = $demo['products'];
 		}
@@ -206,7 +232,7 @@ final class Command {
 		}
 		$memory = Engine::memory();
 		if ( $memory['low'] ) {
-			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; with all products active WordPress needs about 165 MB before a step starts. If a step stops, run WP-CLI with a higher limit: php -d memory_limit=512M $(which wp) wbcom-demo ...', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
+			WP_CLI::warning( sprintf( 'PHP memory limit is %d MB; the installer needs 256 MB (with all products active WordPress uses most of it before a step starts). Run WP-CLI with a higher limit: php -d memory_limit=512M $(which wp) wbcom-demo ...', (int) ( $memory['limit'] / MB_IN_BYTES ) ) );
 		}
 		// PeepSo switches itself off under WP-CLI (its constructor returns early), so its provider cannot run here.
 		foreach ( (array) get_option( 'active_plugins', array() ) as $plugin ) {
@@ -223,6 +249,9 @@ final class Command {
 		$problems = array_merge( (array) $status['errors'], (array) $status['warnings'] );
 		foreach ( $problems as $problem ) {
 			WP_CLI::warning( $problem );
+		}
+		if ( ! empty( $status['reused'] ) ) {
+			WP_CLI::log( 'Reused from an earlier demo, as they are: ' . implode( ', ', (array) $status['reused'] ) . '.' );
 		}
 		$items = array_sum( array_column( $status['ledger'], 'count' ) );
 		if ( $status['errors'] ) {
@@ -442,10 +471,13 @@ final class Command {
 	 *
 	 * [<ids>...]
 	 * : Product ids: buddynext, mediaverse, jetonomy, learnomy, eventonomy, careerboard, listora, sellservices,
-	 * mediashield, roadmap, gamification, or buddyx for the theme.
+	 * mediashield, roadmap, gamification, buddyx for the theme, or addon:<folder> to switch on an uploaded Reign add-on.
 	 *
 	 * [--all]
 	 * : Every free product in the list.
+	 *
+	 * [--quiet-done]
+	 * : Do not print the closing success line (used when another step follows).
 	 *
 	 * ## EXAMPLES
 	 *
@@ -458,21 +490,76 @@ final class Command {
 	public function install( $args, $assoc ): void {
 		$this->as_admin();
 		// --all: every product the installer can download (not the theme, not the ones uploaded by hand).
-		$ids = isset( $assoc['all'] ) ? array_keys( array_filter( Installer::catalog(), static fn( array $e, string $id ): bool => 'buddyx' !== $id && ( isset( $e['wporg'] ) || isset( $e['item_id'] ) ), ARRAY_FILTER_USE_BOTH ) ) : array_map( 'sanitize_key', $args );
+		$ids = isset( $assoc['all'] ) ? array_keys( array_filter( Installer::catalog(), static fn( array $e, string $id ): bool => 'buddyx' !== $id && ( isset( $e['wporg'] ) || isset( $e['item_id'] ) ), ARRAY_FILTER_USE_BOTH ) ) : array_map( static fn( string $a ): string => str_starts_with( $a, 'addon:' ) ? 'addon:' . sanitize_key( substr( $a, 6 ) ) : sanitize_key( $a ), $args );
 		if ( ! $ids ) {
 			WP_CLI::error( 'Name the products to install, or pass --all.' );
 		}
-		$this->install_ids( $ids );
+		$this->install_ids( $ids, ! isset( $assoc['quiet-done'] ) );
+	}
+
+	/**
+	 * A gallery demo for the active theme, or stop with the ids there are.
+	 *
+	 * @param string $id Demo id.
+	 * @return array<string,mixed>
+	 */
+	private function demo( string $id ): array {
+		$all  = \WbcomDemo\Core\Demos::overview();
+		$demo = current( array_filter( $all, static fn( array $d ): bool => $d['id'] === $id ) );
+		if ( ! $demo ) {
+			WP_CLI::error( sprintf( 'Unknown demo "%s" for this theme. Demos: %s', $id, implode( ', ', array_column( $all, 'id' ) ) ) );
+		}
+		return $demo;
+	}
+
+	/**
+	 * What a demo still needs and who does each part: free items with --install-missing, paid ones uploaded by the
+	 * owner (with where to download them), the rest by an administrator.
+	 *
+	 * @param array<string,mixed> $demo      Gallery demo.
+	 * @param bool                $installed The free part was just installed.
+	 */
+	private function needs( array $demo, bool $installed = false ): string {
+		if ( $demo['conflict'] ) {
+			return sprintf( 'Demo "%s" is built on a different community plugin: this site runs %s.', $demo['name'], $demo['conflict'] );
+		}
+		$by    = static fn( string $action ): array => array_filter( $demo['needs'], static fn( array $n ): bool => $action === $n['action'] );
+		$lines = array( sprintf( 'Demo "%s" is not ready yet.', $demo['name'] ) );
+		if ( $by( 'install' ) && ! $installed ) {
+			$lines[] = sprintf( 'Free, installed for you with --install-missing: %s.', implode( ', ', array_column( $by( 'install' ), 'label' ) ) );
+		}
+		if ( $by( 'upload' ) ) {
+			$lines[] = 'Paid, upload these yourself under Plugins > Add New > Upload Plugin, then run this again:';
+			foreach ( $by( 'upload' ) as $n ) {
+				$lines[] = sprintf( '  - %s: download it from %s', $n['label'], $n['url'] );
+			}
+		}
+		if ( $by( 'ask' ) ) {
+			$lines[] = sprintf( 'This account or host cannot install plugins; ask an administrator to add: %s.', implode( ', ', array_column( $by( 'ask' ), 'label' ) ) );
+		}
+		return implode( "\n", $lines );
 	}
 
 	/**
 	 * Install and activate each id that is not active yet; stop on the first failure.
 	 *
-	 * @param string[] $ids Catalog ids.
+	 * @param string[] $ids  Catalog ids.
+	 * @param bool     $done Say so when all are in (not when the demo still waits for an upload).
 	 */
-	private function install_ids( array $ids ): void {
+	private function install_ids( array $ids, bool $done = true ): void {
 		$catalog = Installer::catalog();
+		$changed = false;
 		foreach ( $ids as $id ) {
+			if ( str_starts_with( $id, 'addon:' ) ) {
+				// A Reign add-on the owner uploaded: switched on as the demo card does.
+				WP_CLI::log( sprintf( 'Activating %s...', substr( $id, 6 ) ) );
+				$result = Installer::install( $id );
+				if ( is_wp_error( $result ) ) {
+					WP_CLI::error( sprintf( '%s: %s', $id, $result->get_error_message() ) );
+				}
+				$changed = true;
+				continue;
+			}
 			// The whole catalog, as the demo cards use it: the site check's list hides a Reign add-on's plugin
 			// until the add-on is active.
 			if ( ! isset( $catalog[ $id ] ) ) {
@@ -492,14 +579,70 @@ final class Command {
 					$id
 				)
 			);
-			$done = Installer::install( $id );
-			if ( is_wp_error( $done ) ) {
-				WP_CLI::error( sprintf( '%s: %s', $id, $done->get_error_message() ) );
+			$result = Installer::install( $id );
+			if ( is_wp_error( $result ) ) {
+				WP_CLI::error( sprintf( '%s: %s', $id, $result->get_error_message() ) );
 			}
+			$changed = true;
 			WP_CLI::log( sprintf( '%s is active.', $id ) );
 		}
-		WP_CLI::success( 'Products are ready.' );
+		if ( $changed ) {
+			$this->settle();
+		}
+		if ( $done ) {
+			WP_CLI::success( 'Products are ready.' );
+		}
 	}
+
+	/**
+	 * Let the plugins just installed finish their first-run setup: several (BuddyPress among them) do it only on an
+	 * admin page load, which WP-CLI never makes. One request to wp-admin as this administrator does it, as the
+	 * wizard's background page load does. A host that blocks requests to itself gets told what to do instead.
+	 */
+	private function settle(): void {
+		$user = get_current_user_id();
+		if ( ! $user ) {
+			WP_CLI::warning( 'No administrator to open wp-admin as, so some new plugins may not have finished their setup. Open any wp-admin page once in the browser, then run the build again.' );
+			return;
+		}
+		$url      = admin_url( 'index.php' );
+		$secure   = 'https' === wp_parse_url( $url, PHP_URL_SCHEME );
+		$expiry   = time() + 5 * MINUTE_IN_SECONDS;
+		$sessions = \WP_Session_Tokens::get_instance( $user );
+		$token    = $sessions->create( $expiry ); // One short session for this request, ended right after it.
+		$res      = wp_remote_get(
+			$url,
+			array(
+				'timeout'     => 60,
+				'redirection' => 0,
+				'sslverify'   => (bool) apply_filters( 'https_local_ssl_verify', false ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core filter.
+				'cookies'     => array(
+					new \WP_Http_Cookie(
+						array(
+							'name'  => $secure ? SECURE_AUTH_COOKIE : AUTH_COOKIE,
+							'value' => wp_generate_auth_cookie( $user, $expiry, $secure ? 'secure_auth' : 'auth', $token ),
+						)
+					),
+					new \WP_Http_Cookie(
+						array(
+							'name'  => LOGGED_IN_COOKIE,
+							'value' => wp_generate_auth_cookie( $user, $expiry, 'logged_in', $token ),
+						)
+					),
+				),
+			)
+		);
+		$sessions->destroy( $token );
+		$code = (int) wp_remote_retrieve_response_code( $res );
+		// A redirect is fine when it stays in wp-admin (a plugin sending the owner to its welcome screen); one to the
+		// login page, or off the admin, means the page never ran.
+		$to = (string) wp_remote_retrieve_header( $res, 'location' );
+		$ok = ! is_wp_error( $res ) && ( ( $code >= 200 && $code < 300 ) || ( $code >= 300 && $code < 400 && str_starts_with( $to, admin_url() ) ) );
+		if ( ! $ok ) {
+			WP_CLI::warning( 'Could not open wp-admin from here, so some new plugins may not have finished their setup. Open any wp-admin page once in the browser, then run the build again.' );
+		}
+	}
+
 
 	/**
 	 * Keep what the demo left (settings, pages, menus, categories) as your own and end the demo.
@@ -579,7 +722,7 @@ final class Command {
 		if ( ! $id ) {
 			WP_CLI::error( 'The page could not be made.' );
 		}
-		Ledger::add( 'guide', 'theme', 'page', $id, 'setup' );
+		Ledger::add( 'guide', 'theme', 'guide', $id, 'sample' );
 		Theme::hide_title( $id );
 		// BuddyNext sends a member who never finished onboarding to the onboarding screen on every page; the
 		// people on the cards must open straight into their account.
@@ -652,8 +795,17 @@ final class Command {
 	 */
 	private function run_steps( string $label ): void {
 		$guard = 0;
+		$waits = 0;
 		do {
 			$status = Engine::step();
+			if ( ! empty( $status['busy'] ) ) {
+				// Another request holds the step lock (or one died less than two minutes ago): wait for it.
+				if ( ++$waits > 30 ) {
+					WP_CLI::error( 'Another request is still running the build. If none is, wait two minutes and run wp wbcom-demo resume again.' );
+				}
+				sleep( 5 );
+				continue;
+			}
 			if ( ! empty( $status['current'] ) ) {
 				WP_CLI::log( sprintf( '%s: %s (%d/%d)', $label, $status['current'], $status['done'], $status['total'] ) );
 			}

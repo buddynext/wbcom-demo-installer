@@ -160,7 +160,8 @@ final class WooCommerce extends Provider {
 		);
 		$terms = self::missing_terms( array( 'product_cat' => array_values( (array) $c['categories'] ) ) );
 		if ( $terms ) {
-			$plan['term'] = array( $terms, 'setup', __( 'product categories', 'wbcom-demo-installer' ) );
+			$plan['term']           = array( $terms, 'setup', __( 'product categories', 'wbcom-demo-installer' ) );
+			$plan['category_image'] = array( $terms, 'setup', __( 'product category pictures', 'wbcom-demo-installer' ) );
 		}
 		return $plan;
 	}
@@ -192,6 +193,7 @@ final class WooCommerce extends Provider {
 				$map = array();
 				foreach ( (array) $this->content()['categories'] as $key => $label ) {
 					$map[ $key ] = $this->ensure_term( $label, 'product_cat', $ctx );
+					$this->category_picture( (int) $map[ $key ], (string) $key, $ctx );
 				}
 				$ctx->set( $this->id(), 'categories', $map );
 				break;
@@ -364,6 +366,7 @@ final class WooCommerce extends Provider {
 				}
 				return ! get_comment( $id );
 			case 'attachment':
+			case 'category_image':
 				return self::delete_post( $id, true );
 			case 'term':
 				$taxonomy = (string) ( $meta['taxonomy'] ?? 'product_cat' );
@@ -489,6 +492,30 @@ final class WooCommerce extends Provider {
 	}
 
 	/**
+	 * Give a product category the demo makes its own picture (its first product's photo, imported as setup), so the
+	 * category and the home page tile that shows it keep a picture when Keep setup removes the sample products and
+	 * their photos. A category that already has a picture (the owner's) is left alone.
+	 *
+	 * @param int     $term Category term id.
+	 * @param string  $key  Category key in the content.
+	 * @param Context $ctx  Context.
+	 */
+	private function category_picture( int $term, string $key, Context $ctx ): void {
+		if ( ! $term || get_term_meta( $term, 'thumbnail_id', true ) ) {
+			return;
+		}
+		foreach ( (array) $this->content()['products'] as $p ) {
+			if ( $key === (string) $p[2] ) {
+				$image = $ctx->attachment( 'products/' . $p[1] . '.jpg', (int) get_current_user_id(), $this->id(), 'setup', 'category_image' );
+				if ( $image ) {
+					update_term_meta( $term, 'thumbnail_id', $image );
+				}
+				return;
+			}
+		}
+	}
+
+	/**
 	 * A category's picture: its own thumbnail, else the photo of its newest product.
 	 *
 	 * @param \WP_Term $term Product category.
@@ -558,7 +585,10 @@ final class WooCommerce extends Provider {
 			. '<!-- wp:post-title {"textAlign":"center","level":3,"isLink":true,"__woocommerceNamespace":"woocommerce/product-collection/product-title"} /-->'
 			. '<!-- wp:woocommerce/product-price {"isDescendentOfQueryLoop":true,"textAlign":"center"} /-->'
 			. '<!-- wp:woocommerce/product-button {"isDescendentOfQueryLoop":true,"textAlign":"center"} /-->'
-			. '<!-- /wp:woocommerce/product-template --></div><!-- /wp:woocommerce/product-collection -->';
+			. '<!-- /wp:woocommerce/product-template -->'
+			// With no products (after Keep setup removes the sample ones) the section says so instead of standing empty.
+			. '<!-- wp:woocommerce/product-collection-no-results --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">' . esc_html__( 'New products are on their way. Check back soon.', 'wbcom-demo-installer' ) . '</p><!-- /wp:paragraph --><!-- /wp:woocommerce/product-collection-no-results -->'
+			. '</div><!-- /wp:woocommerce/product-collection -->';
 	}
 
 	/**

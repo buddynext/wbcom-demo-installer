@@ -32,9 +32,12 @@ final class Snapshot {
 		if ( $setting ) {
 			$snap[ $name ]['setting'] = true;
 		}
-		$snap[ $name ]['written'] = $value;
-		update_option( self::OPTION, $snap, false );
 		self::put( $name, $value );
+		// Remember the value as WordPress stored it: core sanitises some options on save (blogname escapes &, ' and "),
+		// and comparing the raw value with the stored one would read the demo's own write as an owner change.
+		$stored                   = self::read( $name );
+		$snap[ $name ]['written'] = null === $stored ? $value : $stored;
+		update_option( self::OPTION, $snap, false );
 	}
 
 	/**
@@ -64,6 +67,10 @@ final class Snapshot {
 			}
 			unset( $snap[ $name ] );
 			if ( ! is_array( $entry ) || ! array_key_exists( 'written', $entry ) ) {
+				continue;
+			}
+			// A page setting whose page is gone (a demo page removed earlier): nothing to restore, and not the owner's change.
+			if ( str_starts_with( (string) $name, 'post_meta:' ) && ! get_post( (int) explode( ':', (string) $name )[1] ) ) {
 				continue;
 			}
 			$current = self::read( (string) $name );

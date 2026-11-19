@@ -4,7 +4,7 @@ Tags: demo content, sample data, community, setup wizard, buddynext
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,8 @@ Wbcom Demo Installer sets up a believable demo of every Wbcom product you have a
 When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report shows what was removed and what is still on the site.
 
 Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and Wbcom Essential (with their Pro add-ons active); BuddyPress, BuddyBoss Platform and PeepSo; WooCommerce, Dokan, WCFM Marketplace, WC Vendors, LearnDash, Tutor LMS, LifterLMS, Sensei LMS, GeoDirectory and WP Job Manager, with the Reign add-on for each. Themes: Reign, BuddyX, BuddyX Pro or any theme. Paid plugins (Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo, Pro add-ons) are bought, installed and licensed by you; the installer sets up the free ones.
+
+Requirements: WordPress 6.5 or later, PHP 8.1 or later, and a PHP memory limit of 256 MB (for example `define( 'WP_MEMORY_LIMIT', '256M' );` in wp-config.php). With every product and its Pro add-on active, WordPress itself needs most of that before a demo step starts.
 
 = For developers =
 
@@ -60,6 +62,58 @@ That product's sample content waits, and the sample people who made it stay, unt
 Yes. Nothing you kept depends on it. If sample content is still on the site, uninstalling keeps the plugin's record of it so reinstalling can still finish the demo.
 
 == Changelog ==
+
+= 1.2.0 - November 2026 =
+
+Demos that look finished, link straight to one demo, and show how each is set up.
+
+* New      - Watch how on each demo card plays the film of that demo being set up on your theme, and the ready screen links the film on taking it live.
+* New      - A link with &demo=<id> opens Set up your site on that one demo, ready to set up in one click, so a theme's Build this site button lands on the demo the owner chose.
+* New      - On a site without BuddyX Pro or Reign, the BuddyX demos install the free BuddyX theme from WordPress.org and switch it on last. On any other theme a note says so and opens them.
+* New      - Try the demo installs User Switching, so Explore as signs you in as the sample person.
+* New      - Every Learnomy course has an end-of-course quiz, already taken and graded by sample students.
+* Improve  - Home pages open with a full-width hero, About and Join are styled, and the demo has a footer with its own menu.
+* Improve  - Community demos open on the community: hero, numbers and members lead the home page.
+* Improve  - The demo menu groups pages under Community, Explore and About, with the demo's own product (Courses on a course site) top-level.
+* Fix      - A course, events, jobs, directory, services or store demo no longer gets the BuddyNext logo; the header keeps the site name.
+* Improve  - Events run over the next eight weeks with one recent past event, and they are approved so RSVPs land.
+* Improve  - Services demo orders are paid with real dates, and two sellers reach the Rising level.
+* Improve  - Course lesson URLs no longer end in the course id.
+* Improve  - Marketplace demos (Dokan, WCFM, WC Vendors) get a community about the shops: store groups, a feed of restocks, styling and care tips, and customer photos.
+* Improve  - Product photos are square so product cards fill without letterboxing, and the online class sits in a Digital downloads category.
+* Improve  - WC Vendors shops get a banner on the demo home page (and in the shop header with WC Vendors Pro), and sample stores use real city-centre addresses that maps can find.
+* Improve  - Course, directory and services reviews are approved, dated and removed with the demo.
+* Improve  - WPMediaVerse albums hold their owner's photos, and photos carry real tags and categories.
+* Improve  - The site check says Activate for installed plugins and no longer shows the Pro line on free plugins.
+* Improve  - The site check has one install button, and Continue stays secondary until a product is active.
+* Improve  - A demo that needs a paid add-on or plugin names each one with where to get it, an Upload plugin button and Check again, in the wizard and in WP-CLI.
+* Improve  - wp wbcom-demo build --demo=<id> --install-missing installs the demo's free plugins, then builds.
+* Improve  - A demo card being set up stays in sight and counts its plugins as they install.
+* Improve  - The build screen ticks off each product as it goes, a reload keeps your place in the setup steps, and the film dialog has a title and returns focus to its link.
+* Improve  - Every demo card is labelled (its purpose, Whole site or Reign add-on), pictures show a placeholder while they load, and the duplicate Reign Shop card is gone (WooCommerce store is the same demo).
+* Fix      - Building again after Start my real site no longer creates a second home page, menu, listing or event.
+* Fix      - A demo login already taken on the site no longer shifts sample content to the wrong people.
+* Fix      - Remove everything restores a site name that contains &, ' or ".
+* Fix      - A stopped Remove everything that is resumed finishes as Remove everything and puts every setting back.
+* Fix      - Start my real site keeps the pictures on the pages and categories it keeps.
+* Fix      - Product categories made by a store demo get their own picture, so the kept home page's category tiles and the shop's category lists keep their images after Start my real site.
+* Fix      - The kept home page no longer shows the sample's numbers after Start my real site.
+* Fix      - Start my real site removes the Try the demo page and its menu links, which only switched into sample people.
+* Improve  - Start my real site, Remove everything and Try a different demo go straight to the confirm step, with the acknowledgement above the list of what is removed.
+* Fix      - Jobs demo salaries use Career Board's own pay periods and each job's own currency (EUR in Berlin, INR in Kochi).
+* Fix      - Every item of a large content pack is built, not only the first ones.
+* Fix      - On phones the ready screen's footer no longer covers the finish buttons.
+* Fix      - Try the demo tour text and badges pass WCAG AA contrast on every theme.
+* Fix      - Try the demo buttons and the chosen tour tab use the theme's own button colours, so on Reign they are white on blue like every other button.
+* Fix      - A WP-CLI build no longer carries one step's sample date into the next step.
+* Fix      - WP-CLI resume waits for a step another request is still running instead of stopping with 'too many steps'.
+* Fix      - Remove everything after Start my real site no longer reports a removed demo page's settings as changed by you.
+* Fix      - The kept shop home page's Top rated section says new products are on the way instead of standing empty.
+* Fix      - On BuddyX Pro the demo home page uses the theme's edge-to-edge template, so the hero runs full width.
+* Fix      - Feed posts that BuddyNext makes for the sample blog posts take the blog post's date, so the home page's recent activity no longer opens on empty 'just now' rows.
+* Fix      - Plugins installed from WP-CLI finish their first-run setup before the build, and Reign add-ons switch on after the plugins they need.
+* Dev      - wbcom_demo_status() and wbcom_demo_list() (with each demo's needs: install, upload or ask) let a theme show the demo's progress and its own site tiles, and the wbcom_demo_return filter brings the owner back to the theme's screen.
+* Dev      - New guide for Product Roadmap on Try the demo, a local CI script and a table lock.
 
 = 1.1.1 - November 2026 =
 
@@ -111,7 +165,7 @@ Set up a demo with Reign and its add-ons, describe your site to AI, and give vis
 * Improve  - Sites without BuddyNext open on their community, shop or directory home page and show the site name in the header.
 * Improve  - A site that already runs BuddyPress, BuddyBoss or PeepSo is no longer offered the BuddyNext set by default.
 * Improve  - Keep my setup leaves the kept pages, menu and categories removable until you choose Keep them as mine.
-* Improve  - The site check warns when PHP memory is too low for a build.
+* Improve  - The site check warns when PHP memory is below the 256 MB the full product set needs.
 * Improve  - A failed build step can be retried from the wizard.
 * Improve  - Back and Continue stay in view on long wizard steps.
 * Fix      - A product too old for the installer is no longer listed on Review and then left out of the build without a word.
