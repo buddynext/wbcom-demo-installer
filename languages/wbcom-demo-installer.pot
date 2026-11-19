@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-19T16:04:46+00:00\n"
+"POT-Creation-Date: 2026-11-19T16:07:23+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -140,75 +140,75 @@ msgid_plural "%d comments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Core/Engine.php:232
+#: src/Core/Engine.php:243
 msgid "A demo is already on this site. Finish it before building another."
 msgstr ""
 
 #. translators: %s: what the site already has, e.g. "3 other members, 12 blog posts".
-#: src/Core/Engine.php:239
+#: src/Core/Engine.php:250
 #, php-format
 msgid "This site already has %s. The demo is made for a fresh site; confirm that you want sample content added here."
 msgstr ""
 
-#: src/Core/Engine.php:244
+#: src/Core/Engine.php:255
 msgid "Choose one of the starting points shown on this site."
 msgstr ""
 
-#: src/Core/Engine.php:249
+#: src/Core/Engine.php:260
 msgid "Choose at least one product."
 msgstr ""
 
-#: src/Core/Engine.php:330
+#: src/Core/Engine.php:341
 msgid "There is no finished demo to add to. Build one first."
 msgstr ""
 
-#: src/Core/Engine.php:336
+#: src/Core/Engine.php:347
 msgid "Every product named is already in the demo or not available here."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:457
+#: src/Core/Engine.php:468
 #, php-format
 msgid "%s: a step stopped the request twice (often the PHP memory limit), so the rest of this product was skipped."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:527
+#: src/Core/Engine.php:538
 #, php-format
 msgid "the text for %s"
 msgstr ""
 
-#: src/Core/Engine.php:547
+#: src/Core/Engine.php:558
 msgid "sample content"
 msgstr ""
 
-#: src/Core/Engine.php:583
+#: src/Core/Engine.php:594
 #: src/Providers/GeoDirectory.php:636
 #: src/Providers/Listora.php:494
 #: src/Providers/SellServices.php:569
 msgid "categories"
 msgstr ""
 
-#: src/Core/Engine.php:584
+#: src/Core/Engine.php:595
 msgid "images"
 msgstr ""
 
-#: src/Core/Engine.php:585
+#: src/Core/Engine.php:596
 #: src/Providers/Pages.php:96
 #: src/Providers/Pages.php:110
 msgid "pages"
 msgstr ""
 
-#: src/Core/Engine.php:586
+#: src/Core/Engine.php:597
 #: src/Providers/People.php:334
 msgid "accounts"
 msgstr ""
 
-#: src/Core/Engine.php:587
+#: src/Core/Engine.php:598
 msgid "store currency setting"
 msgstr ""
 
-#: src/Core/Engine.php:588
+#: src/Core/Engine.php:599
 #: src/Providers/PeepSo.php:121
 msgid "comments"
 msgstr ""
@@ -2418,8 +2418,14 @@ msgstr ""
 msgid "Logo, colours and site name"
 msgstr ""
 
+#. translators: %s: product name.
 #: assets/js/wizard.js:669
-msgid "Review product settings"
+#, js-format
+msgid "Manage %s"
+msgstr ""
+
+#: assets/js/wizard.js:669
+msgid "All plugins"
 msgstr ""
 
 #: assets/js/wizard.js:671
@@ -2432,6 +2438,11 @@ msgstr ""
 
 #: assets/js/wizard.js:672
 msgid "Removes the sample people, their content and the Try the demo page. Keeps the pages, menu, categories and settings; the home page sections fill as you add your own."
+msgstr ""
+
+#: assets/js/wizard.js:672
+#: assets/js/wizard.js:703
+msgid "Recommended"
 msgstr ""
 
 #: assets/js/wizard.js:673
@@ -2530,10 +2541,6 @@ msgstr ""
 
 #: assets/js/wizard.js:703
 msgid "Removes the sample people, everything they made and the Try the demo page. Keeps settings, pages, menus and categories; the home page sections fill as you add your own."
-msgstr ""
-
-#: assets/js/wizard.js:703
-msgid "Recommended"
 msgstr ""
 
 #: assets/js/wizard.js:704
@@ -2665,7 +2672,11 @@ msgid "You changed your home page, menu or logo after the build, so we kept your
 msgstr ""
 
 #: assets/js/wizard.js:750
-msgid "These are records the products keep on purpose; they are not sample content and are not shown on the site."
+msgid "Records the products keep on purpose"
+msgstr ""
+
+#: assets/js/wizard.js:750
+msgid "They are not sample content and are not shown on the site."
 msgstr ""
 
 #: assets/js/wizard.js:751

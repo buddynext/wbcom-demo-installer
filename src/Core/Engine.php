@@ -118,10 +118,20 @@ final class Engine {
 		$posts          = (int) wp_count_posts( 'post' )->publish + (int) wp_count_posts( 'page' )->publish;
 		$theme_provider = Registry::get( 'theme' );
 		$links          = array();
+		$manage         = array();
 		$state          = new State();
 		foreach ( Registry::all() as $id => $p ) {
 			if ( ! in_array( $id, (array) $state->get( 'include' ), true ) || ! $p->available() ) {
 				continue;
+			}
+			// Where the owner manages it: the first owner step of its guide (its own admin screen).
+			$owner = (array) ( $p->guide()['owner'] ?? array() );
+			$first = reset( $owner );
+			if ( is_array( $first ) && ! empty( $first['url'] ) ) {
+				$manage[] = array(
+					'title' => $p->label(),
+					'url'   => (string) $first['url'],
+				);
 			}
 			foreach ( $p->menu_items() as $item ) {
 				$url = ! empty( $item['page_id'] ) ? get_permalink( (int) $item['page_id'] ) : ( $item['url'] ?? '' );
@@ -135,6 +145,7 @@ final class Engine {
 		}
 		return array(
 			'links'       => $links,
+			'manage'      => $manage,
 			'theme'       => array(
 				'name'    => $theme->get( 'Name' ),
 				'version' => $theme->get( 'Version' ),
