@@ -123,6 +123,9 @@ Call `wbcom_demo_status()` (check `function_exists()` first) instead of reading 
 `status` (`idle`, `building`, `built`, `finishing` or `finished`), `demo_id` (the gallery demo id, such as `learning`),
 `demo_label` (its name), `built_at` and `finished_at` (UTC, `Y-m-d H:i:s`). `finished` means the owner took the demo live
 with Start my real site and nothing is left to remove; after Remove everything the status is `idle` again.
+`samples_left` counts the sample people and content still on the site. After Start my real site the status can stay
+`built` while the kept pages, menu and categories are still removable: then `finished_at` is set and `samples_left` is
+`0`, so treat `built` with `samples_left` 0 as a site already taken live.
 
 ## Link to one demo
 

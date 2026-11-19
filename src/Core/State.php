@@ -105,21 +105,29 @@ final class State {
 	 * Where the demo stands, for themes and plugins (see wbcom_demo_status()). Times are UTC, Y-m-d H:i:s.
 	 *
 	 * Status: idle (no demo, or Remove everything put the site back), building, built, finishing, or finished (the
-	 * owner took the demo live and nothing is left to remove).
+	 * owner took the demo live and nothing is left to remove). finished_at is set once a finish has run on this
+	 * build and kept something, so "built" with a finished_at is a demo already taken live whose kept pages are still
+	 * removable; samples_left says whether sample people or content remain (0 = live).
 	 *
-	 * @return array{status:string,demo_id:string,demo_label:string,built_at:string,finished_at:string}
+	 * @return array{status:string,demo_id:string,demo_label:string,built_at:string,finished_at:string,samples_left:int}
 	 */
 	public static function summary(): array {
 		$state    = new self();
+		$status   = (string) $state->get( 'status' );
 		$report   = (array) $state->get( 'report' );
-		$finished = self::IDLE === $state->get( 'status' ) && ! empty( $report['finished_at'] ) && 'all' !== ( $report['mode'] ?? '' );
+		$ended    = ! empty( $report['finished_at'] ) && 'all' !== ( $report['mode'] ?? '' );
+		$finished = self::IDLE === $status && $ended;
 		$from     = $finished ? $report : $state->all();
+		$built_at = (string) ( $from['built_at'] ?? '' );
+		// A finish of this build, not one left over from an earlier demo.
+		$this_build = $ended && ( $finished || ( self::BUILT === $status && (string) $report['finished_at'] >= $built_at ) );
 		return array(
-			'status'      => $finished ? 'finished' : (string) $state->get( 'status' ),
-			'demo_id'     => (string) ( $from['demo_id'] ?? '' ),
-			'demo_label'  => (string) ( $from['demo'] ?? '' ),
-			'built_at'    => (string) ( $from['built_at'] ?? '' ),
-			'finished_at' => $finished ? (string) $report['finished_at'] : '',
+			'status'       => $finished ? 'finished' : $status,
+			'demo_id'      => (string) ( $from['demo_id'] ?? '' ),
+			'demo_label'   => (string) ( $from['demo'] ?? '' ),
+			'built_at'     => $built_at,
+			'finished_at'  => $this_build ? (string) $report['finished_at'] : '',
+			'samples_left' => in_array( $status, array( self::BUILT, self::FINISHING ), true ) ? Ledger::total( 'sample' ) : 0,
 		);
 	}
 

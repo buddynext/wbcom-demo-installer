@@ -42,10 +42,10 @@ add_action( 'plugins_loaded', array( 'WbcomDemo\\Plugin', 'boot' ), 20 );
 
 /**
  * Where the demo stands, for a theme's or plugin's own screens: status (idle, building, built, finishing or
- * finished), demo_id (gallery demo id), demo_label, built_at and finished_at (UTC). Read this, not the
- * wbcom_demo_state option.
+ * finished), demo_id (gallery demo id), demo_label, built_at and finished_at (UTC), samples_left (sample items
+ * still on the site; 0 = taken live). Read this, not the wbcom_demo_state option.
  *
- * @return array{status:string,demo_id:string,demo_label:string,built_at:string,finished_at:string}
+ * @return array{status:string,demo_id:string,demo_label:string,built_at:string,finished_at:string,samples_left:int}
  */
 function wbcom_demo_status(): array {
 	return \WbcomDemo\Core\State::summary();
