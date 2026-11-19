@@ -8,6 +8,7 @@
 namespace WbcomDemo\Providers;
 
 use WbcomDemo\Core\Blocks;
+use WbcomDemo\Core\Clock;
 use WbcomDemo\Core\Context;
 use WbcomDemo\Core\Ledger;
 use WbcomDemo\Core\Provider;
@@ -192,7 +193,9 @@ final class Pages extends Provider {
 				$body[] = Blocks::paragraph( $text );
 			}
 			$date = $ctx->date( $i, $n, 45 );
-			$id   = wp_insert_post(
+			// What other products post about it (BuddyNext shares a new blog post to the feed) takes the post's date.
+			Clock::set( $date );
+			$id = wp_insert_post(
 				array(
 					'post_type'     => 'post',
 					'post_status'   => 'publish',
@@ -206,6 +209,7 @@ final class Pages extends Provider {
 				),
 				true
 			);
+			Clock::reset();
 			if ( is_wp_error( $id ) ) {
 				$ctx->warn( $this->id(), 'post ' . $post['title'], $id );
 				continue;
