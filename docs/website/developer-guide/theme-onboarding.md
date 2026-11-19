@@ -36,8 +36,11 @@ Returns `demos` and `go_live`. Each demo has `id`, `name`, `desc`, `group` (`our
 - Add the theme's all-in-one demo (`group` `theme`, id ending in `-buddynext`) as the "everything" tile if you want one.
 - The tile's button links to `url`. The wizard opens on that demo: its review step when the demo's plugins are active,
   otherwise its card with Set up and use this demo ready.
-- `state` lets the tile say "Ready to build" (`ready`) or "Installs N free plugins" (`fixable`); a `blocked` demo needs a
-  paid upload first.
+- `state` is worked out for the current user, so call `wbcom_demo_list()` during the owner's admin request (under WP-CLI,
+  run `wp_set_current_user()` first). `ready`: everything is active, "Ready to build". `fixable`: the wizard installs
+  or switches on what is missing in one click. `blocked`: something cannot be set up from here, either a paid plugin
+  or add-on to upload, or this account or host does not allow installing plugins; the wizard card says which.
+  `conflict`: the site runs another community plugin, so this demo does not fit.
 - `film` is the setup film recorded on this theme, when there is one. `go_live` is the film for taking a site live.
   Load YouTube only on click (`youtube-nocookie.com`).
 
