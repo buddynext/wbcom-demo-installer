@@ -795,8 +795,17 @@ final class Command {
 	 */
 	private function run_steps( string $label ): void {
 		$guard = 0;
+		$waits = 0;
 		do {
 			$status = Engine::step();
+			if ( ! empty( $status['busy'] ) ) {
+				// Another request holds the step lock (or one died less than two minutes ago): wait for it.
+				if ( ++$waits > 30 ) {
+					WP_CLI::error( 'Another request is still running the build. If none is, wait two minutes and run wp wbcom-demo resume again.' );
+				}
+				sleep( 5 );
+				continue;
+			}
 			if ( ! empty( $status['current'] ) ) {
 				WP_CLI::log( sprintf( '%s: %s (%d/%d)', $label, $status['current'], $status['done'], $status['total'] ) );
 			}

@@ -69,6 +69,10 @@ final class Snapshot {
 			if ( ! is_array( $entry ) || ! array_key_exists( 'written', $entry ) ) {
 				continue;
 			}
+			// A page setting whose page is gone (a demo page removed earlier): nothing to restore, and not the owner's change.
+			if ( str_starts_with( (string) $name, 'post_meta:' ) && ! get_post( (int) explode( ':', (string) $name )[1] ) ) {
+				continue;
+			}
 			$current = self::read( (string) $name );
 			$before  = $entry['before'] ?? null;
 			if ( self::normalise( $current ) === self::normalise( $entry['written'] ) ) {

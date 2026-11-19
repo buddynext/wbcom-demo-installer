@@ -98,12 +98,16 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Fix      - The kept home page no longer shows the sample's numbers after Start my real site.
 * Fix      - Start my real site removes the Try the demo page and its menu links, which only switched into sample people.
 * Improve  - Start my real site, Remove everything and Try a different demo go straight to the confirm step, with the acknowledgement above the list of what is removed.
-* Fix      - Jobs demo salaries use Career Board's own pay periods.
+* Fix      - Jobs demo salaries use Career Board's own pay periods and each job's own currency (EUR in Berlin, INR in Kochi).
 * Fix      - Every item of a large content pack is built, not only the first ones.
 * Fix      - On phones the ready screen's footer no longer covers the finish buttons.
 * Fix      - Try the demo tour text and badges pass WCAG AA contrast on every theme.
 * Fix      - Try the demo buttons and the chosen tour tab use the theme's own button colours, so on Reign they are white on blue like every other button.
 * Fix      - A WP-CLI build no longer carries one step's sample date into the next step.
+* Fix      - WP-CLI resume waits for a step another request is still running instead of stopping with 'too many steps'.
+* Fix      - Remove everything after Start my real site no longer reports a removed demo page's settings as changed by you.
+* Fix      - The kept shop home page's Top rated section says new products are on the way instead of standing empty.
+* Fix      - On BuddyX Pro the demo home page uses the theme's edge-to-edge template, so the hero runs full width.
 * Fix      - Feed posts that BuddyNext makes for the sample blog posts take the blog post's date, so the home page's recent activity no longer opens on empty 'just now' rows.
 * Fix      - Plugins installed from WP-CLI finish their first-run setup before the build, and Reign add-ons switch on after the plugins they need.
 * Dev      - wbcom_demo_status() and wbcom_demo_list() (with each demo's needs: install, upload or ask) let a theme show the demo's progress and its own site tiles, and the wbcom_demo_return filter brings the owner back to the theme's screen.

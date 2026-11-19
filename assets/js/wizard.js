@@ -396,7 +396,9 @@
 			let summary = auto.length
 				? sprintf( /* translators: %d: number of plugins. */ _n( 'Sets up %d plugin for you in one click.', 'Sets up %d plugins for you in one click.', auto.length, 'wbcom-demo-installer' ), auto.length )
 				: ( upload.length ? '' : __( 'Everything it needs is active.', 'wbcom-demo-installer' ) );
-			if ( 'blocked' === d.state ) {
+			if ( 'conflict' === d.state ) {
+				summary = ''; // Built on another community plugin: nothing to set up here.
+			} else if ( 'blocked' === d.state ) {
 				// Nothing happens in one click until the paid part is uploaded: say what follows the upload.
 				summary = auto.length ? sprintf( /* translators: %d: number of plugins. */ _n( 'After that, it sets up %d free plugin for you.', 'After that, it sets up %d free plugins for you.', auto.length, 'wbcom-demo-installer' ), auto.length ) : '';
 			} else if ( theme && 'inactive' === theme.state ) {
@@ -1115,6 +1117,17 @@
 			}
 		}
 	} );
+
+	// A demo picture that does not load (no sandbox screenshot yet) shows the drawn placeholder, not a blank box.
+	app.addEventListener( 'error', ( e ) => {
+		const img = e.target;
+		if ( img instanceof HTMLImageElement && img.classList.contains( 'wdi-demo__img' ) ) {
+			const box = document.createElement( 'div' );
+			box.className = 'wdi-demo__img wdi-demo__img--none';
+			box.innerHTML = ic( 'palette', 'wdi-i--lg' );
+			img.replaceWith( box );
+		}
+	}, true );
 
 	app.addEventListener( 'click', async ( e ) => {
 		const film = e.target.closest( '[data-film]' );

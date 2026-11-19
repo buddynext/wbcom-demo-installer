@@ -335,7 +335,7 @@ final class Theme extends Provider {
 			return 0;
 		}
 		$ctx->record( $this->id(), 'page', (int) $id, 'setup' );
-		self::no_sidebar( (int) $id );
+		self::no_sidebar( (int) $id, true );
 		// The hero, numbers and closing are core blocks here (valid on every path, WP-CLI too). When Wbcom Essential
 		// is active the wizard swaps them for its hero, stats counter and call to action, built by those blocks' own
 		// code in the browser so the editor accepts them (see home_upgrade(), which reads HOME_META).
@@ -632,11 +632,13 @@ final class Theme extends Provider {
 	 * Give one page the active theme's layout without sidebars: the "Page No Sidebar" template on
 	 * BuddyX and BuddyX Pro, the full width layout in Reign's page settings. Other themes are left as they are.
 	 *
-	 * @param int $id Page id.
+	 * @param int  $id   Page id.
+	 * @param bool $edge The home page: edge to edge where the theme has such a template.
 	 */
-	public static function no_sidebar( int $id ): void {
-		$meta     = array();
-		$template = 'page-templates/full-width-container.php';
+	public static function no_sidebar( int $id, bool $edge = false ): void {
+		$meta = array();
+		// The home page's hero runs edge to edge: BuddyX Pro's full-width.php; other pages keep the contained one.
+		$template = $edge && isset( wp_get_theme()->get_page_templates()['page-templates/full-width.php'] ) ? 'page-templates/full-width.php' : 'page-templates/full-width-container.php';
 		if ( isset( wp_get_theme()->get_page_templates()[ $template ] ) ) {
 			if ( in_array( (string) get_post_meta( $id, '_wp_page_template', true ), array( '', 'default' ), true ) ) {
 				$meta['_wp_page_template'] = $template;

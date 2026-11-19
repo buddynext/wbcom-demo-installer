@@ -585,7 +585,10 @@ final class WooCommerce extends Provider {
 			. '<!-- wp:post-title {"textAlign":"center","level":3,"isLink":true,"__woocommerceNamespace":"woocommerce/product-collection/product-title"} /-->'
 			. '<!-- wp:woocommerce/product-price {"isDescendentOfQueryLoop":true,"textAlign":"center"} /-->'
 			. '<!-- wp:woocommerce/product-button {"isDescendentOfQueryLoop":true,"textAlign":"center"} /-->'
-			. '<!-- /wp:woocommerce/product-template --></div><!-- /wp:woocommerce/product-collection -->';
+			. '<!-- /wp:woocommerce/product-template -->'
+			// With no products (after Keep setup removes the sample ones) the section says so instead of standing empty.
+			. '<!-- wp:woocommerce/product-collection-no-results --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">' . esc_html__( 'New products are on their way. Check back soon.', 'wbcom-demo-installer' ) . '</p><!-- /wp:paragraph --><!-- /wp:woocommerce/product-collection-no-results -->'
+			. '</div><!-- /wp:woocommerce/product-collection -->';
 	}
 
 	/**
