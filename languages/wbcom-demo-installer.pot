@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Wbcom Demo Installer 1.1.1\n"
+"Project-Id-Version: Wbcom Demo Installer 1.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wbcom-demo-installer\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-18T20:44:42+00:00\n"
+"POT-Creation-Date: 2026-11-19T04:03:23+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -43,21 +43,21 @@ msgstr ""
 #: src/Admin/Page.php:66
 #: src/Admin/Page.php:67
 #: src/Admin/Page.php:101
-#: src/Admin/Page.php:210
+#: src/Admin/Page.php:215
 #: src/Admin/view.php:14
 #: assets/js/wizard.js:121
 #: assets/js/wizard.js:319
-#: assets/js/wizard.js:496
-#: assets/js/wizard.js:511
-#: assets/js/wizard.js:520
-#: assets/js/wizard.js:537
-#: assets/js/wizard.js:705
+#: assets/js/wizard.js:530
+#: assets/js/wizard.js:545
+#: assets/js/wizard.js:554
+#: assets/js/wizard.js:571
+#: assets/js/wizard.js:739
 msgid "Set up your site"
 msgstr ""
 
 #: src/Admin/Page.php:74
 #: src/Admin/Page.php:75
-#: assets/js/wizard.js:625
+#: assets/js/wizard.js:659
 msgid "Demo data"
 msgstr ""
 
@@ -66,23 +66,23 @@ msgstr ""
 msgid "Only site administrators can set up or remove demo content."
 msgstr ""
 
-#: src/Admin/Page.php:207
+#: src/Admin/Page.php:212
 msgid "See your site with sample content"
 msgstr ""
 
-#: src/Admin/Page.php:208
+#: src/Admin/Page.php:213
 msgid "Set up a believable demo with 20 sample people in a few minutes, and install the plugins it needs. Remove the samples whenever you like and keep your setup."
 msgstr ""
 
-#: src/Admin/Page.php:211
+#: src/Admin/Page.php:216
 msgid "Not now"
 msgstr ""
 
-#: src/Admin/view.php:44
+#: src/Admin/view.php:45
 msgid "Loading…"
 msgstr ""
 
-#: src/Admin/view.php:45
+#: src/Admin/view.php:46
 msgid "The setup wizard needs JavaScript. You can also run it with WP-CLI: wp wbcom-demo build"
 msgstr ""
 
@@ -1361,7 +1361,7 @@ msgstr ""
 
 #. translators: %d: number of products.
 #: src/Providers/WooCommerce.php:464
-#: assets/js/wizard.js:489
+#: assets/js/wizard.js:523
 #, php-format,js-format
 msgid "%d product"
 msgid_plural "%d products"
@@ -1381,7 +1381,7 @@ msgid "Site check"
 msgstr ""
 
 #: assets/js/wizard.js:42
-#: assets/js/wizard.js:489
+#: assets/js/wizard.js:523
 msgid "Starting point"
 msgstr ""
 
@@ -1390,7 +1390,7 @@ msgid "Products"
 msgstr ""
 
 #: assets/js/wizard.js:42
-#: assets/js/wizard.js:601
+#: assets/js/wizard.js:635
 msgid "Home page"
 msgstr ""
 
@@ -1429,7 +1429,7 @@ msgid "Back"
 msgstr ""
 
 #: assets/js/wizard.js:59
-#: assets/js/wizard.js:650
+#: assets/js/wizard.js:684
 msgid "Continue"
 msgstr ""
 
@@ -1474,6 +1474,7 @@ msgid "Describe your site"
 msgstr ""
 
 #: assets/js/wizard.js:103
+#: assets/js/wizard.js:451
 msgid "Close"
 msgstr ""
 
@@ -1703,7 +1704,7 @@ msgid "Install %s"
 msgstr ""
 
 #: assets/js/wizard.js:225
-#: assets/js/wizard.js:465
+#: assets/js/wizard.js:499
 msgid "It could not be installed."
 msgstr ""
 
@@ -2024,183 +2025,195 @@ msgstr ""
 msgid "Other demos"
 msgstr ""
 
-#: assets/js/wizard.js:489
+#. translators: 1: film length (m:ss), 2: demo name.
+#: assets/js/wizard.js:435
+#, js-format
+msgid "Watch how (%1$s): %2$s"
+msgstr ""
+
+#. translators: %s: film length (m:ss).
+#: assets/js/wizard.js:436
+#, js-format
+msgid "Watch how (%s)"
+msgstr ""
+
+#: assets/js/wizard.js:523
 msgid "Choose a different starting point"
 msgstr ""
 
-#: assets/js/wizard.js:489
+#: assets/js/wizard.js:523
 msgid "Starting points from your products"
 msgstr ""
 
-#: assets/js/wizard.js:489
+#: assets/js/wizard.js:523
 msgid "Best for evaluating"
 msgstr ""
 
-#: assets/js/wizard.js:490
+#: assets/js/wizard.js:524
 msgid "More starting points, installed for you"
 msgstr ""
 
 #. translators: %s: product names.
-#: assets/js/wizard.js:490
+#: assets/js/wizard.js:524
 #, js-format
 msgid "Installs %s"
 msgstr ""
 
-#: assets/js/wizard.js:494
+#: assets/js/wizard.js:528
 msgid "See every combination"
 msgstr ""
 
-#: assets/js/wizard.js:497
+#: assets/js/wizard.js:531
 msgid "Your starting point"
 msgstr ""
 
-#: assets/js/wizard.js:497
+#: assets/js/wizard.js:531
 msgid "What is your site for?"
 msgstr ""
 
-#: assets/js/wizard.js:497
+#: assets/js/wizard.js:531
 msgid "What kind of site are you building?"
 msgstr ""
 
-#: assets/js/wizard.js:498
+#: assets/js/wizard.js:532
 msgid "Chosen by your idea. Continue to see the products it uses."
 msgstr ""
 
-#: assets/js/wizard.js:498
+#: assets/js/wizard.js:532
 msgid "Pick one. It installs the free plugins it needs, and you can change every product on the next step."
 msgstr ""
 
-#: assets/js/wizard.js:498
+#: assets/js/wizard.js:532
 msgid "Pick the closest one. You can change every product on the next step."
 msgstr ""
 
-#: assets/js/wizard.js:509
+#: assets/js/wizard.js:543
 msgid "Without WPMediaVerse: no photo posts, albums or messages"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:509
+#: assets/js/wizard.js:543
 #, js-format
 msgid "Include %s"
 msgstr ""
 
-#: assets/js/wizard.js:512
+#: assets/js/wizard.js:546
 msgid "Choose what to include"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:513
+#: assets/js/wizard.js:547
 #, js-format
 msgid "The same %d sample people appear across every product you include, so the site feels like one place."
 msgstr ""
 
-#: assets/js/wizard.js:514
+#: assets/js/wizard.js:548
 msgid "Will create"
 msgstr ""
 
-#: assets/js/wizard.js:521
+#: assets/js/wizard.js:555
 msgid "Home page and menu"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:522
+#: assets/js/wizard.js:556
 #, js-format
 msgid "%s can open on your demo from the first visit."
 msgstr ""
 
-#: assets/js/wizard.js:524
+#: assets/js/wizard.js:558
 msgid "Use the community home page, menu and logo"
 msgstr ""
 
-#: assets/js/wizard.js:524
+#: assets/js/wizard.js:558
 msgid "Use the demo home page and menu"
 msgstr ""
 
-#: assets/js/wizard.js:524
+#: assets/js/wizard.js:558
 msgid "The home page opens on the main product you chose, and the menu links every product."
 msgstr ""
 
-#: assets/js/wizard.js:524
+#: assets/js/wizard.js:558
 msgid "Recommended for a new site"
 msgstr ""
 
-#: assets/js/wizard.js:525
+#: assets/js/wizard.js:559
 msgid "Keep my home page, menu and logo"
 msgstr ""
 
-#: assets/js/wizard.js:525
+#: assets/js/wizard.js:559
 msgid "Sample content is added. Your home page, menu and theme settings stay exactly as they are."
 msgstr ""
 
-#: assets/js/wizard.js:527
+#: assets/js/wizard.js:561
 msgid "We save your current home page, menu and logo first, so you can put them back when you finish the demo. A menu you already have is never edited: the demo adds its own Demo menu."
 msgstr ""
 
-#: assets/js/wizard.js:535
+#: assets/js/wizard.js:569
 msgid "Shared"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:535
+#: assets/js/wizard.js:569
 #, js-format
 msgid "%d sample people"
 msgstr ""
 
-#: assets/js/wizard.js:535
+#: assets/js/wizard.js:569
 msgid "home page, menu and logo"
 msgstr ""
 
-#: assets/js/wizard.js:535
+#: assets/js/wizard.js:569
 msgid "home page and menu"
 msgstr ""
 
-#: assets/js/wizard.js:538
+#: assets/js/wizard.js:572
 msgid "Ready to build"
 msgstr ""
 
-#: assets/js/wizard.js:539
+#: assets/js/wizard.js:573
 msgid "This is what will be created."
 msgstr ""
 
-#: assets/js/wizard.js:540
-#: assets/js/wizard.js:639
+#: assets/js/wizard.js:574
+#: assets/js/wizard.js:673
 msgid "Product"
 msgstr ""
 
-#: assets/js/wizard.js:540
+#: assets/js/wizard.js:574
 msgid "Creates"
 msgstr ""
 
-#: assets/js/wizard.js:543
+#: assets/js/wizard.js:577
 msgid "Site name"
 msgstr ""
 
-#: assets/js/wizard.js:544
+#: assets/js/wizard.js:578
 msgid "Tagline"
 msgstr ""
 
-#: assets/js/wizard.js:545
+#: assets/js/wizard.js:579
 msgid "A new site name shows in the header in place of the sample logo. Remove everything puts your current name and tagline back."
 msgstr ""
 
-#: assets/js/wizard.js:545
+#: assets/js/wizard.js:579
 msgid "The header shows this name. Remove everything puts your current name and tagline back."
 msgstr ""
 
-#: assets/js/wizard.js:547
+#: assets/js/wizard.js:581
 msgid "Nothing is emailed."
 msgstr ""
 
-#: assets/js/wizard.js:547
+#: assets/js/wizard.js:581
 msgid "Sample people never get mail, now or later."
 msgstr ""
 
-#: assets/js/wizard.js:547
+#: assets/js/wizard.js:581
 msgid "Your own users and content"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:547
+#: assets/js/wizard.js:581
 #, js-format
 msgid "(%1$s user, %2$s posts and pages) are not changed."
 msgid_plural "(%1$s users, %2$s posts and pages) are not changed."
@@ -2208,49 +2221,49 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:547
+#: assets/js/wizard.js:581
 #, js-format
 msgid "About %d minute."
 msgid_plural "About %d minutes."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:547
+#: assets/js/wizard.js:581
 msgid "Dates are spread over the last two months."
 msgstr ""
 
 #. translators: %s: what the site already has.
-#: assets/js/wizard.js:548
+#: assets/js/wizard.js:582
 #, js-format
 msgid "This site already has %s. I understand the demo is made for a fresh site, and I want sample content added here."
 msgstr ""
 
-#: assets/js/wizard.js:549
+#: assets/js/wizard.js:583
 msgid "Build my demo"
 msgstr ""
 
-#: assets/js/wizard.js:560
+#: assets/js/wizard.js:594
 msgid "You can leave this page. It keeps going and picks up where it stopped when you come back."
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:562
+#: assets/js/wizard.js:596
 #, js-format
 msgid "Working on %s"
 msgstr ""
 
-#: assets/js/wizard.js:562
+#: assets/js/wizard.js:596
 msgid "Finishing up…"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:562
+#: assets/js/wizard.js:596
 #, js-format
 msgid "%1$d of %2$d steps"
 msgstr ""
 
 #. translators: 1: number of items, 2: product names.
-#: assets/js/wizard.js:581
+#: assets/js/wizard.js:615
 #, js-format
 msgid "%1$s item is waiting for %2$s. Activate it, then continue removing."
 msgid_plural "%1$s items are waiting for %2$s. Activate them, then continue removing."
@@ -2258,271 +2271,281 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of items.
-#: assets/js/wizard.js:582
+#: assets/js/wizard.js:616
 #, js-format
 msgid "%s item could not be removed."
 msgid_plural "%s items could not be removed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:582
+#: assets/js/wizard.js:616
 msgid "Continue removing"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:591
+#: assets/js/wizard.js:625
 #, js-format
 msgid "%d item could not be created"
 msgid_plural "%d items could not be created"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:594
-#: assets/js/wizard.js:604
+#: assets/js/wizard.js:628
+#: assets/js/wizard.js:638
 msgid "Your demo"
 msgstr ""
 
-#: assets/js/wizard.js:595
+#: assets/js/wizard.js:629
 msgid "The sample content is gone"
 msgstr ""
 
 #. translators: %s: number of items.
-#: assets/js/wizard.js:596
+#: assets/js/wizard.js:630
 #, js-format
 msgid "%s setup item from the demo is still tracked: a setting, page, menu or category. Remove it too, or keep it as yours."
 msgid_plural "%s setup items from the demo are still tracked: settings, pages, menus and categories. Remove them too, or keep them as yours."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:597
+#: assets/js/wizard.js:631
 msgid "What is still tracked"
 msgstr ""
 
-#: assets/js/wizard.js:598
+#: assets/js/wizard.js:632
 msgid "Remove them too"
 msgstr ""
 
-#: assets/js/wizard.js:598
+#: assets/js/wizard.js:632
 msgid "Keep them as mine"
 msgstr ""
 
-#: assets/js/wizard.js:605
+#: assets/js/wizard.js:639
 msgid "Your demo is built, with problems"
 msgstr ""
 
 #. translators: %s: demo name, e.g. Reign LearnDash.
-#: assets/js/wizard.js:605
+#: assets/js/wizard.js:639
 #, js-format
 msgid "Your %s demo is ready"
 msgstr ""
 
-#: assets/js/wizard.js:605
+#: assets/js/wizard.js:639
 msgid "Your site is ready"
 msgstr ""
 
-#: assets/js/wizard.js:606
+#: assets/js/wizard.js:640
 msgid "Some products could not finish their part. The list below says which and why."
 msgstr ""
 
 #. translators: %s: number of items.
-#: assets/js/wizard.js:606
+#: assets/js/wizard.js:640
 #, js-format
 msgid "%s sample items, set up and ready to explore. Nothing was sent to anyone."
 msgstr ""
 
-#: assets/js/wizard.js:609
+#: assets/js/wizard.js:643
 msgid "Look around"
 msgstr ""
 
-#: assets/js/wizard.js:610
+#: assets/js/wizard.js:644
 msgid "Make it yours"
 msgstr ""
 
-#: assets/js/wizard.js:610
+#: assets/js/wizard.js:644
 msgid "Edit the home page"
 msgstr ""
 
-#: assets/js/wizard.js:610
+#: assets/js/wizard.js:644
 msgid "Logo, colours and site name"
 msgstr ""
 
-#: assets/js/wizard.js:610
+#: assets/js/wizard.js:644
 msgid "Review product settings"
 msgstr ""
 
-#: assets/js/wizard.js:612
+#: assets/js/wizard.js:646
 msgid "Done exploring?"
 msgstr ""
 
-#: assets/js/wizard.js:613
+#: assets/js/wizard.js:647
 msgid "Start my real site"
 msgstr ""
 
-#: assets/js/wizard.js:613
+#: assets/js/wizard.js:647
 msgid "Removes the sample people and content. Keeps the pages, menu, categories and settings so you build on them."
 msgstr ""
 
-#: assets/js/wizard.js:614
+#: assets/js/wizard.js:648
 msgid "Remove everything"
 msgstr ""
 
-#: assets/js/wizard.js:614
+#: assets/js/wizard.js:648
 msgid "Puts the site back as it was before the demo: your home page, menu and settings return."
 msgstr ""
 
-#: assets/js/wizard.js:615
-#: assets/js/wizard.js:692
+#: assets/js/wizard.js:649
+#: assets/js/wizard.js:726
 msgid "Try a different demo"
 msgstr ""
 
-#: assets/js/wizard.js:615
+#: assets/js/wizard.js:649
 msgid "Removes everything, then takes you back to pick another demo."
 msgstr ""
 
-#: assets/js/wizard.js:616
+#: assets/js/wizard.js:650
 msgid "You see what will be removed and confirm before anything changes. Your own users and posts are never touched."
 msgstr ""
 
-#: assets/js/wizard.js:617
+#: assets/js/wizard.js:650
+msgid "Take your demo site live"
+msgstr ""
+
+#. translators: %s: film length (m:ss).
+#: assets/js/wizard.js:650
+#, js-format
+msgid "Watch how to take it live (%s)"
+msgstr ""
+
+#: assets/js/wizard.js:651
 msgid "What the demo added"
 msgstr ""
 
 #. translators: %s: comma-separated page and menu names.
-#: assets/js/wizard.js:618
+#: assets/js/wizard.js:652
 #, js-format
 msgid "Reused from an earlier demo, as they are: %s."
 msgstr ""
 
-#: assets/js/wizard.js:620
-#: assets/js/wizard.js:689
+#: assets/js/wizard.js:654
+#: assets/js/wizard.js:723
 msgid "Visit your site"
 msgstr ""
 
-#: assets/js/wizard.js:626
+#: assets/js/wizard.js:660
 msgid "No demo data on this site"
 msgstr ""
 
-#: assets/js/wizard.js:627
+#: assets/js/wizard.js:661
 msgid "The installer is not tracking any sample content or setup here. Your own users and content are never listed."
 msgstr ""
 
-#: assets/js/wizard.js:628
+#: assets/js/wizard.js:662
 msgid "When you build a demo, this screen lets you remove all of it or choose what to remove, at any time."
 msgstr ""
 
-#: assets/js/wizard.js:629
-#: assets/js/wizard.js:692
+#: assets/js/wizard.js:663
+#: assets/js/wizard.js:726
 msgid "Go to dashboard"
 msgstr ""
 
-#: assets/js/wizard.js:629
+#: assets/js/wizard.js:663
 msgid "Set up a demo"
 msgstr ""
 
-#: assets/js/wizard.js:637
+#: assets/js/wizard.js:671
 msgid "Nothing"
 msgstr ""
 
-#: assets/js/wizard.js:639
+#: assets/js/wizard.js:673
 msgid "Remove"
 msgstr ""
 
-#: assets/js/wizard.js:639
+#: assets/js/wizard.js:673
 msgid "setup"
 msgstr ""
 
-#: assets/js/wizard.js:640
-#: assets/js/wizard.js:658
-#: assets/js/wizard.js:665
-#: assets/js/wizard.js:676
-#: assets/js/wizard.js:709
+#: assets/js/wizard.js:674
+#: assets/js/wizard.js:692
+#: assets/js/wizard.js:699
+#: assets/js/wizard.js:710
+#: assets/js/wizard.js:743
 msgid "Finish demo"
 msgstr ""
 
-#: assets/js/wizard.js:641
+#: assets/js/wizard.js:675
 msgid "What should stay?"
 msgstr ""
 
-#: assets/js/wizard.js:642
+#: assets/js/wizard.js:676
 msgid "Your own users and content are never touched."
 msgstr ""
 
-#: assets/js/wizard.js:644
+#: assets/js/wizard.js:678
 msgid "Keep my setup, remove sample content"
 msgstr ""
 
-#: assets/js/wizard.js:644
+#: assets/js/wizard.js:678
 msgid "Removes the sample people and everything they made. Keeps settings, pages, menus and categories."
 msgstr ""
 
-#: assets/js/wizard.js:644
+#: assets/js/wizard.js:678
 msgid "Recommended"
 msgstr ""
 
-#: assets/js/wizard.js:645
+#: assets/js/wizard.js:679
 msgid "Let me choose"
 msgstr ""
 
-#: assets/js/wizard.js:645
+#: assets/js/wizard.js:679
 msgid "Pick per product what goes and what stays."
 msgstr ""
 
-#: assets/js/wizard.js:646
+#: assets/js/wizard.js:680
 msgid "Remove everything the demo added"
 msgstr ""
 
-#: assets/js/wizard.js:646
+#: assets/js/wizard.js:680
 msgid "Also removes the sample categories, pages and setup, and puts back your previous home page, menu and logo."
 msgstr ""
 
-#: assets/js/wizard.js:648
+#: assets/js/wizard.js:682
 msgid "Some sample content stays, so the sample people who made it stay too."
 msgstr ""
 
-#: assets/js/wizard.js:649
+#: assets/js/wizard.js:683
 msgid "Will remove"
 msgstr ""
 
-#: assets/js/wizard.js:649
+#: assets/js/wizard.js:683
 msgid "Will keep"
 msgstr ""
 
-#: assets/js/wizard.js:649
+#: assets/js/wizard.js:683
 msgid "Counting…"
 msgstr ""
 
-#: assets/js/wizard.js:650
+#: assets/js/wizard.js:684
 msgid "Cancel"
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:659
+#: assets/js/wizard.js:693
 #, js-format
 msgid "Remove %s sample item?"
 msgid_plural "Remove %s sample items?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:660
+#: assets/js/wizard.js:694
 msgid "This cannot be undone."
 msgstr ""
 
-#: assets/js/wizard.js:662
+#: assets/js/wizard.js:696
 msgid "Your previous home page, menu and logo will be put back. If you changed them after the build, your changes are kept."
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:663
+#: assets/js/wizard.js:697
 #, js-format
 msgid "%s is not active, so its sample content waits until you activate it again. Everything else is removed now."
 msgstr ""
 
-#: assets/js/wizard.js:664
+#: assets/js/wizard.js:698
 msgid "I understand the sample content is deleted permanently."
 msgstr ""
 
 #. translators: %s: number.
-#: assets/js/wizard.js:675
+#: assets/js/wizard.js:709
 #, js-format
 msgid "%s sample item"
 msgid_plural "%s sample items"
@@ -2530,109 +2553,109 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number.
-#: assets/js/wizard.js:675
+#: assets/js/wizard.js:709
 #, js-format
 msgid "%s setup item"
 msgid_plural "%s setup items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:677
+#: assets/js/wizard.js:711
 msgid "Your site is ready for real members"
 msgstr ""
 
-#: assets/js/wizard.js:677
+#: assets/js/wizard.js:711
 msgid "Done: everything you chose was removed"
 msgstr ""
 
-#: assets/js/wizard.js:677
+#: assets/js/wizard.js:711
 msgid "Almost done"
 msgstr ""
 
-#: assets/js/wizard.js:678
+#: assets/js/wizard.js:712
 msgid "We checked: nothing from the demo was left behind."
 msgstr ""
 
-#: assets/js/wizard.js:678
+#: assets/js/wizard.js:712
 msgid "Here is what is still on the site from the demo."
 msgstr ""
 
-#: assets/js/wizard.js:680
+#: assets/js/wizard.js:714
 msgid "Items removed"
 msgstr ""
 
-#: assets/js/wizard.js:681
+#: assets/js/wizard.js:715
 msgid "Kept by your choice"
 msgstr ""
 
-#: assets/js/wizard.js:682
+#: assets/js/wizard.js:716
 msgid "Sample people left"
 msgstr ""
 
-#: assets/js/wizard.js:682
+#: assets/js/wizard.js:716
 msgid "They stay while content they made is kept."
 msgstr ""
 
-#: assets/js/wizard.js:683
+#: assets/js/wizard.js:717
 msgid "Chosen items not removed yet"
 msgstr ""
 
-#: assets/js/wizard.js:686
+#: assets/js/wizard.js:720
 msgid "You changed your home page, menu or logo after the build, so we kept your version."
 msgstr ""
 
-#: assets/js/wizard.js:688
+#: assets/js/wizard.js:722
 msgid "These are records the products keep on purpose; they are not sample content and are not shown on the site."
 msgstr ""
 
-#: assets/js/wizard.js:689
+#: assets/js/wizard.js:723
 msgid "Next"
 msgstr ""
 
-#: assets/js/wizard.js:689
+#: assets/js/wizard.js:723
 msgid "Invite your first members"
 msgstr ""
 
-#: assets/js/wizard.js:690
+#: assets/js/wizard.js:724
 msgid "Installer no longer needed"
 msgstr ""
 
-#: assets/js/wizard.js:690
+#: assets/js/wizard.js:724
 msgid "You can deactivate and delete it. Nothing you kept depends on it."
 msgstr ""
 
-#: assets/js/wizard.js:691
+#: assets/js/wizard.js:725
 msgid "Keep the installer for now"
 msgstr ""
 
-#: assets/js/wizard.js:691
+#: assets/js/wizard.js:725
 msgid "It still tracks what the demo left, so you can remove it later from Appearance > Set up your site. Once only setup is left you can keep it as yours."
 msgstr ""
 
-#: assets/js/wizard.js:692
+#: assets/js/wizard.js:726
 msgid "Remove more"
 msgstr ""
 
-#: assets/js/wizard.js:692
+#: assets/js/wizard.js:726
 msgid "Pick another demo"
 msgstr ""
 
-#: assets/js/wizard.js:705
+#: assets/js/wizard.js:739
 msgid "Building your demo"
 msgstr ""
 
-#: assets/js/wizard.js:709
+#: assets/js/wizard.js:743
 msgid "Removing sample content"
 msgstr ""
 
-#: assets/js/wizard.js:715
+#: assets/js/wizard.js:749
 msgid "Try again"
 msgstr ""
 
-#: assets/js/wizard.js:741
+#: assets/js/wizard.js:775
 msgid "The server stopped answering. Your progress is saved: click Try again to continue where it stopped."
 msgstr ""
 
-#: assets/js/wizard.js:1166
+#: assets/js/wizard.js:1223
 msgid "The wizard could not load. Reload the page."
 msgstr ""

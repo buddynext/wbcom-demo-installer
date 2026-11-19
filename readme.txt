@@ -4,7 +4,7 @@ Tags: demo content, sample data, community, setup wizard, buddynext
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,38 @@ That product's sample content waits, and the sample people who made it stay, unt
 Yes. Nothing you kept depends on it. If sample content is still on the site, uninstalling keeps the plugin's record of it so reinstalling can still finish the demo.
 
 == Changelog ==
+
+= 1.2.0 - November 2026 =
+
+Demos that look finished, link straight to one demo, and show how each is set up.
+
+* New      - Watch how on each demo card plays the film of that demo being set up on your theme, and the ready screen links the film on taking it live.
+* New      - A link with &demo=<id> opens Set up your site on one demo, so a theme's Build this site button lands on the demo the owner chose.
+* New      - On a site without BuddyX Pro or Reign, the BuddyX demos install the free BuddyX theme from WordPress.org and switch it on last.
+* New      - Try the demo installs User Switching, so Explore as signs you in as the sample person.
+* New      - Every Learnomy course has an end-of-course quiz, already taken and graded by sample students.
+* Improve  - Home pages open with a full-width hero, About and Join are styled, and the demo has a footer with its own menu.
+* Improve  - Community demos open on the community: hero, numbers and members lead the home page.
+* Improve  - The demo menu groups pages under Community, Explore and About.
+* Improve  - Events run over the next eight weeks with one recent past event, and they are approved so RSVPs land.
+* Improve  - Services demo orders are paid with real dates, and two sellers reach the Rising level.
+* Improve  - Course lesson URLs no longer end in the course id.
+* Improve  - Course, directory and services reviews are approved, dated and removed with the demo.
+* Improve  - WPMediaVerse albums hold their owner's photos, and photos carry real tags and categories.
+* Improve  - The site check says Activate for installed plugins and no longer shows the Pro line on free plugins.
+* Improve  - A demo card being set up stays in sight and counts its plugins as they install.
+* Fix      - Building again after Start my real site no longer creates a second home page, menu, listing or event.
+* Fix      - A demo login already taken on the site no longer shifts sample content to the wrong people.
+* Fix      - Remove everything restores a site name that contains &, ' or ".
+* Fix      - A stopped Remove everything that is resumed finishes as Remove everything and puts every setting back.
+* Fix      - Start my real site keeps the pictures on the pages and categories it keeps.
+* Fix      - The kept home page no longer shows the sample's numbers after Start my real site.
+* Fix      - Jobs demo salaries use Career Board's own pay periods.
+* Fix      - Every item of a large content pack is built, not only the first ones.
+* Fix      - On phones the ready screen's footer no longer covers the finish buttons.
+* Fix      - Try the demo tour text and badges pass WCAG AA contrast on every theme.
+* Fix      - A WP-CLI build no longer carries one step's sample date into the next step.
+* Dev      - New guide for Product Roadmap on Try the demo, a local CI script and a table lock.
 
 = 1.1.1 - November 2026 =
 
