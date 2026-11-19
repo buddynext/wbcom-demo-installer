@@ -29,7 +29,7 @@ recipe. After Remove everything the status is `idle` again, so the card offers a
 ## The site tiles: `wbcom_demo_list()`
 
 Returns `demos` and `go_live`. Each demo has `id`, `name`, `desc`, `group` (`ours`, `theme` or `addon`), `purpose`,
-`featured`, `state`, `image`, `preview`, `film` (`id` and `length`, or empty) and `url`.
+`featured`, `state`, `image`, `preview`, `film` (`id` and `length`, or empty), `url`, `needs` and `optional`.
 
 - Show the `featured` demos as tiles: one per purpose (community, learning, events, jobs, directory, services, shop),
   with the demo for a plugin the owner already runs in its purpose's place.
@@ -41,6 +41,16 @@ Returns `demos` and `go_live`. Each demo has `id`, `name`, `desc`, `group` (`our
   or switches on what is missing in one click. `blocked`: something cannot be set up from here, either a paid plugin
   or add-on to upload, or this account or host does not allow installing plugins; the wizard card says which.
   `conflict`: the site runs another community plugin, so this demo does not fit.
+- `needs` lists what is still missing, each as `label`, `action` and `url`. Show it on the tile so the owner is never
+  lost, above all for paid items:
+
+  | `action` | Tell the owner |
+  |---|---|
+  | `install` | "Installed for you" (free; the wizard sets it up in one click) |
+  | `upload` | "Paid: download it from `url`, then upload it under Plugins > Add New > Upload Plugin" (Reign add-ons, Pro add-ons, other paid plugins) |
+  | `ask` | "Ask an administrator to add it" (this account or host cannot install plugins) |
+
+  `optional` lists paid add-ons that improve the demo but are not required, in the same shape.
 - `film` is the setup film recorded on this theme, when there is one. `go_live` is the film for taking a site live.
   Load YouTube only on click (`youtube-nocookie.com`).
 

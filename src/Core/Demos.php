@@ -82,6 +82,8 @@ final class Demos {
 				'image'    => $c['image'],
 				'preview'  => $c['preview'],
 				'film'     => $film( $c['film'] ),
+				'needs'    => $c['needs'],
+				'optional' => $c['optional'],
 				'url'      => add_query_arg( 'demo', rawurlencode( $c['id'] ), admin_url( 'themes.php?page=wbcom-demo' ) ),
 			);
 		}
@@ -140,6 +142,15 @@ final class Demos {
 				// uploads something first (a paid add-on or plugin).
 				'state'    => $conflict ? 'conflict' : ( ! $needed ? 'ready' : ( array_filter( $needed, static fn( array $r ): bool => ! $r['can'] ) ? 'blocked' : 'fixable' ) ),
 				'fix'      => array_values( array_map( static fn( array $r ): string => (string) $r['id'], array_filter( $needed, static fn( array $r ): bool => $r['can'] ) ) ),
+				// What is still missing and who does it: the installer (install), the owner (upload a paid plugin or
+				// add-on from their account), or an administrator (this account or host cannot install plugins).
+				'needs'    => array_values( array_map( array( self::class, 'need' ), $needed ) ),
+				'optional' => array_values(
+					array_map(
+						array( self::class, 'need' ),
+						array_filter( $rows, static fn( array $r ): bool => ! $r['required'] && 'active' !== $r['state'] )
+					)
+				),
 				'purpose'  => (string) ( $demo['purpose'] ?? '' ),
 				'ours'     => 'ours' === ( $demo['group'] ?? '' ),
 				'yours'    => self::triggered( $demo ),
@@ -286,6 +297,21 @@ final class Demos {
 			'paid'     => $s['paid'],
 			'url'      => $s['url'],
 			'required' => true,
+		);
+	}
+
+	/**
+	 * One missing item, as a card, a theme or WP-CLI tells the owner about it.
+	 *
+	 * @param array<string,mixed> $row Requirement row.
+	 * @return array{label:string,action:string,url:string}
+	 */
+	private static function need( array $row ): array {
+		$action = $row['can'] ? 'install' : ( ! empty( $row['paid'] ) ? 'upload' : 'ask' );
+		return array(
+			'label'  => (string) $row['label'],
+			'action' => $action,
+			'url'    => 'upload' === $action ? (string) $row['url'] : '',
 		);
 	}
 

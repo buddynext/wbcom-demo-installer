@@ -370,9 +370,12 @@
 			if ( r.can ) {
 				return __( 'Free: installed for you.', 'wbcom-demo-installer' );
 			}
-			return 'addon' === r.kind
-				? __( 'Download it from your Wbcom account, then upload it under Plugins > Add New.', 'wbcom-demo-installer' )
-				: __( 'Not on WordPress.org: get it, then upload it under Plugins > Add New.', 'wbcom-demo-installer' );
+			if ( 'addon' === r.kind ) {
+				return __( 'Paid add-on: download it from your Wbcom account, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' );
+			}
+			return r.paid
+				? __( 'Paid: get it, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' )
+				: __( 'This account or host cannot install plugins: ask an administrator to add it.', 'wbcom-demo-installer' );
 		};
 		const busy = Object.values( S.installing ).includes( 'busy' );
 		const card = ( d ) => {
@@ -410,7 +413,7 @@
 			} else if ( 'fixable' === d.state ) {
 				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo-fix="${ esc( d.id ) }" ${ busy ? 'disabled' : '' }>${ esc( busy && S.demoBusy === d.id ? sprintf( /* translators: 1: plugin being set up, 2: how many in all. */ __( 'Setting up %1$d of %2$d...', 'wbcom-demo-installer' ), ...( S.demoStep || [ 1, 1 ] ) ) : __( 'Set up and use this demo', 'wbcom-demo-installer' ) ) }</button>`;
 			} else {
-				action = `<span class="wdi-muted wdi-small">${ esc( __( 'Upload what is marked, then come back.', 'wbcom-demo-installer' ) ) }</span>`;
+				action = `<span class="wdi-muted wdi-small">${ esc( __( 'Upload what is marked under Plugins > Add New > Upload Plugin, then come back here to set it up.', 'wbcom-demo-installer' ) ) }</span>`;
 			}
 			const preview = ( d.preview ? `<a class="wdi-link" href="${ esc( d.preview ) }" target="_blank" rel="noopener">${ esc( __( 'Live preview', 'wbcom-demo-installer' ) ) }</a>` : '' ) + filmLink( d.film, d.name );
 			const img = d.image ? `<img class="wdi-demo__img" src="${ esc( d.image ) }" alt="" loading="lazy" width="720" height="450">` : `<div class="wdi-demo__img wdi-demo__img--none">${ ic( 'palette', 'wdi-i--lg' ) }</div>`;
