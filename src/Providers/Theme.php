@@ -154,6 +154,10 @@ final class Theme extends Provider {
 		if ( ! self::branded() ) {
 			return;
 		}
+		// A demo about something else (courses, events, a shop) is not a BuddyNext community: no BuddyNext wordmark.
+		if ( '' !== (string) $ctx->state->get( 'demo_id' ) && 'community' !== $ctx->state->get( 'lead' ) ) {
+			return;
+		}
 		$admin = (int) get_current_user_id();
 		// The sample logo is a wordmark; an owner who typed their own site name sees that name in the header instead.
 		$logo = $ctx->state->get( 'own_name' ) ? 0 : $ctx->attachment( 'brand/site-logo.png', $admin, $this->id(), 'setup' );
@@ -558,10 +562,20 @@ final class Theme extends Provider {
 		// Each product's links in its group. Past six links the menu reads as a wall, so the groups become
 		// dropdowns (a group with one link stays a plain link); a small demo keeps one flat row.
 		$groups = array_fill_keys( array_keys( self::groups() ), array() );
+		// The product the demo is about (Courses on a course site) sits top-level, before the groups.
+		$main = \WbcomDemo\Core\Demos::main( (string) $ctx->state->get( 'demo_id' ) );
+		$lead = array();
 		foreach ( $this->included( $ctx ) as $p ) {
 			foreach ( $p->menu_items() as $item ) {
+				if ( $p->id() === $main && 'explore' === self::group_of( $main ) ) {
+					$lead[] = $item;
+					continue;
+				}
 				$groups[ self::group_of( $p->id() ) ][] = $item;
 			}
+		}
+		foreach ( $lead as $item ) {
+			self::menu_link( (int) $menu_id, $item, $pos++ );
 		}
 		$groups = array_filter( $groups );
 		$nested = count( $groups, COUNT_RECURSIVE ) - count( $groups ) > 6;

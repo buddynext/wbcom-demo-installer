@@ -53,13 +53,21 @@ final class Demos {
 	 * @param string[] $products Provider ids being built.
 	 */
 	public static function builds( string $demo, array $products ): bool {
+		$main = self::main( $demo );
+		return '' !== $main && in_array( $main, $products, true );
+	}
+
+	/**
+	 * The product a demo is about (provider id): its community plugin for a community demo, else its first product
+	 * beyond the community set and pages, which come with most demos. Empty for an unknown demo.
+	 *
+	 * @param string $demo Gallery demo id.
+	 */
+	public static function main( string $demo ): string {
 		$d   = self::all()[ $demo ] ?? null;
 		$all = is_array( $d ) ? self::products( self::expand( (array) $d['requires'] ) ) : array();
-		// A community demo is about its community plugin; any other demo about its first product beyond the community
-		// set and pages, which come with most demos.
-		$own  = array_values( array_diff( $all, self::COMMUNITY, self::OUR_MEMBERS, array( 'pages' ) ) );
-		$main = 'community' === self::lead( $demo ) ? ( $all[0] ?? '' ) : ( $own[0] ?? ( $all[0] ?? '' ) );
-		return '' !== $main && in_array( $main, $products, true );
+		$own = array_values( array_diff( $all, self::COMMUNITY, self::OUR_MEMBERS, array( 'pages' ) ) );
+		return (string) ( 'community' === self::lead( $demo ) ? ( $all[0] ?? '' ) : ( $own[0] ?? ( $all[0] ?? '' ) ) );
 	}
 
 	/**
@@ -176,6 +184,7 @@ final class Demos {
 					)
 				),
 				'purpose'  => (string) ( $demo['purpose'] ?? '' ),
+				'lead'     => self::lead( (string) $id ), // 'community' when the BuddyNext logo and community hero go with it.
 				'ours'     => 'ours' === ( $demo['group'] ?? '' ),
 				'yours'    => self::triggered( $demo ),
 				'featured' => false,

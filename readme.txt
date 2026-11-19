@@ -72,7 +72,8 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * New      - Every Learnomy course has an end-of-course quiz, already taken and graded by sample students.
 * Improve  - Home pages open with a full-width hero, About and Join are styled, and the demo has a footer with its own menu.
 * Improve  - Community demos open on the community: hero, numbers and members lead the home page.
-* Improve  - The demo menu groups pages under Community, Explore and About.
+* Improve  - The demo menu groups pages under Community, Explore and About, with the demo's own product (Courses on a course site) top-level.
+* Fix      - A course, events, jobs, directory, services or store demo no longer gets the BuddyNext logo; the header keeps the site name.
 * Improve  - Events run over the next eight weeks with one recent past event, and they are approved so RSVPs land.
 * Improve  - Services demo orders are paid with real dates, and two sellers reach the Rising level.
 * Improve  - Course lesson URLs no longer end in the course id.
