@@ -175,6 +175,7 @@ final class Page {
 				'customize' => admin_url( 'customize.php' ),
 				'users'     => admin_url( 'user-new.php' ),
 				'plugins'   => admin_url( 'plugins.php' ),
+				'upload'    => admin_url( 'plugin-install.php?tab=upload' ),
 				// The Wbcom Essential block code on this page; when the wizard updates Essential it reloads first.
 				'essential' => defined( 'WBCOM_ESSENTIAL_VERSION' ) ? (string) WBCOM_ESSENTIAL_VERSION : '',
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended

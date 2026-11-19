@@ -374,8 +374,8 @@
 				return __( 'This account or host cannot add plugins here: ask an administrator to add it.', 'wbcom-demo-installer' );
 			}
 			return 'addon' === r.kind
-				? __( 'Paid add-on: download it from your Wbcom account, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' )
-				: __( 'Paid: get it, then upload it under Plugins > Add New > Upload Plugin.', 'wbcom-demo-installer' );
+				? __( 'Paid add-on: download it from your Wbcom account.', 'wbcom-demo-installer' )
+				: __( 'Paid: get it from its maker.', 'wbcom-demo-installer' );
 		};
 		const busy = Object.values( S.installing ).includes( 'busy' );
 		const card = ( d ) => {
@@ -396,7 +396,10 @@
 			let summary = auto.length
 				? sprintf( /* translators: %d: number of plugins. */ _n( 'Sets up %d plugin for you in one click.', 'Sets up %d plugins for you in one click.', auto.length, 'wbcom-demo-installer' ), auto.length )
 				: ( upload.length ? '' : __( 'Everything it needs is active.', 'wbcom-demo-installer' ) );
-			if ( theme && 'inactive' === theme.state ) {
+			if ( 'blocked' === d.state ) {
+				// Nothing happens in one click until the paid part is uploaded: say what follows the upload.
+				summary = auto.length ? sprintf( /* translators: %d: number of plugins. */ _n( 'After that, it sets up %d free plugin for you.', 'After that, it sets up %d free plugins for you.', auto.length, 'wbcom-demo-installer' ), auto.length ) : '';
+			} else if ( theme && 'inactive' === theme.state ) {
 				summary = auto.length
 					? sprintf( /* translators: 1: theme name, 2: number of plugins. */ _n( 'Switches on the %1$s theme and sets up %2$d plugin in one click.', 'Switches on the %1$s theme and sets up %2$d plugins in one click.', auto.length, 'wbcom-demo-installer' ), theme.label, auto.length )
 					: sprintf( /* translators: %s: theme name. */ __( 'Switches on the %s theme in one click.', 'wbcom-demo-installer' ), theme.label );
@@ -413,7 +416,9 @@
 			} else if ( 'fixable' === d.state ) {
 				action = `<button type="button" class="wdi-btn wdi-btn--primary" data-demo-fix="${ esc( d.id ) }" ${ busy ? 'disabled' : '' }>${ esc( busy && S.demoBusy === d.id ? sprintf( /* translators: 1: plugin being set up, 2: how many in all. */ __( 'Setting up %1$d of %2$d...', 'wbcom-demo-installer' ), ...( S.demoStep || [ 1, 1 ] ) ) : __( 'Set up and use this demo', 'wbcom-demo-installer' ) ) }</button>`;
 			} else {
-				action = `<span class="wdi-muted wdi-small">${ esc( __( 'Upload what is marked under Plugins > Add New > Upload Plugin, then come back here to set it up.', 'wbcom-demo-installer' ) ) }</span>`;
+				// Blocked: the owner uploads the paid part (or asks an administrator), then checks again here.
+				const canUpload = upload.some( ( r ) => 'upload' === r.how );
+				action = `${ canUpload ? `<a class="wdi-btn wdi-btn--primary" href="${ esc( cfg.upload ) }" target="_blank" rel="noopener">${ esc( __( 'Upload plugin', 'wbcom-demo-installer' ) ) }</a>` : `<span class="wdi-muted wdi-small">${ esc( __( 'Ask an administrator to add what is marked.', 'wbcom-demo-installer' ) ) }</span>` }<button type="button" class="wdi-btn" data-go="recheck">${ esc( __( 'Check again', 'wbcom-demo-installer' ) ) }</button>`;
 			}
 			const preview = ( d.preview ? `<a class="wdi-link" href="${ esc( d.preview ) }" target="_blank" rel="noopener">${ esc( __( 'Live preview', 'wbcom-demo-installer' ) ) }</a>` : '' ) + filmLink( d.film, d.name );
 			const img = d.image ? `<img class="wdi-demo__img" src="${ esc( d.image ) }" alt="" loading="lazy" width="720" height="450">` : `<div class="wdi-demo__img wdi-demo__img--none">${ ic( 'palette', 'wdi-i--lg' ) }</div>`;
@@ -537,12 +542,13 @@
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
 			focus ? sprintf( /* translators: %s: demo name. */ __( 'Set up %s', 'wbcom-demo-installer' ), focus.name ) : ( locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'What is your site for?', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ) ) ),
 			focus ? ( {
-				blocked: __( 'The demo you picked. Upload what is marked, then come back here to set it up.', 'wbcom-demo-installer' ),
+				blocked: __( 'The demo you picked needs a paid plugin. Upload it, then check again.', 'wbcom-demo-installer' ),
 				conflict: __( 'The demo you picked is built on a different community plugin than this site runs. Choose a different demo below.', 'wbcom-demo-installer' ),
 				fixable: __( 'The demo you picked. One click installs the free plugins it needs, then you choose what to include.', 'wbcom-demo-installer' ),
 			}[ focus.state ] || __( 'The demo you picked. Use it to choose what to include.', 'wbcom-demo-installer' ) ) : locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'Pick one. It installs the free plugins it needs, and you can change every product on the next step.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ) ),
 			`${ S.brief || focus ? '' : aiPanel() }${ ideaNote( 'start' ) }${ body }`,
-			foot( 'check', 'products', { disabled: ! S.recipe } )
+			// Each card has its own button: Continue only for a starting point, and not beside a demo the link opened.
+			foot( 'check', S.recipe && ! focus ? 'products' : null )
 		);
 	}
 
@@ -1196,6 +1202,15 @@
 			}
 		} else if ( 'finish' === to ) {
 			openFinish();
+		} else if ( 'recheck' === to ) {
+			// After uploading a paid plugin in another tab: read the site again, so the card shows what is ready.
+			btn.disabled = true;
+			try {
+				S.site = ( await api( '/site' ) ).site;
+			} catch ( err ) {
+				S.error = err.message;
+			}
+			render();
 		} else if ( [ 'finish-keep', 'finish-all', 'finish-again' ].includes( to ) ) {
 			// The ready screen's three choices: that choice made, straight to Confirm.
 			S.mode = 'finish-keep' === to ? 'keep' : 'all';

@@ -83,7 +83,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Improve  - WPMediaVerse albums hold their owner's photos, and photos carry real tags and categories.
 * Improve  - The site check says Activate for installed plugins and no longer shows the Pro line on free plugins.
 * Improve  - The site check has one install button, and Continue stays secondary until a product is active.
-* Improve  - Demo cards and WP-CLI say exactly which paid add-ons or plugins to upload yourself and where to download them.
+* Improve  - A demo that needs a paid add-on or plugin names each one with where to get it, an Upload plugin button and Check again, in the wizard and in WP-CLI.
 * Improve  - wp wbcom-demo build --demo=<id> --install-missing installs the demo's free plugins, then builds.
 * Improve  - A demo card being set up stays in sight and counts its plugins as they install.
 * Fix      - Building again after Start my real site no longer creates a second home page, menu, listing or event.
