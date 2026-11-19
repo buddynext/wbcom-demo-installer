@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-19T05:26:13+00:00\n"
+"POT-Creation-Date: 2026-11-19T06:44:45+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -158,57 +158,57 @@ msgstr ""
 msgid "Choose at least one product."
 msgstr ""
 
-#: src/Core/Engine.php:322
+#: src/Core/Engine.php:323
 msgid "There is no finished demo to add to. Build one first."
 msgstr ""
 
-#: src/Core/Engine.php:328
+#: src/Core/Engine.php:329
 msgid "Every product named is already in the demo or not available here."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:449
+#: src/Core/Engine.php:450
 #, php-format
 msgid "%s: a step stopped the request twice (often the PHP memory limit), so the rest of this product was skipped."
 msgstr ""
 
 #. translators: %s: product name.
-#: src/Core/Engine.php:519
+#: src/Core/Engine.php:520
 #, php-format
 msgid "the text for %s"
 msgstr ""
 
-#: src/Core/Engine.php:539
+#: src/Core/Engine.php:540
 msgid "sample content"
 msgstr ""
 
-#: src/Core/Engine.php:575
+#: src/Core/Engine.php:576
 #: src/Providers/GeoDirectory.php:636
 #: src/Providers/Listora.php:494
 #: src/Providers/SellServices.php:569
 msgid "categories"
 msgstr ""
 
-#: src/Core/Engine.php:576
+#: src/Core/Engine.php:577
 msgid "images"
 msgstr ""
 
-#: src/Core/Engine.php:577
+#: src/Core/Engine.php:578
 #: src/Providers/Pages.php:95
 #: src/Providers/Pages.php:109
 msgid "pages"
 msgstr ""
 
-#: src/Core/Engine.php:578
+#: src/Core/Engine.php:579
 #: src/Providers/People.php:334
 msgid "accounts"
 msgstr ""
 
-#: src/Core/Engine.php:579
+#: src/Core/Engine.php:580
 msgid "store currency setting"
 msgstr ""
 
-#: src/Core/Engine.php:580
+#: src/Core/Engine.php:581
 #: src/Providers/PeepSo.php:121
 msgid "comments"
 msgstr ""
@@ -646,7 +646,7 @@ msgstr ""
 #: src/Providers/Dokan.php:228
 #: src/Providers/WCFM.php:176
 #: src/Providers/WCFM.php:319
-#: src/Providers/WCVendors.php:210
+#: src/Providers/WCVendors.php:225
 msgid "Stores"
 msgstr ""
 
@@ -1321,16 +1321,20 @@ msgid "WCFM did not make the store."
 msgstr ""
 
 #. translators: %d: shops
-#: src/Providers/WCVendors.php:112
+#: src/Providers/WCVendors.php:114
 #, php-format
-msgid "A marketplace of %d vendor shops with addresses and phone numbers, selling the sample products"
+msgid "A marketplace of %d vendor shops with banners, addresses and phone numbers, selling the sample products"
 msgstr ""
 
-#: src/Providers/WCVendors.php:122
+#: src/Providers/WCVendors.php:125
 msgid "vendor shops"
 msgstr ""
 
-#: src/Providers/WCVendors.php:165
+#: src/Providers/WCVendors.php:126
+msgid "shop banners"
+msgstr ""
+
+#: src/Providers/WCVendors.php:169
 msgid "WC Vendors did not make the vendor."
 msgstr ""
 

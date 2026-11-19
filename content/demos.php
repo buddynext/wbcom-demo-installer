@@ -7,7 +7,8 @@
  * Each demo: theme family (Providers\Theme::theme_family()), the plugins it needs (catalog ids, see
  * Core\Installer::catalog(); "community" means any community plugin, else BuddyPress), the Reign add-on it presents
  * (addon demos) or the add-ons that improve it (theme demos, optional), the products it builds (provider ids) and
- * its live sandbox, and its setup film per theme family ('*': any; YouTube id and length). The card image is that sandbox's image on wbcomdesigns.com/demos, or media/demos/<id>.webp for a demo with no sandbox of its own.
+ * its live sandbox, its niche (content/niches/<niche>/<provider>.php replaces those keys of the provider's sample
+ * content), and its setup film per theme family ('*': any; YouTube id and length). The card image is that sandbox's image on wbcomdesigns.com/demos, or media/demos/<id>.webp for a demo with no sandbox of its own.
  *
  * Filter: wbcom_demo_demos.
  *
@@ -274,6 +275,7 @@ return array(
 		'preview'  => '',
 	),
 	'reign-dokan'               => array(
+		'niche'    => 'store', // The community talks about what the shops sell (content/niches/store).
 		'purpose'  => 'shop',
 		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
 		'trigger'  => array( 'dokan' ),
@@ -286,6 +288,7 @@ return array(
 		'preview'  => 'https://dmine-base-nice.instawp.xyz/',
 	),
 	'reign-wcfm'                => array(
+		'niche'    => 'store', // The community talks about what the shops sell (content/niches/store).
 		'purpose'  => 'shop',
 		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
 		'trigger'  => array( 'wcfm' ),
@@ -298,6 +301,7 @@ return array(
 		'preview'  => 'https://reign-wcfm.instawp.xyz/',
 	),
 	'reign-wc-vendors'          => array(
+		'niche'    => 'store', // The community talks about what the shops sell (content/niches/store).
 		'purpose'  => 'shop',
 		// Shown in place of ours when this plugin is active or its Reign add-on is uploaded.
 		'trigger'  => array( 'wcvendors' ),

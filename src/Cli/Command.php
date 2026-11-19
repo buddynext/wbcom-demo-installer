@@ -158,8 +158,15 @@ final class Command {
 				}
 				$want = isset( $assoc['include'] ) ? array_filter( array_map( 'trim', explode( ',', $assoc['include'] ) ) ) : array_merge( Installer::CORE, $all[ $recipe ]['use'], $all[ $recipe ]['needs'] );
 			}
-			$waits = isset( $demo ) && 'blocked' === $demo['state'];
-			$this->install_ids( array_values( array_unique( $want ) ), ! $waits );
+			$waits  = isset( $demo ) && 'blocked' === $demo['state'];
+			$want   = array_values( array_unique( $want ) );
+			$addons = array_values( array_filter( $want, static fn( string $id ): bool => str_starts_with( $id, 'addon:' ) ) );
+			$this->install_ids( array_values( array_diff( $want, $addons ) ), ! $waits && ! $addons );
+			if ( $addons ) {
+				// WordPress checks an add-on's required plugins once per request: switch the add-ons on in a fresh one,
+				// now that their plugins are active.
+				$this->relaunch( 'wbcom-demo install ' . implode( ' ', $addons ) );
+			}
 			if ( $waits ) {
 				// The free part is in; what is left is the owner's to upload, so stop here and say exactly what.
 				WP_CLI::error( $this->needs( $demo, true ) );
@@ -459,7 +466,7 @@ final class Command {
 	 *
 	 * [<ids>...]
 	 * : Product ids: buddynext, mediaverse, jetonomy, learnomy, eventonomy, careerboard, listora, sellservices,
-	 * mediashield, roadmap, gamification, or buddyx for the theme.
+	 * mediashield, roadmap, gamification, buddyx for the theme, or addon:<folder> to switch on an uploaded Reign add-on.
 	 *
 	 * [--all]
 	 * : Every free product in the list.
@@ -475,7 +482,7 @@ final class Command {
 	public function install( $args, $assoc ): void {
 		$this->as_admin();
 		// --all: every product the installer can download (not the theme, not the ones uploaded by hand).
-		$ids = isset( $assoc['all'] ) ? array_keys( array_filter( Installer::catalog(), static fn( array $e, string $id ): bool => 'buddyx' !== $id && ( isset( $e['wporg'] ) || isset( $e['item_id'] ) ), ARRAY_FILTER_USE_BOTH ) ) : array_map( 'sanitize_key', $args );
+		$ids = isset( $assoc['all'] ) ? array_keys( array_filter( Installer::catalog(), static fn( array $e, string $id ): bool => 'buddyx' !== $id && ( isset( $e['wporg'] ) || isset( $e['item_id'] ) ), ARRAY_FILTER_USE_BOTH ) ) : array_map( static fn( string $a ): string => str_starts_with( $a, 'addon:' ) ? 'addon:' . sanitize_key( substr( $a, 6 ) ) : sanitize_key( $a ), $args );
 		if ( ! $ids ) {
 			WP_CLI::error( 'Name the products to install, or pass --all.' );
 		}
@@ -533,14 +540,16 @@ final class Command {
 	 */
 	private function install_ids( array $ids, bool $done = true ): void {
 		$catalog = Installer::catalog();
+		$changed = false;
 		foreach ( $ids as $id ) {
 			if ( str_starts_with( $id, 'addon:' ) ) {
 				// A Reign add-on the owner uploaded: switched on as the demo card does.
 				WP_CLI::log( sprintf( 'Activating %s...', substr( $id, 6 ) ) );
-				$done = Installer::install( $id );
-				if ( is_wp_error( $done ) ) {
-					WP_CLI::error( sprintf( '%s: %s', $id, $done->get_error_message() ) );
+				$result = Installer::install( $id );
+				if ( is_wp_error( $result ) ) {
+					WP_CLI::error( sprintf( '%s: %s', $id, $result->get_error_message() ) );
 				}
+				$changed = true;
 				continue;
 			}
 			// The whole catalog, as the demo cards use it: the site check's list hides a Reign add-on's plugin
@@ -562,14 +571,56 @@ final class Command {
 					$id
 				)
 			);
-			$done = Installer::install( $id );
-			if ( is_wp_error( $done ) ) {
-				WP_CLI::error( sprintf( '%s: %s', $id, $done->get_error_message() ) );
+			$result = Installer::install( $id );
+			if ( is_wp_error( $result ) ) {
+				WP_CLI::error( sprintf( '%s: %s', $id, $result->get_error_message() ) );
 			}
+			$changed = true;
 			WP_CLI::log( sprintf( '%s is active.', $id ) );
+		}
+		if ( $changed ) {
+			$this->settle();
 		}
 		if ( $done ) {
 			WP_CLI::success( 'Products are ready.' );
+		}
+	}
+
+	/**
+	 * Let the plugins just installed finish their first-run setup: several (BuddyPress among them) do it only on an
+	 * admin page load, which WP-CLI never makes. One request to wp-admin as this administrator does it, as the
+	 * wizard's background page load does. A host that blocks requests to itself gets told what to do instead.
+	 */
+	private function settle(): void {
+		$user   = get_current_user_id();
+		$url    = admin_url( 'index.php' );
+		$secure = 'https' === wp_parse_url( $url, PHP_URL_SCHEME );
+		$expiry = time() + 5 * MINUTE_IN_SECONDS;
+		$res    = wp_remote_get(
+			$url,
+			array(
+				'timeout'     => 60,
+				'redirection' => 0,
+				'sslverify'   => (bool) apply_filters( 'https_local_ssl_verify', false ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core filter.
+				'cookies'     => array(
+					new \WP_Http_Cookie(
+						array(
+							'name'  => $secure ? SECURE_AUTH_COOKIE : AUTH_COOKIE,
+							'value' => wp_generate_auth_cookie( $user, $expiry, $secure ? 'secure_auth' : 'auth' ),
+						)
+					),
+					new \WP_Http_Cookie(
+						array(
+							'name'  => LOGGED_IN_COOKIE,
+							'value' => wp_generate_auth_cookie( $user, $expiry, 'logged_in' ),
+						)
+					),
+				),
+			)
+		);
+		$code   = (int) wp_remote_retrieve_response_code( $res );
+		if ( is_wp_error( $res ) || $code < 200 || $code >= 400 ) {
+			WP_CLI::warning( 'Could not open wp-admin from here, so some new plugins may not have finished their setup. Open any wp-admin page once in the browser, then run the build again.' );
 		}
 	}
 

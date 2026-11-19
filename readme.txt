@@ -76,6 +76,9 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Improve  - Events run over the next eight weeks with one recent past event, and they are approved so RSVPs land.
 * Improve  - Services demo orders are paid with real dates, and two sellers reach the Rising level.
 * Improve  - Course lesson URLs no longer end in the course id.
+* Improve  - Marketplace demos (Dokan, WCFM, WC Vendors) get a community about the shops: store groups, a feed of restocks, styling and care tips, and customer photos.
+* Improve  - Product photos are square so product cards fill without letterboxing, and the online class sits in a Digital downloads category.
+* Improve  - WC Vendors shops get a banner on the demo home page (and in the shop header with WC Vendors Pro), and sample stores use real city-centre addresses that maps can find.
 * Improve  - Course, directory and services reviews are approved, dated and removed with the demo.
 * Improve  - WPMediaVerse albums hold their owner's photos, and photos carry real tags and categories.
 * Improve  - The site check says Activate for installed plugins and no longer shows the Pro line on free plugins.
@@ -94,6 +97,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Fix      - On phones the ready screen's footer no longer covers the finish buttons.
 * Fix      - Try the demo tour text and badges pass WCAG AA contrast on every theme.
 * Fix      - A WP-CLI build no longer carries one step's sample date into the next step.
+* Fix      - Plugins installed from WP-CLI finish their first-run setup before the build, and Reign add-ons switch on after the plugins they need.
 * Dev      - wbcom_demo_status() and wbcom_demo_list() (with each demo's needs: install, upload or ask) let a theme show the demo's progress and its own site tiles, and the wbcom_demo_return filter brings the owner back to the theme's screen.
 * Dev      - New guide for Product Roadmap on Try the demo, a local CI script and a table lock.
 

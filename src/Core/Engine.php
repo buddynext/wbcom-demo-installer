@@ -254,6 +254,7 @@ final class Engine {
 			->set( 'include', $products )
 			->set( 'demo', (string) ( Demos::all()[ $demo ]['name'] ?? '' ) ) // The gallery demo it was built from, for the ready screen.
 			->set( 'demo_id', isset( Demos::all()[ $demo ] ) ? $demo : '' )
+			->set( 'niche', sanitize_key( (string) ( Demos::all()[ $demo ]['niche'] ?? '' ) ) ) // Whose sample content (content/niches).
 			->set( 'lead', Demos::lead( $demo ) ) // Whose hero opens the home page.
 			->set( 'look', 'keep' === $look ? 'keep' : 'demo' )
 			->set( 'errors', array() )

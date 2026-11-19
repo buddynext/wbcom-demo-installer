@@ -1,6 +1,6 @@
 <?php
 /**
- * WC Vendors: sample people with the vendor role become shops (name, about, address, phone), and the WooCommerce
+ * WC Vendors: sample people with the vendor role become shops (name, about, address, phone, banner, icon), and the WooCommerce
  * sample products are shared out among them.
  *
  * @package WbcomDemo
@@ -18,14 +18,16 @@ defined( 'ABSPATH' ) || exit;
  * WC Vendors provider. A shop is made through WC Vendors' own wcv_set_primary_vendor_role() and its
  * Vendors_Settings object (which also makes the shop URL from the name), and a product belongs to the vendor who
  * authors it, as WC Vendors' product "Vendor" box saves it. So the vendors list, shop pages and "Sold by" lines
- * read them natively. The free plugin has no shop banner or logo (Pro does); the list shows the person's photo.
+ * read them natively. The shop banner (media/covers) and icon (the person's photo) go in WC Vendors' own
+ * store_banner and store_icon settings, which WC Vendors saves only with Pro active; the home page's shop cards show
+ * the banner either way.
  */
 final class WCVendors extends Provider {
 
 	/**
 	 * User meta WC Vendors keeps for a shop; cleared if the person outlives the demo.
 	 */
-	private const STORE_META = array( 'pv_shop_name', 'pv_shop_slug', 'pv_shop_description', 'pv_seller_info', '_wcv_vendor_status', '_wcv_store_phone', '_wcv_store_address1', '_wcv_store_city', '_wcv_store_postcode', '_wcv_store_country', '_wcv_store_state' );
+	private const STORE_META = array( 'pv_shop_name', 'pv_shop_slug', 'pv_shop_description', 'pv_seller_info', '_wcv_vendor_status', '_wcv_store_phone', '_wcv_store_address1', '_wcv_store_city', '_wcv_store_postcode', '_wcv_store_country', '_wcv_store_state', '_wcv_store_banner_id', '_wcv_store_icon_id' );
 
 	/**
 	 * {@inheritDoc}
@@ -109,7 +111,7 @@ final class WCVendors extends Provider {
 	public function summary(): string {
 		return sprintf(
 			/* translators: %d: shops */
-			__( 'A marketplace of %d vendor shops with addresses and phone numbers, selling the sample products', 'wbcom-demo-installer' ),
+			__( 'A marketplace of %d vendor shops with banners, addresses and phone numbers, selling the sample products', 'wbcom-demo-installer' ),
 			$this->store_count()
 		);
 	}
@@ -118,8 +120,10 @@ final class WCVendors extends Provider {
 	 * {@inheritDoc}
 	 */
 	public function plan(): array {
+		$n = $this->store_count();
 		return array(
-			'store' => array( $this->store_count(), 'sample', __( 'vendor shops', 'wbcom-demo-installer' ) ),
+			'store'      => array( $n, 'sample', __( 'vendor shops', 'wbcom-demo-installer' ) ),
+			'attachment' => array( $n, 'sample', __( 'shop banners', 'wbcom-demo-installer' ) ),
 		);
 	}
 
@@ -154,7 +158,7 @@ final class WCVendors extends Provider {
 	private function stores( Context $ctx ): void {
 		$vendors = $ctx->people( 'vendor' );
 		foreach ( array_slice( $this->content()['stores'], 0, $this->store_count() ) as $i => $row ) {
-			list( $name, , $about, $street, $city, $state, $zip, $country, $phone ) = $row;
+			list( $name, , $about, $street, $city, $state, $zip, $country, $phone, $banner ) = $row;
 			$user = get_userdata( (int) $vendors[ $i ] );
 			if ( ! $user ) {
 				continue;
@@ -175,7 +179,15 @@ final class WCVendors extends Provider {
 			$shop->store_state      = $state;
 			$shop->store_postcode   = $zip;
 			$shop->store_country    = $country;
-			$saved                  = $shop->save();
+			$cover                  = $ctx->attachment( $banner, (int) $user->ID, $this->id() );
+			if ( $cover ) {
+				$shop->store_banner = array( 'id' => $cover ); // WC Vendors' media fields take an array with the id.
+			}
+			$photo = (int) get_user_meta( $user->ID, People::AVATAR, true );
+			if ( $photo ) {
+				$shop->store_icon = array( 'id' => $photo );
+			}
+			$saved = $shop->save();
 			if ( is_wp_error( $saved ) ) {
 				$ctx->warn( $this->id(), 'shop ' . $name, $saved );
 			}
@@ -188,7 +200,10 @@ final class WCVendors extends Provider {
 	 * @param object $row Ledger row.
 	 */
 	public function remove( object $row ): bool {
-		$id   = (int) $row->object_id;
+		$id = (int) $row->object_id;
+		if ( 'attachment' === $row->object_type ) {
+			return self::delete_post( $id, true );
+		}
 		$user = 'store' === $row->object_type ? get_userdata( $id ) : false;
 		if ( $user ) { // Normally the sample person is removed too; clean up if they stay.
 			$user->set_role( (string) get_option( 'default_role', 'subscriber' ) );
@@ -224,8 +239,8 @@ final class WCVendors extends Provider {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * The marketplace's hero, shop count and shop cards. WC Vendors has no blocks and no shop banners, so the cards
-	 * are core blocks with the name and about line; a shopper applies to sell from the account page's "Become a
+	 * The marketplace's hero, shop count and shop cards. WC Vendors has no blocks, so the cards are core blocks with
+	 * each shop's banner, name and about line; a shopper applies to sell from the account page's "Become a
 	 * vendor" tab, when vendor registration is on.
 	 *
 	 * @param Context $ctx See parent.
@@ -240,10 +255,28 @@ final class WCVendors extends Provider {
 				'name'   => (string) \WCV_Vendors::get_vendor_shop_name( (int) $id ),
 				'url'    => (string) \WCV_Vendors::get_vendor_shop_page( (int) $id ),
 				'about'  => (string) get_user_meta( (int) $id, 'pv_shop_description', true ),
-				'banner' => 0,
+				'banner' => $this->banner( (int) $id ),
 			);
 		}
 		return WooCommerce::marketplace_home( (array) ( $this->content()['home'] ?? array() ), $stores, $list, $sell );
+	}
+
+	/**
+	 * A shop's banner: WC Vendors' own (Pro), else the one the demo imported for that shop's owner.
+	 *
+	 * @param int $vendor Vendor user id.
+	 */
+	private function banner( int $vendor ): int {
+		$own = (int) get_user_meta( $vendor, '_wcv_store_banner_id', true );
+		if ( $own ) {
+			return $own;
+		}
+		foreach ( Ledger::ids( $this->id(), 'attachment' ) as $id ) {
+			if ( (int) get_post_field( 'post_author', (int) $id ) === $vendor ) {
+				return (int) $id;
+			}
+		}
+		return 0;
 	}
 
 	/**

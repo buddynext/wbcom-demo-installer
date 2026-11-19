@@ -35,6 +35,12 @@ abstract class Provider {
 		if ( null === $this->content ) {
 			$file = WBCOM_DEMO_DIR . 'content/' . $this->id() . '.php';
 			$data = is_readable( $file ) ? require $file : array();
+			// A demo with a niche (a store community) swaps in its own version of the keys its niche file sets.
+			$niche = sanitize_key( (string) ( new State() )->get( 'niche' ) );
+			$file  = WBCOM_DEMO_DIR . 'content/niches/' . $niche . '/' . $this->id() . '.php';
+			if ( '' !== $niche && is_readable( $file ) ) {
+				$data = array_replace( (array) $data, (array) require $file );
+			}
 			/**
 			 * Sample content for one provider.
 			 *
