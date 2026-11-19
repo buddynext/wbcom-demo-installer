@@ -93,8 +93,12 @@ final class Theme extends Provider {
 		$home   = (bool) array_filter( Registry::all(), static fn( Provider $p ): bool => $p->available() && $p->offers_home() );
 		$plan   = array(
 			'menu' => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
-			'page' => $home ? array( 2, 'setup', __( 'home page and Try the demo page', 'wbcom-demo-installer' ) ) : array( 1, 'setup', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
+			// Try the demo switches into sample people, so it goes with the sample content when the owner keeps their setup.
+			'guide' => array( 1, 'sample', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
 		);
+		if ( $home ) {
+			$plan['page'] = array( 1, 'setup', __( 'home page', 'wbcom-demo-installer' ) );
+		}
 		$brand  = self::branded() ? ( $dark ? 3 : 2 ) : 0;
 		$photos = $brand + ( $home ? 1 : 0 );
 		if ( $photos ) {
@@ -404,7 +408,7 @@ final class Theme extends Provider {
 		}
 		$id = self::guide_page();
 		if ( $id ) {
-			$ctx->record( $this->id(), 'page', $id, 'setup' );
+			$ctx->record( $this->id(), 'guide', $id, 'sample' );
 		}
 		self::switching( $ctx );
 	}
@@ -535,7 +539,7 @@ final class Theme extends Provider {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 		require_once ABSPATH . 'wp-admin/includes/screen.php';
 		$pos   = 1;
-		$guide = array_map( 'intval', Ledger::ids( $this->id(), 'page' ) );
+		$guide = array_map( 'intval', Ledger::ids( $this->id(), 'guide' ) );
 		if ( $guide ) {
 			// First, so a visitor sees how to try the demo before anything else.
 			wp_update_nav_menu_item(
@@ -835,8 +839,8 @@ final class Theme extends Provider {
 			}
 			return ! wp_get_nav_menu_object( $id );
 		}
-		if ( 'page' === $row->object_type ) {
-			return self::delete_post( $id );
+		if ( in_array( $row->object_type, array( 'page', 'guide' ), true ) ) {
+			return self::delete_post( $id ); // A guide page's menu links go with it (WordPress removes them).
 		}
 		return true;
 	}

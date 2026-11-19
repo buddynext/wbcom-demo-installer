@@ -722,7 +722,7 @@ final class Command {
 		if ( ! $id ) {
 			WP_CLI::error( 'The page could not be made.' );
 		}
-		Ledger::add( 'guide', 'theme', 'page', $id, 'setup' );
+		Ledger::add( 'guide', 'theme', 'guide', $id, 'sample' );
 		Theme::hide_title( $id );
 		// BuddyNext sends a member who never finished onboarding to the onboarding screen on every page; the
 		// people on the cards must open straight into their account.

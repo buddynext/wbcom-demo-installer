@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-19T15:48:22+00:00\n"
+"POT-Creation-Date: 2026-11-19T15:52:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -418,7 +418,7 @@ msgstr ""
 
 #: src/Core/Recipes.php:27
 #: src/Providers/BuddyPress.php:841
-#: src/Providers/Theme.php:655
+#: src/Providers/Theme.php:659
 #: assets/js/wizard.js:336
 msgid "Community"
 msgstr ""
@@ -1242,59 +1242,59 @@ msgstr ""
 msgid "menu"
 msgstr ""
 
-#: src/Providers/Theme.php:96
-msgid "home page and Try the demo page"
-msgstr ""
-
-#: src/Providers/Theme.php:96
+#: src/Providers/Theme.php:97
 msgid "Try the demo page"
 msgstr ""
 
-#: src/Providers/Theme.php:101
+#: src/Providers/Theme.php:100
+msgid "home page"
+msgstr ""
+
+#: src/Providers/Theme.php:105
 msgid "logo, site icon and home page photo"
 msgstr ""
 
-#: src/Providers/Theme.php:101
+#: src/Providers/Theme.php:105
 msgid "logo and site icon"
 msgstr ""
 
-#: src/Providers/Theme.php:101
+#: src/Providers/Theme.php:105
 msgid "home page photo"
 msgstr ""
 
-#: src/Providers/Theme.php:311
+#: src/Providers/Theme.php:315
 msgid "Home"
 msgstr ""
 
-#: src/Providers/Theme.php:454
-#: src/Providers/Theme.php:545
-#: src/Providers/Theme.php:771
+#: src/Providers/Theme.php:458
+#: src/Providers/Theme.php:549
+#: src/Providers/Theme.php:775
 msgid "Try the demo"
 msgstr ""
 
-#: src/Providers/Theme.php:510
+#: src/Providers/Theme.php:514
 msgid "Menu"
 msgstr ""
 
-#: src/Providers/Theme.php:519
+#: src/Providers/Theme.php:523
 msgid "Demo menu"
 msgstr ""
 
 #. translators: %d: number
-#: src/Providers/Theme.php:525
+#: src/Providers/Theme.php:529
 #, php-format
 msgid "Demo menu %d"
 msgstr ""
 
-#: src/Providers/Theme.php:656
+#: src/Providers/Theme.php:660
 msgid "Explore"
 msgstr ""
 
-#: src/Providers/Theme.php:657
+#: src/Providers/Theme.php:661
 msgid "About"
 msgstr ""
 
-#: src/Providers/Theme.php:775
+#: src/Providers/Theme.php:779
 msgid "Demo footer"
 msgstr ""
 
@@ -2410,7 +2410,7 @@ msgid "Start my real site"
 msgstr ""
 
 #: assets/js/wizard.js:658
-msgid "Removes the sample people and content. Keeps the pages, menu, categories and settings so you build on them."
+msgid "Removes the sample people, their content and the Try the demo page. Keeps the pages, menu, categories and settings; the home page sections fill as you add your own."
 msgstr ""
 
 #: assets/js/wizard.js:659
@@ -2508,7 +2508,7 @@ msgid "Keep my setup, remove sample content"
 msgstr ""
 
 #: assets/js/wizard.js:689
-msgid "Removes the sample people and everything they made. Keeps settings, pages, menus and categories."
+msgid "Removes the sample people, everything they made and the Try the demo page. Keeps settings, pages, menus and categories; the home page sections fill as you add your own."
 msgstr ""
 
 #: assets/js/wizard.js:689
