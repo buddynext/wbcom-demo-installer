@@ -433,7 +433,9 @@
 		// Opened from a theme's link on one demo: that card alone on top, everything else folded away.
 		const focus = S.focus && demos.find( ( d ) => d.id === S.focus );
 		const featured = focus ? [ focus ] : demos.filter( ( d ) => d.featured );
-		const rest = demos.filter( ( d ) => ( focus ? d !== focus : ! d.featured ) ).sort( ( x, y ) => ( rank[ x.state ] ?? 9 ) - ( rank[ y.state ] ?? 9 ) );
+		// On a theme that is not ours, the demos that bring the free BuddyX theme come first among the rest.
+		const bx = ( d ) => ( ourTheme() ? 0 : ( d.rows.some( ( r ) => 'theme' === r.kind ) ? -1 : 0 ) );
+		const rest = demos.filter( ( d ) => ( focus ? d !== focus : ! d.featured ) ).sort( ( x, y ) => bx( x ) - bx( y ) || ( rank[ x.state ] ?? 9 ) - ( rank[ y.state ] ?? 9 ) );
 		return {
 			top: featured.length ? `<div class="wdi-demos">${ featured.map( card ).join( '' ) }</div>` : '',
 			more: rest.length ? `<h2 class="wdi-install__title">${ esc( __( 'Other demos', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-demos">${ rest.map( card ).join( '' ) }</div>` : '',
@@ -472,6 +474,11 @@
 		return demos.find( ( d ) => d.featured && d.purpose === want ) ||
 			demos.find( ( d ) => d.id === want ) ||
 			( 'everything' === want ? demos.find( ( d ) => 'theme' === d.group && d.id.endsWith( '-buddynext' ) && ! d.rows.some( ( r ) => 'theme' === r.kind ) ) || demos.find( ( d ) => d.id.endsWith( '-buddynext' ) ) : null );
+	}
+
+	// Whether the active theme is one of ours (the demo pictures show these).
+	function ourTheme() {
+		return [ 'Reign', 'BuddyX', 'BuddyX Pro' ].includes( ( S.site.theme || {} ).family );
 	}
 
 	// Whether the build sets the sample logo: BuddyNext is active and the chosen demo (if any) is a community demo.
@@ -544,8 +551,12 @@
 		// With the gallery: one card per purpose on top; other demos and the product starting points for whoever
 		// wants a specific combination (agencies, comparing plugins), folded away.
 		const focus = ! locked && S.focus && ( S.site.demos || [] ).find( ( d ) => d.id === S.focus );
+		// Not one of our themes: say the pictures show our themes, and point to the demos that install free BuddyX.
+		const offersTheme = ! focus && ! ourTheme() && ( S.site.demos || [] ).some( ( d ) => d.rows.some( ( r ) => 'theme' === r.kind ) );
+		const themeNote = offersTheme && gallery.top ? `<div class="wdi-callout wdi-callout--info">${ ic( 'palette' ) }<div>${ esc( sprintf( /* translators: %s: the active theme's name. */ __( 'These demos build on %s too. The pictures show them on our themes; for that look, the BuddyX demos install the free BuddyX theme.', 'wbcom-demo-installer' ), S.site.theme.name ) ) } <button type="button" class="wdi-link" data-go="show-buddyx">${ esc( __( 'Show the BuddyX demos', 'wbcom-demo-installer' ) ) }</button></div></div>` : '';
+		const more = `${ gallery.more }${ list }`.trim();
 		const body = gallery.top
-			? `${ gallery.top }<details class="wdi-more"${ S.showMore ? ' open' : '' }><summary>${ esc( focus ? __( 'Choose a different demo', 'wbcom-demo-installer' ) : __( 'See every combination', 'wbcom-demo-installer' ) ) }</summary>${ gallery.more }${ list }</details>`
+			? `${ themeNote }${ gallery.top }${ more ? `<details class="wdi-more"${ S.showMore ? ' open' : '' }><summary>${ esc( focus ? __( 'Choose a different demo', 'wbcom-demo-installer' ) : __( 'See every combination', 'wbcom-demo-installer' ) ) }</summary>${ more }</details>` : '' }`
 			: list;
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
 			focus ? sprintf( /* translators: %s: demo name. */ __( 'Set up %s', 'wbcom-demo-installer' ), focus.name ) : ( locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'What is your site for?', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ) ) ),
@@ -1210,6 +1221,13 @@
 			}
 		} else if ( 'finish' === to ) {
 			openFinish();
+		} else if ( 'show-buddyx' === to ) {
+			S.showMore = true;
+			render();
+			const first = [ ...app.querySelectorAll( '.wdi-more .wdi-demo' ) ].find( ( c ) => c.querySelector( '.wdi-demo__needs' ) && /BuddyX/.test( c.getAttribute( 'aria-label' ) ) );
+			if ( first ) {
+				first.scrollIntoView( { block: 'center' } );
+			}
 		} else if ( 'recheck' === to ) {
 			// After uploading a paid plugin in another tab: read the site again, so the card shows what is ready.
 			btn.disabled = true;
