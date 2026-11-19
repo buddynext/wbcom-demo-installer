@@ -115,6 +115,14 @@ matching the site from before the build, and a browser check of every page it ad
 | `wbcom_demo_other_demos` | filter | Report other demo data that would mix with this one. |
 | `wbcom_demo_built` | action | Fires after a build, with the build id. |
 | `wbcom_demo_finished` | action | Fires after a finish, with the report. |
+| `wbcom_demo_return` | filter | Where the done screens send the owner: `array( 'url' => admin URL, 'label' => link text )`, default Go to dashboard. |
+
+## Read the demo status
+
+Call `wbcom_demo_status()` (check `function_exists()` first) instead of reading the `wbcom_demo_state` option. It returns
+`status` (`idle`, `building`, `built`, `finishing` or `finished`), `demo_id` (the gallery demo id, such as `learning`),
+`demo_label` (its name), `built_at` and `finished_at` (UTC, `Y-m-d H:i:s`). `finished` means the owner took the demo live
+with Start my real site and nothing is left to remove; after Remove everything the status is `idle` again.
 
 ## Link to one demo
 

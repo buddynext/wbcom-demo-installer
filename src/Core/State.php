@@ -102,6 +102,28 @@ final class State {
 	}
 
 	/**
+	 * Where the demo stands, for themes and plugins (see wbcom_demo_status()). Times are UTC, Y-m-d H:i:s.
+	 *
+	 * Status: idle (no demo, or Remove everything put the site back), building, built, finishing, or finished (the
+	 * owner took the demo live and nothing is left to remove).
+	 *
+	 * @return array{status:string,demo_id:string,demo_label:string,built_at:string,finished_at:string}
+	 */
+	public static function summary(): array {
+		$state    = new self();
+		$report   = (array) $state->get( 'report' );
+		$finished = self::IDLE === $state->get( 'status' ) && ! empty( $report['finished_at'] ) && 'all' !== ( $report['mode'] ?? '' );
+		$from     = $finished ? $report : $state->all();
+		return array(
+			'status'      => $finished ? 'finished' : (string) $state->get( 'status' ),
+			'demo_id'     => (string) ( $from['demo_id'] ?? '' ),
+			'demo_label'  => (string) ( $from['demo'] ?? '' ),
+			'built_at'    => (string) ( $from['built_at'] ?? '' ),
+			'finished_at' => $finished ? (string) $report['finished_at'] : '',
+		);
+	}
+
+	/**
 	 * Whole state (for REST/CLI status).
 	 *
 	 * @return array<string,mixed>

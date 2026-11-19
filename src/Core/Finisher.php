@@ -426,6 +426,10 @@ final class Finisher {
 				)
 			) )->get_total(),
 			'finished_at'  => current_time( 'mysql', true ),
+			// What was finished, for wbcom_demo_status() once the state resets to idle.
+			'demo_id'      => (string) $state->get( 'demo_id' ),
+			'demo'         => (string) $state->get( 'demo' ),
+			'built_at'     => (string) $state->get( 'built_at' ),
 		);
 		$state->set( 'report', $report );
 

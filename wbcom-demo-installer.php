@@ -39,3 +39,14 @@ register_activation_hook( __FILE__, array( 'WbcomDemo\\Core\\Ledger', 'install' 
 // Before products that redirect to their own setup wizard from plugins_loaded; see Admin\Page::clear_redirects().
 add_action( 'plugins_loaded', array( 'WbcomDemo\\Admin\\Page', 'clear_redirects' ), 0 );
 add_action( 'plugins_loaded', array( 'WbcomDemo\\Plugin', 'boot' ), 20 );
+
+/**
+ * Where the demo stands, for a theme's or plugin's own screens: status (idle, building, built, finishing or
+ * finished), demo_id (gallery demo id), demo_label, built_at and finished_at (UTC). Read this, not the
+ * wbcom_demo_state option.
+ *
+ * @return array{status:string,demo_id:string,demo_label:string,built_at:string,finished_at:string}
+ */
+function wbcom_demo_status(): array {
+	return \WbcomDemo\Core\State::summary();
+}
