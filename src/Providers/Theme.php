@@ -89,10 +89,10 @@ final class Theme extends Provider {
 	 */
 	public function plan(): array {
 		// BuddyX and BuddyX Pro also get the light-text logo for dark mode.
-		$dark   = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
-		$home   = (bool) array_filter( Registry::all(), static fn( Provider $p ): bool => $p->available() && $p->offers_home() );
-		$plan   = array(
-			'menu' => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
+		$dark = in_array( self::theme_family(), array( 'BuddyX', 'BuddyX Pro' ), true );
+		$home = (bool) array_filter( Registry::all(), static fn( Provider $p ): bool => $p->available() && $p->offers_home() );
+		$plan = array(
+			'menu'  => array( 1, 'setup', __( 'menu', 'wbcom-demo-installer' ) ),
 			// Try the demo switches into sample people, so it goes with the sample content when the owner keeps their setup.
 			'guide' => array( 1, 'sample', __( 'Try the demo page', 'wbcom-demo-installer' ) ),
 		);
