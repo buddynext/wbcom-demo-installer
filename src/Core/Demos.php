@@ -304,12 +304,13 @@ final class Demos {
 	 * One missing item, as a card, a theme or WP-CLI tells the owner about it.
 	 *
 	 * @param array<string,mixed> $row Requirement row.
-	 * @return array{label:string,action:string,url:string}
+	 * @return array{label:string,kind:string,action:string,url:string}
 	 */
 	private static function need( array $row ): array {
 		$action = $row['can'] ? 'install' : ( ! empty( $row['paid'] ) ? 'upload' : 'ask' );
 		return array(
 			'label'  => (string) $row['label'],
+			'kind'   => (string) ( $row['kind'] ?? 'plugin' ), // plugin, addon (a Reign add-on, from the Wbcom account) or theme.
 			'action' => $action,
 			'url'    => 'upload' === $action ? (string) $row['url'] : '',
 		);

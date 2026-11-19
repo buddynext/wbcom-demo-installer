@@ -41,13 +41,14 @@ Returns `demos` and `go_live`. Each demo has `id`, `name`, `desc`, `group` (`our
   or switches on what is missing in one click. `blocked`: something cannot be set up from here, either a paid plugin
   or add-on to upload, or this account or host does not allow installing plugins; the wizard card says which.
   `conflict`: the site runs another community plugin, so this demo does not fit.
-- `needs` lists what is still missing, each as `label`, `action` and `url`. Show it on the tile so the owner is never
+- `needs` lists what is still missing, each as `label`, `kind` (`plugin`, `addon` for a Reign add-on from the owner's
+  Wbcom account, or `theme`), `action` and `url`. Show it on the tile so the owner is never
   lost, above all for paid items:
 
   | `action` | Tell the owner |
   |---|---|
   | `install` | "Installed for you" (free; the wizard sets it up in one click) |
-  | `upload` | "Paid: download it from `url`, then upload it under Plugins > Add New > Upload Plugin" (Reign add-ons, Pro add-ons, other paid plugins) |
+  | `upload` | `kind` `addon`: "Paid add-on: download it from your Wbcom account, then upload it under Plugins > Add New > Upload Plugin". Otherwise: "Paid: get it, then upload it under Plugins > Add New > Upload Plugin". Link `url` as Get it. |
   | `ask` | "Ask an administrator to add it" (this account or host cannot install plugins) |
 
   `optional` lists paid add-ons that improve the demo but are not required, in the same shape.
