@@ -191,3 +191,13 @@ opening the wizard after activating five products lands on the wizard with every
 Uninstall with demo content keeps the records (Finish works after reinstalling); after Finish it leaves no table or
 option. Plugin Check on the built zip: 0 errors, 3 explained warnings (own translations loaded, time limit for long
 steps, a prepared query built from placeholders).
+
+## Kanbanomy provider, 19 November 2026
+
+Isolated Docker lab (the shared lab was in use), WordPress 7.1.5, PHP 8.4, WP_DEBUG on, mail logged: Kanbanomy 1.3.0
+release zip alone on Twenty Twenty-Five, starting point `everything` (a B1-kanbanomy case). Build: 76 items, no
+warnings, no mail, no PHP notices; 4 projects (members only, public, private), 31 tasks, 16 comments, 8 time entries,
+9 dependencies, 1 approval waiting on the client, support board columns renamed. Remove everything: nothing left
+except Kanbanomy's own `project_deleted` activity entries, declared in `keeps_logs()`. Finish keep then adopt: idle,
+ledger empty, no sample people. Try the demo: two role cards (manager, client), steps open the client's project as
+each person and the public support board signed out. Still to add: a `B1-kanbanomy` row in the shared `matrix.sh`.

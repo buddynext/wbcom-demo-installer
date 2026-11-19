@@ -10,7 +10,7 @@ designed home page. Your own users and content are never changed, and nothing is
 **[Download the latest release](https://github.com/buddynext/wbcom-demo-installer/releases/latest)**
 
 Works with the Reign, BuddyX and BuddyX Pro themes, every Reign add-on, the Wbcom products (BuddyNext, WPMediaVerse,
-Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap,
+Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, Kanbanomy,
 WB Gamification) and BuddyPress, BuddyBoss Platform, PeepSo, WooCommerce, Dokan, WCFM, WC Vendors, LearnDash,
 Tutor LMS, LifterLMS, Sensei LMS, WP Job Manager and GeoDirectory.
 

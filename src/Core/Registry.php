@@ -118,6 +118,7 @@ final class Registry {
 			Providers\WCFM::class,
 			Providers\WCVendors::class,
 			Providers\Roadmap::class,
+			Providers\Kanbanomy::class,
 			Providers\Pages::class,
 			Providers\Theme::class,
 		);

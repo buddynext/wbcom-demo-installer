@@ -24,7 +24,7 @@ Wbcom Demo Installer sets up a believable demo of every Wbcom product you have a
 
 When you are ready, Finish demo removes the sample people and everything they made and keeps your settings, pages, menus, spaces, categories and plans. You can also choose per product what stays, or remove everything and put back your previous home page, menu and logo. A short report shows what was removed and what is still on the site.
 
-Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, WB Gamification and Wbcom Essential (with their Pro add-ons active); BuddyPress, BuddyBoss Platform and PeepSo; WooCommerce, Dokan, WCFM Marketplace, WC Vendors, LearnDash, Tutor LMS, LifterLMS, Sensei LMS, GeoDirectory and WP Job Manager, with the Reign add-on for each. Themes: Reign, BuddyX, BuddyX Pro or any theme. Paid plugins (Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo, Pro add-ons) are bought, installed and licensed by you; the installer sets up the free ones.
+Supported products: BuddyNext, WPMediaVerse, Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap, Kanbanomy, WB Gamification and Wbcom Essential (with their Pro add-ons active); BuddyPress, BuddyBoss Platform and PeepSo; WooCommerce, Dokan, WCFM Marketplace, WC Vendors, LearnDash, Tutor LMS, LifterLMS, Sensei LMS, GeoDirectory and WP Job Manager, with the Reign add-on for each. Themes: Reign, BuddyX, BuddyX Pro or any theme. Paid plugins (Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo, Pro add-ons) are bought, installed and licensed by you; the installer sets up the free ones.
 
 = For developers =
 
@@ -70,6 +70,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * New      - On a site without BuddyX Pro or Reign, the BuddyX demos install the free BuddyX theme from WordPress.org and switch it on last. On any other theme a note says so and opens them.
 * New      - Try the demo installs User Switching, so Explore as signs you in as the sample person.
 * New      - Every Learnomy course has an end-of-course quiz, already taken and graded by sample students.
+* New      - Kanbanomy sample content: client projects with a waiting approval, a public support board and an internal estimates board, with a Try the demo guide for the manager and the client.
 * Improve  - Home pages open with a full-width hero, About and Join are styled, and the demo has a footer with its own menu.
 * Improve  - Community demos open on the community: hero, numbers and members lead the home page.
 * Improve  - The demo menu groups pages under Community, Explore and About, with the demo's own product (Courses on a course site) top-level.
