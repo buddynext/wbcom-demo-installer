@@ -423,8 +423,10 @@
 		};
 		// Ready first, then the ones set up in one click, then the ones waiting for an upload.
 		const rank = { ready: 0, fixable: 1, blocked: 2, conflict: 3 };
-		const featured = demos.filter( ( d ) => d.featured );
-		const rest = demos.filter( ( d ) => ! d.featured ).sort( ( x, y ) => ( rank[ x.state ] ?? 9 ) - ( rank[ y.state ] ?? 9 ) );
+		// Opened from a theme's link on one demo: that card alone on top, everything else folded away.
+		const focus = S.focus && demos.find( ( d ) => d.id === S.focus );
+		const featured = focus ? [ focus ] : demos.filter( ( d ) => d.featured );
+		const rest = demos.filter( ( d ) => ( focus ? d !== focus : ! d.featured ) ).sort( ( x, y ) => ( rank[ x.state ] ?? 9 ) - ( rank[ y.state ] ?? 9 ) );
 		return {
 			top: featured.length ? `<div class="wdi-demos">${ featured.map( card ).join( '' ) }</div>` : '',
 			more: rest.length ? `<h2 class="wdi-install__title">${ esc( __( 'Other demos', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-demos">${ rest.map( card ).join( '' ) }</div>` : '',
@@ -528,13 +530,14 @@
 			${ ! locked && ! gallery.top && unlockable().length ? `<h2 class="wdi-install__title">${ esc( __( 'More starting points, installed for you', 'wbcom-demo-installer' ) ) }</h2><div class="wdi-recipes">${ unlockable().map( ( [ id, r, missing ] ) => `<button type="button" class="wdi-opt" data-unlock="${ esc( id ) }">${ thumb( SHAPES[ id ] || SHAPES.everything ) }<b>${ esc( r.name ) }</b><span class="wdi-muted">${ esc( r.desc ) }</span><span class="wdi-opt__meta"><span class="wdi-badge">${ esc( sprintf( /* translators: %s: product names. */ __( 'Installs %s', 'wbcom-demo-installer' ), missing.map( ( c ) => c.label ).join( ', ' ) ) ) }</span></span></button>` ).join( '' ) }</div>` : '' }`;
 		// With the gallery: one card per purpose on top; other demos and the product starting points for whoever
 		// wants a specific combination (agencies, comparing plugins), folded away.
+		const focus = ! locked && S.focus && ( S.site.demos || [] ).find( ( d ) => d.id === S.focus );
 		const body = gallery.top
-			? `${ gallery.top }<details class="wdi-more"${ S.showMore ? ' open' : '' }><summary>${ esc( __( 'See every combination', 'wbcom-demo-installer' ) ) }</summary>${ gallery.more }${ list }</details>`
+			? `${ gallery.top }<details class="wdi-more"${ S.showMore ? ' open' : '' }><summary>${ esc( focus ? __( 'Choose a different demo', 'wbcom-demo-installer' ) : __( 'See every combination', 'wbcom-demo-installer' ) ) }</summary>${ gallery.more }${ list }</details>`
 			: list;
 		return brand( __( 'Set up your site', 'wbcom-demo-installer' ) ) + stepper( SETUP, 1 ) + card(
-			locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'What is your site for?', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ) ),
-			locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'Pick one. It installs the free plugins it needs, and you can change every product on the next step.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ) ),
-			`${ S.brief ? '' : aiPanel() }${ ideaNote( 'start' ) }${ body }`,
+			focus ? sprintf( /* translators: %s: demo name. */ __( 'Set up %s', 'wbcom-demo-installer' ), focus.name ) : ( locked ? __( 'Your starting point', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'What is your site for?', 'wbcom-demo-installer' ) : __( 'What kind of site are you building?', 'wbcom-demo-installer' ) ) ),
+			focus ? ( 'blocked' === focus.state ? __( 'The demo you picked. Upload what is marked, then come back here to set it up.', 'wbcom-demo-installer' ) : __( 'The demo you picked. One click installs the free plugins it needs, then you choose what to include.', 'wbcom-demo-installer' ) ) : locked ? __( 'Chosen by your idea. Continue to see the products it uses.', 'wbcom-demo-installer' ) : ( gallery.top ? __( 'Pick one. It installs the free plugins it needs, and you can change every product on the next step.', 'wbcom-demo-installer' ) : __( 'Pick the closest one. You can change every product on the next step.', 'wbcom-demo-installer' ) ),
+			`${ S.brief || focus ? '' : aiPanel() }${ ideaNote( 'start' ) }${ body }`,
 			foot( 'check', 'products', { disabled: ! S.recipe } )
 		);
 	}
@@ -973,7 +976,7 @@
 					return;
 				}
 				S.demo = linked.id;
-				S.showMore = S.showMore || ! linked.featured;
+				S.focus = linked.id; // One card on top; the rest of the gallery behind "Choose a different demo".
 				go( 'start' );
 				const card = app.querySelector( '.wdi-demo.is-on' );
 				if ( card ) {

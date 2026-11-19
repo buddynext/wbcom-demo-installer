@@ -35,7 +35,8 @@ Returns `demos` and `go_live`. Each demo has `id`, `name`, `desc`, `group` (`our
   with the demo for a plugin the owner already runs in its purpose's place.
 - Add the theme's all-in-one demo (`group` `theme`, id ending in `-buddynext`) as the "everything" tile if you want one.
 - The tile's button links to `url`. The wizard opens on that demo: its review step when the demo's plugins are active,
-  otherwise its card with Set up and use this demo ready.
+  otherwise a "Set up <demo>" step showing that one card with Set up and use this demo focused (one click installs what
+  it needs), the other demos behind "Choose a different demo". Nothing installs until the owner clicks.
 - `state` is worked out for the current user, so call `wbcom_demo_list()` during the owner's admin request (under WP-CLI,
   run `wp_set_current_user()` first). `ready`: everything is active, "Ready to build". `fixable`: the wizard installs
   or switches on what is missing in one click. `blocked`: something cannot be set up from here, either a paid plugin

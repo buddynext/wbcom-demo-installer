@@ -66,7 +66,7 @@ Yes. Nothing you kept depends on it. If sample content is still on the site, uni
 Demos that look finished, link straight to one demo, and show how each is set up.
 
 * New      - Watch how on each demo card plays the film of that demo being set up on your theme, and the ready screen links the film on taking it live.
-* New      - A link with &demo=<id> opens Set up your site on one demo, so a theme's Build this site button lands on the demo the owner chose.
+* New      - A link with &demo=<id> opens Set up your site on that one demo, ready to set up in one click, so a theme's Build this site button lands on the demo the owner chose.
 * New      - On a site without BuddyX Pro or Reign, the BuddyX demos install the free BuddyX theme from WordPress.org and switch it on last.
 * New      - Try the demo installs User Switching, so Explore as signs you in as the sample person.
 * New      - Every Learnomy course has an end-of-course quiz, already taken and graded by sample students.
