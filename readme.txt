@@ -96,6 +96,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Fix      - Every item of a large content pack is built, not only the first ones.
 * Fix      - On phones the ready screen's footer no longer covers the finish buttons.
 * Fix      - Try the demo tour text and badges pass WCAG AA contrast on every theme.
+* Fix      - Try the demo buttons and the chosen tour tab use the theme's own button colours, so on Reign they are white on blue like every other button.
 * Fix      - A WP-CLI build no longer carries one step's sample date into the next step.
 * Fix      - Plugins installed from WP-CLI finish their first-run setup before the build, and Reign add-ons switch on after the plugins they need.
 * Dev      - wbcom_demo_status() and wbcom_demo_list() (with each demo's needs: install, upload or ask) let a theme show the demo's progress and its own site tiles, and the wbcom_demo_return filter brings the owner back to the theme's screen.
