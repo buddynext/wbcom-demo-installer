@@ -93,6 +93,7 @@ Demos that look finished, link straight to one demo, and show how each is set up
 * Fix      - Start my real site keeps the pictures on the pages and categories it keeps.
 * Fix      - The kept home page no longer shows the sample's numbers after Start my real site.
 * Fix      - Start my real site removes the Try the demo page and its menu links, which only switched into sample people.
+* Improve  - Start my real site, Remove everything and Try a different demo go straight to the confirm step, with the acknowledgement above the list of what is removed.
 * Fix      - Jobs demo salaries use Career Board's own pay periods.
 * Fix      - Every item of a large content pack is built, not only the first ones.
 * Fix      - On phones the ready screen's footer no longer covers the finish buttons.

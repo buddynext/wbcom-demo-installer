@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-19T15:52:44+00:00\n"
+"POT-Creation-Date: 2026-11-19T15:54:40+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wbcom-demo-installer\n"
@@ -51,7 +51,7 @@ msgstr ""
 #: assets/js/wizard.js:556
 #: assets/js/wizard.js:565
 #: assets/js/wizard.js:582
-#: assets/js/wizard.js:750
+#: assets/js/wizard.js:753
 msgid "Set up your site"
 msgstr ""
 
@@ -2422,7 +2422,7 @@ msgid "Puts the site back as it was before the demo: your home page, menu and se
 msgstr ""
 
 #: assets/js/wizard.js:660
-#: assets/js/wizard.js:737
+#: assets/js/wizard.js:740
 msgid "Try a different demo"
 msgstr ""
 
@@ -2455,7 +2455,7 @@ msgid "Reused from an earlier demo, as they are: %s."
 msgstr ""
 
 #: assets/js/wizard.js:665
-#: assets/js/wizard.js:734
+#: assets/js/wizard.js:737
 msgid "Visit your site"
 msgstr ""
 
@@ -2489,9 +2489,9 @@ msgstr ""
 
 #: assets/js/wizard.js:685
 #: assets/js/wizard.js:703
-#: assets/js/wizard.js:710
-#: assets/js/wizard.js:721
-#: assets/js/wizard.js:754
+#: assets/js/wizard.js:713
+#: assets/js/wizard.js:724
+#: assets/js/wizard.js:757
 msgid "Finish demo"
 msgstr ""
 
@@ -2564,21 +2564,27 @@ msgid "This cannot be undone."
 msgstr ""
 
 #: assets/js/wizard.js:707
+msgid "I understand the sample content is deleted permanently."
+msgstr ""
+
+#. translators: %s: comma-separated list of what is kept.
+#: assets/js/wizard.js:709
+#, js-format
+msgid "Stays: %s."
+msgstr ""
+
+#: assets/js/wizard.js:710
 msgid "Your previous home page, menu and logo will be put back. If you changed them after the build, your changes are kept."
 msgstr ""
 
 #. translators: placeholders are counts, product names or theme names.
-#: assets/js/wizard.js:708
+#: assets/js/wizard.js:711
 #, js-format
 msgid "%s is not active, so its sample content waits until you activate it again. Everything else is removed now."
 msgstr ""
 
-#: assets/js/wizard.js:709
-msgid "I understand the sample content is deleted permanently."
-msgstr ""
-
 #. translators: %s: number.
-#: assets/js/wizard.js:720
+#: assets/js/wizard.js:723
 #, js-format
 msgid "%s sample item"
 msgid_plural "%s sample items"
@@ -2586,109 +2592,109 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number.
-#: assets/js/wizard.js:720
+#: assets/js/wizard.js:723
 #, js-format
 msgid "%s setup item"
 msgid_plural "%s setup items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/wizard.js:722
+#: assets/js/wizard.js:725
 msgid "Your site is ready for real members"
 msgstr ""
 
-#: assets/js/wizard.js:722
+#: assets/js/wizard.js:725
 msgid "Done: everything you chose was removed"
 msgstr ""
 
-#: assets/js/wizard.js:722
+#: assets/js/wizard.js:725
 msgid "Almost done"
 msgstr ""
 
-#: assets/js/wizard.js:723
+#: assets/js/wizard.js:726
 msgid "We checked: nothing from the demo was left behind."
 msgstr ""
 
-#: assets/js/wizard.js:723
+#: assets/js/wizard.js:726
 msgid "Here is what is still on the site from the demo."
 msgstr ""
 
-#: assets/js/wizard.js:725
+#: assets/js/wizard.js:728
 msgid "Items removed"
 msgstr ""
 
-#: assets/js/wizard.js:726
+#: assets/js/wizard.js:729
 msgid "Kept by your choice"
 msgstr ""
 
-#: assets/js/wizard.js:727
+#: assets/js/wizard.js:730
 msgid "Sample people left"
 msgstr ""
 
-#: assets/js/wizard.js:727
+#: assets/js/wizard.js:730
 msgid "They stay while content they made is kept."
 msgstr ""
 
-#: assets/js/wizard.js:728
+#: assets/js/wizard.js:731
 msgid "Chosen items not removed yet"
 msgstr ""
 
-#: assets/js/wizard.js:731
+#: assets/js/wizard.js:734
 msgid "You changed your home page, menu or logo after the build, so we kept your version."
 msgstr ""
 
-#: assets/js/wizard.js:733
+#: assets/js/wizard.js:736
 msgid "These are records the products keep on purpose; they are not sample content and are not shown on the site."
 msgstr ""
 
-#: assets/js/wizard.js:734
+#: assets/js/wizard.js:737
 msgid "Next"
 msgstr ""
 
-#: assets/js/wizard.js:734
+#: assets/js/wizard.js:737
 msgid "Invite your first members"
 msgstr ""
 
-#: assets/js/wizard.js:735
+#: assets/js/wizard.js:738
 msgid "Installer no longer needed"
 msgstr ""
 
-#: assets/js/wizard.js:735
+#: assets/js/wizard.js:738
 msgid "You can deactivate and delete it. Nothing you kept depends on it."
 msgstr ""
 
-#: assets/js/wizard.js:736
+#: assets/js/wizard.js:739
 msgid "Keep the installer for now"
 msgstr ""
 
-#: assets/js/wizard.js:736
+#: assets/js/wizard.js:739
 msgid "It still tracks what the demo left, so you can remove it later from Appearance > Set up your site. Once only setup is left you can keep it as yours."
 msgstr ""
 
-#: assets/js/wizard.js:737
+#: assets/js/wizard.js:740
 msgid "Remove more"
 msgstr ""
 
-#: assets/js/wizard.js:737
+#: assets/js/wizard.js:740
 msgid "Pick another demo"
 msgstr ""
 
-#: assets/js/wizard.js:750
+#: assets/js/wizard.js:753
 msgid "Building your demo"
 msgstr ""
 
-#: assets/js/wizard.js:754
+#: assets/js/wizard.js:757
 msgid "Removing sample content"
 msgstr ""
 
-#: assets/js/wizard.js:760
+#: assets/js/wizard.js:763
 msgid "Try again"
 msgstr ""
 
-#: assets/js/wizard.js:786
+#: assets/js/wizard.js:789
 msgid "The server stopped answering. Your progress is saved: click Try again to continue where it stopped."
 msgstr ""
 
-#: assets/js/wizard.js:1239
+#: assets/js/wizard.js:1246
 msgid "The wizard could not load. Reload the page."
 msgstr ""

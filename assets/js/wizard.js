@@ -703,10 +703,13 @@
 		return brand( __( 'Finish demo', 'wbcom-demo-installer' ) ) + stepper( FINISH, 1 ) + card(
 			sprintf( /* translators: placeholders are counts, product names or theme names. */ _n( 'Remove %s sample item?', 'Remove %s sample items?', n, 'wbcom-demo-installer' ), fmt( n ) ),
 			__( 'This cannot be undone.', 'wbcom-demo-installer' ),
-			`<div class="wdi-table-wrap"><table class="wdi-table"><tbody>${ p.remove.map( ( r ) => `<tr><td>${ esc( r.product ) }</td><td>${ esc( r.label ) }</td><td class="wdi-num">${ fmt( r.count ) }</td></tr>` ).join( '' ) }</tbody></table></div>
+			// The acknowledgement first: on a long list it stayed below the fold while Finish sat greyed out.
+			`<label class="wdi-ack"><input type="checkbox" id="wdi-ack" ${ S.ack ? 'checked' : '' }><span>${ esc( __( 'I understand the sample content is deleted permanently.', 'wbcom-demo-installer' ) ) }</span></label>
+			<div class="wdi-table-wrap"><table class="wdi-table"><tbody>${ p.remove.map( ( r ) => `<tr><td>${ esc( r.product ) }</td><td>${ esc( r.label ) }</td><td class="wdi-num">${ fmt( r.count ) }</td></tr>` ).join( '' ) }</tbody></table></div>
+			${ p.keep.length ? `<p class="wdi-muted wdi-small">${ esc( sprintf( /* translators: %s: comma-separated list of what is kept. */ __( 'Stays: %s.', 'wbcom-demo-installer' ), p.keep.map( ( r ) => r.product + ' ' + r.label ).join( ', ' ) ) ) }</p>` : '' }
 			${ p.restore ? `<div class="wdi-callout wdi-callout--info">${ ic( 'undo' ) }<div>${ esc( __( 'Your previous home page, menu and logo will be put back. If you changed them after the build, your changes are kept.', 'wbcom-demo-installer' ) ) }</div></div>` : '' }
 			${ waiting.length ? `<div class="wdi-callout wdi-callout--warning">${ ic( 'alert' ) }<div>${ esc( sprintf( /* translators: placeholders are counts, product names or theme names. */ __( '%s is not active, so its sample content waits until you activate it again. Everything else is removed now.', 'wbcom-demo-installer' ), [ ...new Set( waiting.map( ( r ) => r.product ) ) ].join( ', ' ) ) ) }</div></div>` : '' }
-			<label class="wdi-ack"><input type="checkbox" id="wdi-ack" ${ S.ack ? 'checked' : '' }><span>${ esc( __( 'I understand the sample content is deleted permanently.', 'wbcom-demo-installer' ) ) }</span></label>`,
+`,
 			foot( 'finish', 'run-finish', { danger: true, disabled: ! S.ack, label: __( 'Finish demo', 'wbcom-demo-installer' ) } )
 		);
 	}
@@ -995,7 +998,8 @@
 		}
 	}
 
-	async function openFinish() {
+	// direct: the owner already chose on the ready screen, so go straight to Confirm (Back leads to the choices).
+	async function openFinish( direct = false ) {
 		S.preview = null;
 		S.ack = false;
 		if ( ! ( S.status.ledger || [] ).some( ( r ) => 'sample' === r.kind ) ) {
@@ -1003,6 +1007,9 @@
 		}
 		go( 'finish' );
 		await loadPreview();
+		if ( direct && S.preview && 'finish' === S.view ) {
+			go( 'confirm' );
+		}
 	}
 
 	async function loadPreview() {
@@ -1190,10 +1197,10 @@
 		} else if ( 'finish' === to ) {
 			openFinish();
 		} else if ( [ 'finish-keep', 'finish-all', 'finish-again' ].includes( to ) ) {
-			// The ready screen's three choices open Finish with that choice already made.
+			// The ready screen's three choices: that choice made, straight to Confirm.
 			S.mode = 'finish-keep' === to ? 'keep' : 'all';
 			S.again = 'finish-again' === to;
-			openFinish();
+			openFinish( true );
 		} else if ( 'run-finish' === to ) {
 			btn.disabled = true;
 			try {
