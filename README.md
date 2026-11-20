@@ -7,7 +7,11 @@ Pick what your site is for (a community, courses, events, jobs, a directory, ser
 sets up the free plugins it needs, builds 20 sample people with their posts, courses, events or products, and a
 designed home page. Your own users and content are never changed, and nothing is emailed to anyone.
 
-**[Download the latest release](https://github.com/buddynext/wbcom-demo-installer/releases/latest)**
+**Get it:** [store page](https://wbcomdesigns.com/downloads/wbcom-demo-installer/) or the
+[latest release on GitHub](https://github.com/buddynext/wbcom-demo-installer/releases/latest). It is free.
+
+It is for owners and builders of Wbcom-powered sites who want to try or show a finished-looking site, and agencies
+who demo a theme or product to a client.
 
 Works with the Reign, BuddyX and BuddyX Pro themes, every Reign add-on, the Wbcom products (BuddyNext, WPMediaVerse,
 Jetonomy, Learnomy, Eventonomy, WP Career Board, WB Listora, WP Sell Services, MediaShield, Product Roadmap,
@@ -17,6 +21,7 @@ Tutor LMS, LifterLMS, Sensei LMS, WP Job Manager and GeoDirectory.
 ## What you need
 
 - WordPress 6.5 or newer and PHP 8.1 or newer.
+- 256 MB of PHP memory when every product is active. The site check warns when it is lower.
 - An administrator account.
 - A fresh site is best. The installer works on a site with content too, but asks you to confirm first.
 
@@ -120,9 +125,16 @@ Plugin**, then come back to **Appearance > Set up your site**: the card checks a
 - [Remove the demo content (Finish demo)](docs/website/getting-started/finish-demo.md): every way to remove it.
 - [Demo problems and fixes (Troubleshooting)](docs/website/troubleshooting/troubleshooting.md) and [FAQ](docs/website/faq/faq.md).
 - [WP-CLI commands](docs/website/developer-guide/wp-cli.md) and [adding a product](docs/website/developer-guide/providers.md).
-- [Release notes](https://github.com/buddynext/wbcom-demo-installer/releases).
+- [Release notes](https://wbcomdesigns.com/release-notes/wbcom-demo-installer/).
 
-## WP-CLI
+## For developers
+
+- Plugin slug and text domain `wbcom-demo-installer`, REST namespace `wbcom-demo/v1`.
+- Products register a provider on the `wbcom_demo_register` action. Sample content, page layout, menus and recipes
+  go through the filters `wbcom_demo_content`, `wbcom_demo_page_layout`, `wbcom_demo_menu_locations` and
+  `wbcom_demo_recipes`; `wbcom_demo_built` and `wbcom_demo_finished` fire after a build and a finish.
+  See [adding a product](docs/website/developer-guide/providers.md).
+- WP-CLI runs everything the wizard does:
 
 ```
 wp wbcom-demo demos
@@ -133,6 +145,8 @@ wp wbcom-demo finish [--mode=keep|all] [--dry-run]
 wp wbcom-demo install <product> | --all
 ```
 
-## License
+## Support and licence
 
-GPL-2.0-or-later.
+- Support: https://wbcomdesigns.com/support/
+- Release notes: https://wbcomdesigns.com/release-notes/wbcom-demo-installer/
+- Licence: GPL-2.0-or-later.

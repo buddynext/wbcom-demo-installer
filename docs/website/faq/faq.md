@@ -12,6 +12,10 @@ check warns you and the build waits until you confirm.
 No. The demo only adds content and records everything it adds. Your users and content are never edited or removed,
 and a sample login that is already taken is skipped.
 
+## Does the installer load anything from the internet?
+
+The demo cards show their pictures from wbcomdesigns.com, which keeps the plugin small, and **Live preview** opens our sandbox in a new tab. Free plugins the card sets up are downloaded from their release page or WordPress.org. Nothing from your site is sent.
+
 ## Does anyone get email?
 
 No. Mail is held while the demo builds, and mail to sample people is never sent, now or later.
