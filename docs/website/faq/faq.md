@@ -14,7 +14,7 @@ and a sample login that is already taken is skipped.
 
 ## Does the installer load anything from the internet?
 
-The demo cards show their pictures from wbcomdesigns.com, which keeps the plugin small, and **Live preview** opens our sandbox in a new tab. Free plugins the card sets up are downloaded from their release page or WordPress.org. Nothing from your site is sent.
+The demo cards show their pictures from wbcomdesigns.com, which keeps the plugin small, and **Live preview** opens our sandbox in a new tab. Free plugins the card sets up come from their latest release on GitHub, wbcomdesigns.com or WordPress.org.
 
 ## Does anyone get email?
 
