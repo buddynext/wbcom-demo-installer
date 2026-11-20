@@ -161,6 +161,7 @@ Reign, the Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo and every Pro ad
 - **Not installed:** the card marks it with **Get it**. Reign add-ons come from your [Wbcom account](https://wbcomdesigns.com/my-account/?ref=nav). Other paid plugins come from their own sellers. Upload the zip under **Plugins > Add New > Upload Plugin** and activate its licence. Then open **Appearance > Set up your site** again, and the card offers to set up the rest.
 - **Installed but switched off:** the card switches it on when you choose **Set up and use this demo**.
 - **An older version:** the card updates free plugins to their latest release. Reign and its add-ons update through your licence, just like **Dashboard > Updates**. Without an active licence, the card asks you to activate it first.
+- **An older BuddyPress, BuddyBoss Platform or BuddyNext:** the demo updates it in place and never adds a second community plugin. BuddyBoss Platform is recognised as BuddyBoss, so the BuddyBoss demos are offered.
 - **A different community plugin is active:** the card says so. For example, BuddyNext is active but you picked a Reign + BuddyPress demo. Pick a demo built for the plugin you run.
 
 ### Can AI write the demo for my kind of site?
@@ -205,8 +206,8 @@ Open the page in the block editor. Change any text in place, swap the About phot
 
 ### What exactly does each product get?
 
-- **Every demo:** 20 sample people with profiles and photos, shared by every product. Content is dated over the last two months.
-- **BuddyPress:** member photos, groups, friendships and a feed. If Groups or Friends are off, the demo switches them on. **Remove everything** switches them back.
+- **Every demo:** 20 sample people with profiles and photos, shared by every product. Content is dated over the last two months. Each course and marketplace demo has its own home page hero.
+- **BuddyPress:** member photos, groups with their photos, friendships and a feed. If Groups or Friends are off, the demo switches them on. Logged-out visitors do not see BuddyPress's toolbar across the top. **Remove everything** switches these back and removes the group photos too.
 - **WooCommerce:** a store of 13 products in 4 categories, with photos, some sale prices, stock and reviews. The shop opens, because a new store starts in "coming soon" mode. **Remove everything** puts that back.
 - **LearnDash:** 5 courses in 4 categories, with lessons, topics and a photo. The first lesson is a free preview. Sample students are part way through, and one finishes each course. Paid courses show in US dollars if no currency is set yet.
 - **Tutor LMS:** the same 5 courses with topics, lessons, a photo, level and duration, plus sample instructors. Sample students are part way through, and one finishes each course. The first two students in each course rate it. Course ratings and the enrolled count are switched on, and **Remove everything** puts Tutor's settings back.
