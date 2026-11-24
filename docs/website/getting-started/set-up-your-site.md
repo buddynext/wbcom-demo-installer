@@ -43,6 +43,8 @@ You see your theme and plugins working before your first real member joins. When
 
    ![A demo card: what it uses and Set up and use this demo](../images/03-demo-card.webp)
 
+   A card button reads **Use this demo** when everything it needs is already active, and **Set up and use this demo** when it still has free plugins or a theme to install. A theme's **Build this site** button can open Set up your site on one demo with `&demo=<id>` on the address. That card then sits alone at the top, ready to set up, and the other demos are folded away. See [Theme onboarding](../developer-guide/theme-onboarding.md#links-into-the-wizard).
+
 4. Choose **Set up and use this demo** on the card you want. The card installs, updates or switches on what is missing, then moves you to the next step.
 
    ![A card setting up its plugins](../images/04-setting-up.webp)
@@ -159,6 +161,7 @@ Choose **See every combination** on the Starting point step. It opens three more
 Reign, the Reign add-ons, LearnDash, BuddyBoss Platform, PeepSo and every Pro add-on are paid. You buy, install and license them yourself.
 
 - **Not installed:** the card marks it with **Get it**. Reign add-ons come from your [Wbcom account](https://wbcomdesigns.com/my-account/?ref=nav). Other paid plugins come from their own sellers. Upload the zip under **Plugins > Add New > Upload Plugin** and activate its licence. Then open **Appearance > Set up your site** again, and the card offers to set up the rest.
+- **Waiting for an upload:** the card names each paid plugin it needs, with where to get it. If you may upload plugins, it shows an **Upload plugin** button. Otherwise it asks you to ask an administrator. After you add the plugin, choose **Check again** and the card updates.
 - **Installed but switched off:** the card switches it on when you choose **Set up and use this demo**.
 - **An older version:** the card updates free plugins to their latest release. Reign and its add-ons update through your licence, just like **Dashboard > Updates**. Without an active licence, the card asks you to activate it first.
 - **An older BuddyPress, BuddyBoss Platform or BuddyNext:** the demo updates it in place and never adds a second community plugin. BuddyBoss Platform is recognised as BuddyBoss, so the BuddyBoss demos are offered.
@@ -209,6 +212,7 @@ Open the page in the block editor. Change any text in place, swap the About phot
 - **Every demo:** 20 sample people with profiles and photos, shared by every product. Content is dated over the last two months. Each course and marketplace demo has its own home page hero.
 - **BuddyPress:** member photos, groups with their photos, friendships and a feed. If Groups or Friends are off, the demo switches them on. Logged-out visitors do not see BuddyPress's toolbar across the top. **Remove everything** switches these back and removes the group photos too.
 - **WooCommerce:** a store of 13 products in 4 categories, with photos, some sale prices, stock and reviews. The shop opens, because a new store starts in "coming soon" mode. **Remove everything** puts that back.
+- **Learnomy:** courses with sections, lessons, instructors, enrolments, progress and reviews. Every course also has an end-of-course quiz in its last section, with single-choice questions and an essay the instructor grades. Sample students have already taken the quizzes.
 - **LearnDash:** 5 courses in 4 categories, with lessons, topics and a photo. The first lesson is a free preview. Sample students are part way through, and one finishes each course. Paid courses show in US dollars if no currency is set yet.
 - **Tutor LMS:** the same 5 courses with topics, lessons, a photo, level and duration, plus sample instructors. Sample students are part way through, and one finishes each course. The first two students in each course rate it. Course ratings and the enrolled count are switched on, and **Remove everything** puts Tutor's settings back.
 - **LifterLMS:** the same 5 courses with sections, lessons, a photo, a free or paid access plan and a free preview lesson. Sample students are part way through, one finishes each course, and each course gets two reviews. If the course catalog, student dashboard or checkout page is missing, the demo adds it. It also switches on manual payments so paid courses show their price. **Remove everything** takes both away again.
@@ -218,8 +222,8 @@ Open the page in the block editor. Change any text in place, swap the About phot
 - **WC Vendors** (with WooCommerce): the same 4 stores as vendor shops, with an about text, address and phone. Shop banners and logos need WC Vendors Pro.
 - **WP Job Manager:** 8 jobs from 3 companies run by sample people, with logos, job types, salaries and remote roles. Each company's first job is featured. If there is no Jobs page yet, the demo adds one. **Remove everything** takes it away again.
 - **GeoDirectory:** 24 places in Philadelphia, GeoDirectory's default city, across 8 categories. Each place has a photo, address, map pin, phone, website and opening hours. There are 56 star-rated reviews. GeoDirectory's location page is offered as the home page. **Remove everything** takes away the categories, the extra fields and the place page details.
-- **Your home page, menu and logo**, if you chose them.
-- **A Try the demo page** with the sample people and a guided tour. To let you sign in as any of them in one click, the demo installs and switches on the free User Switching plugin from WordPress.org. **Remove everything** takes it away again; if you already had it, it stays as it was.
+- **Your home page, menu and logo**, if you chose them. The home page opens with a full-width hero, and on a community demo the hero, numbers and members lead the page. The menu starts with **Try the demo**. The demo's own product, such as Courses on a course site, comes next at the top level. The other links sit under **Community**, **Explore** and **About**. Those groups become dropdowns once the menu has more than six links, and a small demo keeps one flat row.
+- **A Try the demo page** with the sample people and a guided tour. The tour's **Explore as** buttons sign you in as a sample person in one click. For that, the demo installs and switches on the free User Switching plugin from WordPress.org. **Remove everything** takes it away again; if you already had it, it stays as it was.
 - **Each product's own setup is finished**, so no setup wizards or reminders are waiting for you. On BuddyX, BuddyX Pro and Reign, product pages show without sidebars; other themes keep their own page layout.
 
 ### Does the demo send emails?
